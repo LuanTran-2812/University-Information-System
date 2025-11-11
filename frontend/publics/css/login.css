@@ -1,0 +1,181 @@
+/* --- BỐ CỤC CHUNG & RESET CƠ BẢN --- */
+body {
+    font-family: "Istok Web", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    color: #000000;
+}
+
+/* Ẩn một thành phần (dùng cho JS) */
+.hidden {
+    display: none;
+}
+
+/* --- BỐ CỤC 2 CỘT CHÍNH --- */
+.login-container {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Khóa chiều cao bằng màn hình */
+    overflow: hidden; /* Ẩn thanh cuộn */
+}
+
+/* --- CỘT TRÁI (FORM) --- */
+.form-section {
+    flex: 4; /* <-- ĐÃ SỬA TỶ LỆ CỘT (4 PHẦN) */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: #FFFAFA;
+    overflow-y: auto; 
+}
+
+/* Nội dung bên trong cột trái (căn giữa) */
+.form-content {
+    width: 100%;
+    max-width: 400px; /* Giới hạn độ rộng của form */
+}
+
+/* --- LOGO (Đã sửa) --- */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Khoảng cách giữa mũ và chữ */
+    margin-bottom: 3rem;
+}
+.logo-icon {
+    width: auto; /* Kích thước mũ */
+    height: auto;
+}
+.logo-container h1 {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #333;
+    margin: 0; /* Reset margin của H1 */
+}
+.logo-container h1 span {
+    color: #DE265E; /* Chữ U màu đỏ */
+}
+
+/* --- VIEW 1 (CHỌN VAI TRÒ) --- */
+#initial-view h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center; /* Canh giữa chữ */
+}
+.button-group {
+    display: flex;
+    gap: 1rem;
+}
+.button-group .btn {
+    flex: 1; /* 2 nút bằng nhau */
+}
+
+/* --- VIEW 2 (FORM ĐĂNG NHẬP) --- */
+.input-field {
+    position: relative;
+    margin-bottom: 2rem;
+}
+.input-field input {
+    width: 100%;
+    height: 54px;
+    background-color: #FFFAFA;
+    border-radius: 10px;
+    border: 1px solid #000000;
+    padding: 0 15px;
+    font-family: "Istok Web", Helvetica;
+    font-size: 16px;
+    color: #000000;
+    box-sizing: border-box; 
+}
+.input-field label {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: "Istok Web", Helvetica;
+    font-weight: 700;
+    color: #969191;
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.3s ease all;
+}
+.input-field input:focus + label,
+.input-field input:not(:placeholder-shown) + label {
+    top: -10px; /* Di chuyển label lên trên */
+    left: 10px;
+    font-size: 14px;
+    /* background: #FFFAFA; Tạo nền trắng cho label */
+    padding: 0 5px;
+}
+.input-field input:focus {
+    border-color: #2525AD; /* Đổi màu viền khi focus */
+    outline: none;
+}
+.eye {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0.6;
+}
+.eye:hover {
+    opacity: 1;
+}
+.btn-full {
+    width: 100%;
+}
+
+
+/* --- CỘT PHẢI (MINH HỌA) --- */
+.illustration-section {
+    flex: 6; /* <-- ĐÃ SỬA TỶ LỆ CỘT (6 PHẦN) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+    background-image: url('../img/Ellipse.svg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* --- CSS CHO CÁC NÚT (Button) --- */
+.btn {
+    display: inline-block;
+    font-family: "Istok Web", Helvetica;
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: 0.3s ease;
+    text-decoration: none;
+    height: 54px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background-color: #2525AD;
+    color: #FFFAFA;
+    border: 1px solid #000000;
+}
+.btn-primary:hover {
+    background-color: #2525AD;
+}
+
+.btn-secondary {
+    background-color: #FFFAFA;
+    color: #000000;
+    border: 1px solid #000000;
+}
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}

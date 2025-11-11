@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>Đăng nhập - UIS</title>
+    
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+      <div class="login-container">
+
+          <div class="form-section">
+              <div class="form-content">
+
+                  <div class="logo-container">
+                      <img class="logo-icon" src="img/Group.svg" alt="Logo" />
+                      <h1>
+                          <span>U</span>niversity<br />
+                          Information<br />
+                          System
+                      </h1>
+                  </div>
+
+                  <div id="initial-view">
+                      <h2>Đăng nhập với tài khoản</h2>
+                      <div class="button-group">
+                          <button id="show-login-form" class="btn btn-primary">Cán bộ/ Sinh viên</button>
+                          <button id="guest-btn" class="btn btn-secondary">Khách</button>
+                      </div>
+                  </div>
+
+                  <form id="login-form" class="hidden" method="POST">
+                      <div class="input-field">
+                          <input type="text" id="email" name="email" placeholder=" ">
+                          <label for="email">Email</label>
+                      </div>
+
+                      <div class="input-field">
+                          <input type="password" id="password" name="password" placeholder=" ">
+                          <label for="password">Mật khẩu</label>
+                          <div class="eye">
+                              <img class="vector" src="img/eye.svg" alt="Hiện/ẩn" />
+                          </div>
+                      </div>
+
+                      <button type="submit" class="btn btn-primary btn-full">Đăng nhập</button>
+                      <!-- Nút quay lại để trở về view ban đầu (đặt dưới nút đăng nhập) -->
+                      <button type="button" id="back-to-initial" class="btn btn-secondary btn-full" style="margin-top:1rem;">Quay lại</button>
+                  </form>
+
+              </div> </div> <div class="illustration-section">
+          </div>
+
+      </div>
+      <script src="js/login.js" defer></script>
+  </body>
+</html>
