@@ -1,0 +1,361 @@
+/* Cài đặt chung và Font chữ */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    /* Gradient từ phải sang trái */
+    background: linear-gradient(200deg, #EFEFEF 0%, #4A99A3 100%);
+    color: #333;
+}
+
+/* ------------------------- */
+/* Sidebar (Thanh bên trái) */
+/* ------------------------- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background-color: #F0F3FF; /* Màu xanh nhạt của sidebar */
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    /* Giữ sidebar cố định khi cuộn */
+    position: sticky;
+    top: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.logo img {
+    width: 80px;
+    height: auto; 
+}
+
+.logo h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 1.3;
+}
+
+.logo h2 span {
+    color: #DE265E;
+}
+
+/* Menu điều hướng */
+.sidebar nav {
+    flex-grow: 1; /* Đẩy menu dưới cùng xuống */
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: #5A6A8C;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar ul li a .material-symbols-outlined {
+    font-size: 24px;
+}
+
+/* Hiệu ứng khi di chuột */
+.sidebar ul li a:hover {
+    background-color: #DCE3FD;
+    color: #3B4BB1;
+}
+
+/* Link đang được chọn (active) */
+.sidebar ul li a.active {
+    background-color: #3B4BB1;
+    color: #FFFFFF;
+}
+
+/* Menu dưới cùng */
+.bottom-nav {
+    padding-top: 20px;
+    border-top: 1px solid #DDE1F0;
+}
+
+/* ------------------------- */
+/* Nội dung chính (Bên phải) */
+/* ------------------------- */
+.main-content {
+    flex-grow: 1;
+    padding: 25px 40px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; 
+}
+
+/* ------------------------- */
+/* Header (Phần đầu)         */
+/* ------------------------- */
+header.top-header {
+    display: flex;
+    justify-content: space-between; 
+    
+/* <<< THAY ĐỔI 1: Đổi từ 'flex-end' sang 'center' để căn giữa .header-right với .header-left */
+    align-items: center; 
+    
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* === CỘT BÊN TRÁI MỚI (Trang chủ, Tìm kiếm, Icons) === */
+.header-left {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 15px; 
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* === [SỬA] Nhóm chứa Search và Icons === */
+/* <<< THAY ĐỔI 2: 
+    1. Đổi tên từ '.search-and-icons' thành '.search-wrapper' để khớp với HTML.
+    2. Các thuộc tính 'display: flex' và 'align-items: center' này
+       sẽ căn ngang 2 icon (mail, notification) với thanh tìm kiếm.
+*/
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Khoảng cách giữa search và các icon */
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 10px 15px;
+    width: 350px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-bar .material-symbols-outlined {
+    color: #9AA5C0;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    margin-left: 10px;
+    width: 100%;
+    background: transparent;
+}
+
+.search-bar input::placeholder {
+    color: #9AA5C0;
+}
+
+/* Style cho các icon */
+.icon-btn {
+    font-size: 26px;
+    color: #5A6A8C;
+    cursor: pointer;
+}
+
+
+/* === CỘT BÊN PHẢI MỚI (Chỉ chứa Profile) === */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.user-profile img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-info .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2A3A5B;
+}
+
+.user-info .user-role {
+    font-size: 12px;
+    color: #8B98B9;
+}
+
+.user-profile .material-symbols-outlined {
+    color: #8B98B9;
+}
+
+
+/* ------------------------- */
+/* Khu vực nội dung           */
+/* ------------------------- */
+.content-area {
+    flex: 1; 
+    padding: 30px;
+    margin: 0;
+    background-color: #FFFAFA;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* === CSS CHO CUSTOM DROPDOWN (Thay thế .filter-bar) === */
+
+/* 1. Container chính */
+.custom-select-wrapper {
+    position: relative; /* Quan trọng để định vị menu con */
+    font-family: 'Roboto', sans-serif;
+    width: 350px; /* Giữ kích thước bằng search-bar */
+}
+
+/* 2. Hộp hiển thị (Cái hộp "Chọn học kỳ") */
+.custom-select-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 9px 14px;
+    
+    border: 1px solid transparent; 
+    
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #9AA5C0;
+}
+
+/* 2.1. Mũi tên bên trong hộp */
+.custom-select-trigger .dropdown-arrow {
+    transition: transform 0.3s ease;
+}
+
+/* 2.2. Style khi text đã được chọn (không còn là "Chọn học kỳ") */
+.custom-select-trigger.selected {
+    color: #333; /* Màu chữ đen */
+}
+
+/* 2.3. Hiệu ứng khi menu mở: viền, bóng, và xoay mũi tên */
+.custom-select-wrapper.open .custom-select-trigger {
+    box-shadow: 0 0 8px rgba(59, 75, 177, 0.3);
+    border-color: #3B4BB1;
+}
+.custom-select-wrapper.open .dropdown-arrow {
+    transform: rotate(180deg); /* Xoay mũi tên lên (như trong hình) */
+}
+
+
+/* 3. Menu xổ xuống (Danh sách HK252, HK251...) */
+.custom-select-menu {
+    display: none; /* Mặc định ẩn */
+    position: absolute;
+    top: 110%; /* Nằm ngay dưới hộp trigger */
+    left: 0;
+    right: 0;
+    
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    
+    /* Thêm viền xám nhạt như trong hình */
+    border: 1px solid #E0E0E0;
+    
+    max-height: 172px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+/* 3.1. Hiển thị menu khi container có class 'open' */
+.custom-select-wrapper.open .custom-select-menu {
+    display: block;
+}
+
+/* 4. Các lựa chọn (option) */
+.custom-option {
+    padding: 12px 15px;
+    cursor: pointer;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+/* 4.1. Hiệu ứng khi di chuột vào (màu nền xanh nhạt) */
+.custom-option:hover {
+    background-color: #DCE3FD; /* Màu xanh nhạt (giống sidebar hover) */
+}
+
+/* === CSS TÙY CHỈNH THANH CUỘN (SCROLLBAR) === */
+
+/* 1. Thiết lập độ rộng tổng thể cho thanh cuộn */
+.custom-select-menu::-webkit-scrollbar {
+    width: 10px; /* Tổng không gian cho thanh cuộn (2px viền + 6px + 2px viền) */
+}
+
+/* 2. Phần rãnh (track) - làm cho nó VÔ HÌNH */
+.custom-select-menu::-webkit-scrollbar-track {
+    background: transparent; /* Xóa nền của rãnh */
+    border-radius: 10px;
+}
+
+/* 3. Phần con trượt (thumb) - đây là "bí mật" */
+.custom-select-menu::-webkit-scrollbar-thumb {
+    background: #c5cde8; /* Màu của con trượt */
+    
+    /* Đây là phần quan trọng: */
+    border-radius: 10px; /* Bo tròn con trượt */
+    
+    /* Tạo một đường viền 2px CÙNG MÀU VỚI NỀN MENU (#FFFFFF).
+     Việc này tạo ảo giác con trượt đang "nổi" cách xa cạnh 2px.
+    */
+    border: 2px solid #FFFFFF; 
+    
+    /* Bảo đảm viền không bị đè lên bởi background */
+    background-clip: padding-box;
+}
+
+/* 4. Hiệu ứng khi di chuột (giữ nguyên) */
+.custom-select-menu::-webkit-scrollbar-thumb:hover {
+    background: #a9b5dd;
+}

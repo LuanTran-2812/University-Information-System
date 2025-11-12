@@ -1,0 +1,251 @@
+.dashboard-container {
+    width: 100%;
+    /* Sử dụng height 100% để nó vừa với .content-area */
+    height: 100%; 
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Khoảng cách giữa 2 khối Thống Kê và Biểu Đồ */
+    
+    /* Ngăn nội dung bị tràn nếu màn hình quá nhỏ */
+    overflow-y: auto; 
+}
+
+/* Tiêu đề chung cho "THỐNG KÊ" và "SỐ BUỔI HỌC TRONG TUẦN" */
+.stats-section h3,
+.chart-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    /* Sử dụng màu chữ đậm từ sidebar/header cho nhất quán */
+    color: #4979D1; 
+    margin-bottom: 18px;
+    text-transform: uppercase;
+}
+
+/* ------------------------- */
+/* 1. Khu vực Thống Kê (Stats) */
+/* ------------------------- */
+.stats-grid {
+    display: grid;
+    /* Tạo 3 cột. 
+      - minmax(240px, 1fr) có nghĩa là:
+      - Cột nhỏ nhất là 240px.
+      - Nếu có nhiều không gian, 3 cột sẽ chia đều (1fr)
+      - Nếu không đủ (ví dụ: màn hình mobile), nó sẽ tự xuống hàng
+    */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #6D88CE;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Dùng box-shadow nhẹ từ file index.css của bạn */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.stat-info .stat-title {
+    font-size: 14px;
+    font-weight: 500;
+    /* Màu xám nhạt như trong hình và file index.css */
+    color: #8B98B9; 
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* [ĐÁP ỨNG YÊU CẦU 2] Dễ dàng target để thay đổi số liệu */
+.stat-info .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2A3A5B;
+}
+
+.stat-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px; /* Bo góc vuông như hình */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.stat-icon-wrapper .material-symbols-outlined {
+    font-size: 28px;
+}
+
+/* Màu sắc riêng cho từng icon (như trong ảnh) */
+.stat-icon-wrapper.user {
+    background-color: #E9E7FD; /* Tím nhạt */
+    color: #3B4BB1; /* Tím đậm (từ index.css) */
+}
+.stat-icon-wrapper.subject {
+    background-color: #FEF6E0; /* Vàng nhạt */
+    color: #E9A400; /* Vàng đậm */
+}
+.stat-icon-wrapper.class {
+    background-color: #E0F8F0; /* Xanh lá nhạt */
+    color: #00A36D; /* Xanh lá đậm */
+}
+
+/* ------------------------- */
+/* 2. Khu vực Biểu Đồ (Chart) */
+/* ------------------------- */
+.chart-section {
+    flex-grow: 1; /* Quan trọng: Giúp khối này lấp đầy chiều cao còn lại */
+    display: flex;
+    flex-direction: column;
+    /* min-height: 400px; Chiều cao tối thiểu để biểu đồ không bị bóp */
+}
+
+.chart-container {
+    flex-grow: 1; /* Lấp đầy không gian của .chart-section */
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    border: 1px solid #6D88CE;
+}
+
+/* 2.1. Trục Y (Y-Axis) */
+.y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 15px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9AA5C0; /* Màu xám nhạt */
+    height: 100%;
+    /* Lùi 1 chút để khớp với thanh 0 (bằng với padding-bottom của .chart-area) */
+    padding-bottom: 30px; 
+}
+
+/* 2.2. Khu vực vẽ biểu đồ (Chart-Area) */
+.chart-area {
+    flex-grow: 1;
+    position: relative;
+    border-left: 1px solid #EFEFEF; /* Trục Y mờ */
+    height: 100%;
+    /* Không gian cho label X (THỨ HAI, THỨ BA...) */
+    padding-bottom: 30px; 
+}
+
+/* 2.3. Đường kẻ ngang (Grid lines) */
+.grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #F0F3FF; /* Màu rất nhạt */
+    z-index: 1;
+}
+/* Vị trí các đường (tính từ DƯỚI LÊN, khớp với trục Y 10-50) */
+.grid-line:nth-child(1) { bottom: 20%; } /* 10 */
+.grid-line:nth-child(2) { bottom: 40%; } /* 20 */
+.grid-line:nth-child(3) { bottom: 60%; } /* 30 */
+.grid-line:nth-child(4) { bottom: 80%; } /* 40 */
+.grid-line:nth-child(5) { bottom: 100%; } /* 50 */
+
+/* 2.4. Nhóm các thanh (Bars) */
+.bar-group {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end; /* Quan trọng: Căn các thanh xuống dưới */
+    height: 100%;
+    position: relative;
+    z-index: 2; /* Nằm trên các đường grid-line */
+}
+
+.bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1; /* Mỗi thanh chiếm không gian bằng nhau */
+    position: relative; /* Để định vị tooltip */
+    height: 100%;
+    justify-content: flex-end; /* Căn thanh và label xuống dưới */
+}
+
+/* [ĐÁP ỨNG YÊU CẦU 2] Chiều cao thanh được set bằng inline style */
+.bar {
+    width: 60%; /* Độ rộng của thanh */
+    max-width: 35px;
+    background-color: #A9D5FF; /* Màu xanh nhạt */
+    border-radius: 6px 6px 0 0; /* Bo tròn 2 góc trên */
+    transition: background-color 0.3s ease;
+}
+
+.bar-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #9AA5C0;
+    margin-top: 10px;
+    position: absolute;
+    bottom: -30px; /* Đặt label X xuống dưới */
+}
+
+/* 2.5. Tooltip (Req 3: Hover) */
+.bar-tooltip {
+    position: absolute;
+    top: -32px; /* Vị trí phía trên thanh */
+    background-color: #2A3A5B; /* Màu nền đen/xanh đậm */
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 8px;
+    border-radius: 4px;
+    
+    /* Ẩn đi mặc định */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+    
+    /* Tạo mũi tên tam giác */
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: #2A3A5B transparent transparent transparent;
+    }
+}
+
+/* [ĐÁP ỨNG YÊU CẦU 3] Hiển thị tooltip khi hover */
+.bar-wrapper:hover .bar-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* [ĐÁP ỨNG YÊU CẦU 3] Đổi màu thanh khi hover */
+.bar-wrapper:hover .bar {
+    background-color: #007BFF; /* Màu xanh đậm hơn */
+}
+
+/* Style cho thanh "active" (Thứ 6 trong ảnh) */
+.bar-wrapper.active .bar {
+    background-color: #007BFF; /* Xanh đậm */
+}
+
+/* Hiển thị tooltip của thanh active (như trong ảnh) */
+.bar-wrapper.active .bar-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}

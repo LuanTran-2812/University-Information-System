@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University Information System - Admin Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard-admin.css">
+    
+    <link rel="stylesheet" href="../css/admin/index.css">
+
+    <link rel="stylesheet" href="../css/admin/trang-chu.css"> <!-- Chèn CSS riêng cho trang chủ -->
+    
     <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700&display=swap" />
 </head>
@@ -12,7 +16,7 @@
 
     <aside class="sidebar">
         <div class="logo">
-            <img src="img/Group.svg" alt="University Logo">
+            <img src="../img/Group.svg" alt="University Logo">
             <h2>
                 <span>U</span>niversity<br />
                 Information<br />
@@ -23,44 +27,56 @@
         <nav class="main-nav">
             <ul>
                 <li>
-                    <a href="#" class="nav-link active">
-                        <span class="material-symbols-outlined">grid_view</span>
+                    <a href="#" class="nav-link active"
+                       data-page="pages/trang-chu.html"
+                       data-title="Trang chủ"
+                       data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">grid_view</span>
                         <span>Trang chủ</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
-                        <span class="material-symbols-outlined">person</span>
+                    <a href="#" class="nav-link"
+                       data-page="pages/nguoi-dung.html"
+                       data-title="Người dùng"
+                       data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">person</span>
                         <span>Người dùng</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
-                        <span class="material-symbols-outlined">star</span>
+                    <a href="#" class="nav-link"
+                        data-page="pages/mon-hoc.html"
+                        data-title="Môn học"
+                        data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">star</span>
                         <span>Môn học</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
-                        <span class="material-symbols-outlined">school</span>
+                    <a href="#" class="nav-link"
+                        data-page="pages/lop-hoc.html"
+                        data-title="Lớp học"
+                        data-controls="partials/emester-filter.html"> <span class="material-symbols-outlined">school</span>
                         <span>Lớp học</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
-                        <span class="material-symbols-outlined">calendar_today</span>
+                    <a href="#" class="nav-link"
+                        data-page="pages/lich-hoc.html"
+                        data-title="Lịch học"
+                        data-controls="partials/emester-filter.html"> <span class="material-symbols-outlined">calendar_today</span>
                         <span>Lịch học</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
-                        <span class="material-symbols-outlined">tune</span>
+                    <a href="#" class="nav-link"
+                        data-page="pages/lich-hoc.html"
+                        data-title="Học kỳ"
+                        data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">tune</span>
                         <span>Học kỳ</span>
                     </a>
                 </li>
             </ul>
         </nav>
-
+        
         <div class="bottom-nav">
             <ul>
                 <li>
@@ -88,12 +104,10 @@
     <main class="main-content">
         <header class="top-header">
             <div class="header-left">
-                <h1>Trang chủ</h1>
+                <h1 id="page-title">Trang chủ</h1>
                 <div class="search-wrapper">
-                    <div class="search-bar">
-                        <span class="material-symbols-outlined">search</span>
-                        <input type="text" placeholder="Tìm kiếm">
-                    </div>
+                    <div id="dynamic-controls-slot"></div>
+                    
                     <span class="material-symbols-outlined icon-btn">notifications</span>
                     <span class="material-symbols-outlined icon-btn">mail</span>
                 </div>
@@ -101,7 +115,7 @@
             
             <div class="header-right">
                 <div class="user-profile">
-                    <img src="img/image 10.png" alt="User Avatar">
+                    <img src="../img/image 10.png" alt="User Avatar">
                     <div class="user-info">
                         <span class="user-name">Quản trị viên</span>
                         <span class="user-role">Admin</span>
@@ -112,9 +126,9 @@
         </header>
 
         <section class="content-area">
-            <!-- Content will be added here -->
-        </section>
+            </section>
     </main>
 
+    <script src="../js/admin/main.js"></script>
 </body>
 </html>
