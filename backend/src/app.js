@@ -24,6 +24,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger);
 
+// Set security headers and CSP
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https:; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000;"
+  );
+  next();
+});
+
+// Serve static files from frontend/publics
+app.use(express.static(path.join(__dirname, '../../frontend/publics')));
+
 // API routes (mounted central router)
 app.use('/api', routes);
 

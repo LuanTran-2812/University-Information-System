@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-    // Lấy các "lỗ hổng" (slots)
     const pageTitleSlot = document.getElementById("page-title");
     const controlsSlot = document.getElementById("dynamic-controls-slot");
     const contentAreaSlot = document.querySelector(".content-area");
@@ -13,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!url) return ""; // Trả về rỗng nếu không có URL controls
         try {
             // Đường dẫn trong data-page là tương đối với file index.html
-            // (ví dụ: 'pages/trang-chu.html')
-            // nên chúng ta có thể fetch trực tiếp
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Tải ${url} thất bại`);
             return await response.text();
@@ -50,13 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
         link.addEventListener("click", (event) => {
             event.preventDefault(); // Ngăn trình duyệt tải lại trang
 
-            // === [YÊU CẦU 2] XỬ LÝ CLASS 'ACTIVE' ===
             // Xóa class 'active' khỏi TẤT CẢ các link
             navLinks.forEach(item => item.classList.remove("active"));
             
             // Thêm class 'active' vào CHỈ link vừa được bấm
             link.classList.add("active");
-            // ======================================
 
             // Lấy thông tin từ data-attributes
             const pageUrl = link.dataset.page;
@@ -68,9 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 6. [YÊU CẦU 1] TẢI TRANG MẶC ĐỊNH
-    // Tự động tìm link đang có class 'active' trong HTML (là "Trang chủ")
-    // và tải nội dung của nó ngay khi vào trang.
+    // 6. TẢI TRANG MẶC ĐỊNH tìm link đang có class 'active' trong HTML (là "Trang chủ")
     const defaultActiveLink = document.querySelector(".main-nav .nav-link.active");
     if (defaultActiveLink) {
         loadPage(
@@ -79,9 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
             defaultActiveLink.dataset.title
         );
     }
-
-
-    // Đặt đoạn code này bên trong: document.addEventListener("DOMContentLoaded", () => { ... });
 
     // === XỬ LÝ CUSTOM DROPDOWN (BỘ LỌC) ===
 
@@ -124,6 +113,33 @@ document.addEventListener("DOMContentLoaded", () => {
             // (Quan trọng) GỌI API LỌC CỦA BẠN Ở ĐÂY
             console.log("Đã chọn học kỳ:", selectedValue);
             // loadContentArea('pages/mon-hoc.html', selectedValue); // Gọi hàm lọc
+        }
+    });
+
+    // === XỬ LÝ LOGOUT ===
+    const logoutBtn = document.querySelector('.bottom-nav a[href="#"]:has(.material-symbols-outlined:first-child)');
+    
+    // Tìm logout button theo text hoặc icon
+    const logoutLinks = document.querySelectorAll('.bottom-nav .nav-link');
+    logoutLinks.forEach(link => {
+        const icon = link.querySelector('.material-symbols-outlined');
+        const text = link.querySelector('span:last-child');
+        
+        // Kiểm tra xem có phải logout button không (icon là 'logout' hoặc text là 'Log out')
+        if ((icon && icon.textContent.trim() === 'logout') || 
+            (text && text.textContent.trim().toLowerCase() === 'log out')) {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                
+                // Xóa token trong localStorage
+                localStorage.removeItem('token');
+                
+                // Redirect về trang login
+                // Kiểm tra xem đang chạy ở Live Server hay Backend
+                const isLiveServer = window.location.port === '5500';
+                const basePath = isLiveServer ? '/frontend/publics' : '';
+                window.location.href = basePath + '/login.html';
+            });
         }
     });
 });

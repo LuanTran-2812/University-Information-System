@@ -18,7 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('guest-btn');
   if (guestBtn) {
     guestBtn.addEventListener('click', () => {
-      window.location.href = '/dashboard.html';
+      // Determine base path based on current location
+      const isLiveServer = window.location.port === '5500';
+      const basePath = isLiveServer ? '/frontend/publics' : '';
+      window.location.href = basePath + '/dashboard-guest.html';
     });
   }
 
@@ -59,24 +62,36 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(data);
         if (response.ok) {
           localStorage.setItem('token', data.token);
-          // Normalize role: strip diacritics, remove spaces and lowercase
-          const rawRole = (data.role || '');
-          const normalized = rawRole.normalize ? rawRole.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawRole;
-          const roleKey = normalized.replace(/\s+/g, '').toLowerCase();
           
-          console.log('Raw role:', rawRole, 'Normalized:', roleKey);
-
-          // Map to dashboards - DB roles: "Admin", "Giảng Viên", "Sinh Viên"
-          // After normalize & lowercase: "admin", "giangvien", "sinhvien"
-          if (roleKey === 'admin') {
-            window.location.href = '/dashboard-admin.html';
-          } else if (roleKey === 'giangvien' || roleKey.includes('giang')) {
-            window.location.href = '/dashboard-lecturer.html';
-          } else if (roleKey === 'sinhvien' || roleKey.includes('sinh')) {
-            window.location.href = '/dashboard-student.html';
+          // Determine base path based on current location
+          const isLiveServer = window.location.port === '5500';
+          const basePath = isLiveServer ? '/frontend/publics' : '';
+          
+          // Use redirectUrl from backend if available
+          if (data.redirectUrl) {
+            // Adjust redirect URL for Live Server
+            const redirectPath = basePath + data.redirectUrl;
+            window.location.href = redirectPath;
           } else {
-            // Role unknown
-            alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole + '. Vui lòng liên hệ quản trị.');
+            // Fallback: Normalize role on frontend
+            const rawRole = (data.role || '');
+            const normalized = rawRole.normalize ? rawRole.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawRole;
+            const roleKey = normalized.replace(/\s+/g, '').toLowerCase();
+            
+            console.log('Raw role:', rawRole, 'Normalized:', roleKey);
+
+            // Map to dashboards - DB roles: "Admin", "Giảng Viên", "Sinh Viên"
+            // After normalize & lowercase: "admin", "giangvien", "sinhvien"
+            if (roleKey === 'admin') {
+              window.location.href = basePath + '/admin/index.html';
+            } else if (roleKey === 'giangvien' || roleKey.includes('giang')) {
+              window.location.href = basePath + '/dashboard-lecturer.html';
+            } else if (roleKey === 'sinhvien' || roleKey.includes('sinh')) {
+              window.location.href = basePath + '/dashboard-student.html';
+            } else {
+              // Role unknown
+              alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole + '. Vui lòng liên hệ quản trị.');
+            }
           }
         } else {
           alert(data.message);
