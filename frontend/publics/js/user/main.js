@@ -80,27 +80,54 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // 4. GẮN SỰ KIỆN SUBMIT CHO FORM
-        form.addEventListener("submit", (event) => {
+        form.addEventListener("submit", async (event) => {
             event.preventDefault();
             hideAlerts();
 
             // Lấy dữ liệu từ form
-            const name = form.querySelector('input[name="name"]').value;
-            const email = form.querySelector('input[name="email"]').value;
-            const message = form.querySelector('textarea[name="message"]').value;
+            const name = form.querySelector('input[name="name"]').value.trim();
+            const email = form.querySelector('input[name="email"]').value.trim();
+            const phone = form.querySelector('input[name="phone"]').value.trim();
+            const message = form.querySelector('textarea[name="message"]').value.trim();
 
             // 5. KIỂM TRA DỮ LIỆU (VALIDATION)
-            if (name === '' || email === '' || message === '') {
-                showWarning("Vui lòng nhập đầy đủ các trường bắt buộc.");
+            if (!name || !email || !phone || !message) {
+                showWarning("Vui lòng nhập đầy đủ các thông tin.");
                 return; 
             }
             
-            console.log("Form hợp lệ, chuẩn bị gửi:", { name, email, message });
+            console.log("Form hợp lệ, đang gửi đến backend:", { name, email, phone, message });
             
-            // Demo thành công:
-            showSuccess("Dữ liệu đã được gửi thành công!");
-            
-            form.reset();
+            // Gửi dữ liệu đến backend
+            try {
+                const BACKEND_URL = 'http://localhost:8000/api';
+                const response = await fetch(`${BACKEND_URL}/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        HoTen: name,
+                        Email: email,
+                        SDT: phone,
+                        NoiDung: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Thành công
+                    showSuccess(data.message || "Đã gửi liên hệ thành công. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.");
+                    form.reset();
+                } else {
+                    // Lỗi validation từ backend
+                    showWarning(data.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+                }
+            } catch (error) {
+                console.error("Lỗi khi gửi form:", error);
+                showWarning("Không thể kết nối đến server. Vui lòng thử lại sau.");
+            }
         });
     }
 
@@ -117,6 +144,11 @@ document.addEventListener("DOMContentLoaded", () => {
             // "Bơm" HTML vào các "lỗ hổng"
             pageTitleSlot.innerText = title;
             contentAreaSlot.innerHTML = pageHtml;
+
+            // Nếu trang vừa load là trang Liên hệ, khởi tạo logic form
+            if (pageUrl.includes('lien-he.html')) {
+                initContactPageLogic();
+            }
 
         } catch (error) {
             console.error("Lỗi khi tải trang:", error);
