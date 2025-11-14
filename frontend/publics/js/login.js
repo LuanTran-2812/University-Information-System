@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Determine base path based on current location
       const isLiveServer = window.location.port === '5500';
       const basePath = isLiveServer ? '/frontend/publics' : '';
-      window.location.href = basePath + '/dashboard-guest.html';
+      window.location.href = basePath + '/user/index.html';
     });
   }
 

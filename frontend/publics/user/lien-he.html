@@ -1,0 +1,38 @@
+<div class="contact-form-wrapper">
+
+    <div class="alert alert-warning" id="contact-alert-warning" style="display:none;">
+        <span class="material-symbols-outlined alert-icon">warning</span>
+        <div class="alert-content">
+            <strong class="alert-title">Cảnh báo</strong>
+            <span class="alert-message" id="contact-alert-warning-msg">
+                Vui lòng nhập đầy đủ các đầy đủ các thông tin.
+            </span>
+        </div>
+        <span class="material-symbols-outlined alert-close" id="close-warning-btn">close</span>
+    </div>
+    
+    <div class="alert alert-success" id="contact-alert-success" style="display:none;">
+        <span class="material-symbols-outlined alert-icon">check_circle</span>
+        <div class="alert-content">
+            <strong class="alert-title">Thành công</strong>
+            <span class="alert-message" id="contact-alert-success-msg">
+                Đã gửi liên hệ thành công. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+            </span>
+        </div>
+        <span class="material-symbols-outlined alert-close" id="close-success-btn">close</span>
+    </div>
+    
+    <h2 class="contact-title">Liên Hệ</h2>
+    
+    <form class="contact-form" id="page-contact-form">
+        <input type="text" name="name" placeholder="Họ và tên" class="contact-input">
+        
+        <input type="text" name="email" placeholder="Email" class="contact-input">
+        
+        <input type="text" name="phone" placeholder="Số điện thoại" class="contact-input">
+        
+        <textarea name="message" placeholder="Nội dung" class="contact-textarea" rows="7"></textarea>
+        
+        <button type="submit" class="contact-submit-btn">Submit</button>
+    </form>
+</div>

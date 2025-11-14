@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    background: linear-gradient(200deg, #EFEFEF 0%, #4A99A3 100%);
+    color: #333;
+}
+
+/* ------------------------- */
+/* Sidebar (Thanh bên trái) */
+/* ------------------------- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background-color: #F0F3FF; 
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    /* Giữ sidebar cố định khi cuộn */
+    position: sticky;
+    top: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.logo img {
+    width: 80px;
+    height: auto; 
+}
+
+.logo h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    line-height: 1.3;
+}
+
+.logo h2 span {
+    color: #DE265E;
+}
+
+.sidebar nav {
+    flex-grow: 1;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: #5A6A8C;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar ul li a .material-symbols-outlined {
+    font-size: 24px;
+}
+
+.sidebar ul li a:hover {
+    background-color: #DCE3FD;
+    color: #3B4BB1;
+}
+
+.sidebar ul li a.active {
+    background-color: #3B4BB1;
+    color: #FFFFFF;
+}
+
+.bottom-nav {
+    padding-top: 20px;
+    border-top: 1px solid #DDE1F0;
+}
+
+/* ------------------------- */
+/* Nội dung chính (Bên phải) */
+/* ------------------------- */
+.main-content {
+    flex-grow: 1;
+    padding: 25px 40px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; 
+}
+
+/* ------------------------- */
+/* Header (Phần đầu)         */
+/* ------------------------- */
+header.top-header {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+
+.header-left {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 15px; 
+}
+
+.header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 10px 15px;
+    width: 350px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-bar .material-symbols-outlined {
+    color: #9AA5C0;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    margin-left: 10px;
+    width: 100%;
+    background: transparent;
+}
+
+.search-bar input::placeholder {
+    color: #9AA5C0;
+}
+
+.icon-btn {
+    font-size: 26px;
+    color: #5A6A8C;
+    cursor: pointer;
+}
+
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.user-profile img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-info .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2A3A5B;
+}
+
+.user-info .user-role {
+    font-size: 12px;
+    color: #8B98B9;
+}
+
+.user-profile .material-symbols-outlined {
+    color: #8B98B9;
+}
+
+
+/* ------------------------- */
+/* Khu vực nội dung           */
+/* ------------------------- */
+.content-area {
+    flex: 1; 
+    padding: 30px;
+    margin: 0;
+    background-color: #FFFAFA;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    position: relative; /* Tạo khung tham chiếu cho các lớp phủ bên trong */
+}
