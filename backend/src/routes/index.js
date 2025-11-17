@@ -1,15 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-// Import sub-routers
 const authRouter = require('./auth');
-const contactRouter = require('./contact');
+const dashboardRouter = require('./dashboard');
+const userRouter = require('./users'); 
+const semesterRouter = require('./semesters');
+const subjectRouter = require('./subjects');
+const classRouter = require('./classes');
+const scheduleRouter = require('./schedules');
 
-// Mount routers with prefixes
-// - /api/auth -> authRouter (login/register)
 router.use('/auth', authRouter);
+router.use('/dashboard', dashboardRouter);
+router.use('/users', userRouter);      
+router.use('/semesters', semesterRouter);
+router.use('/subjects', subjectRouter);
+router.use('/classes', classRouter);
+router.use('/schedules', scheduleRouter);
 
-// - /api/contact -> contactRouter
-router.use('/contact', contactRouter);
 
 module.exports = router;

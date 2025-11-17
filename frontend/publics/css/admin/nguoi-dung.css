@@ -1,0 +1,183 @@
+/* Reset & Container */
+.user-page-container {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    min-height: 85vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Header Styles */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-title h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111;
+    margin: 0;
+}
+
+.icon-users {
+    color: #00C853; /* Màu xanh lá giống Figma */
+    font-size: 28px;
+}
+
+/* Actions & Buttons */
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 240px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    margin-left: 8px;
+    width: 100%;
+}
+
+.search-box span { color: #9CA3AF; }
+
+.btn-white {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-blue {
+    background: #4F46E5; /* Màu xanh tím Figma */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-icon-only {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    width: 40px;
+    cursor: pointer;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table Styles */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th {
+    background: #fff;
+    text-align: left;
+    padding: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.user-table td {
+    padding: 16px;
+    font-size: 14px;
+    color: #111;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.page-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    font-size: 13px;
+}
+
+.page-btn.active {
+    background: #4F46E5;
+    color: white;
+    border-color: #4F46E5;
+}
+
+/* 1. Biến ô chứa nút thành Flexbox để căn giữa dọc và ngang */
+.user-table td:last-child {
+    display: flex;
+    align-items: center;     /* Căn giữa theo chiều dọc */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    gap: 15px;               /* Khoảng cách giữa thùng rác và mũi tên */
+    height: 100%;            /* Chiếm hết chiều cao dòng */
+    border-bottom: none;     /* Xóa viền trùng */
+}
+
+/* 2. Chỉnh lại nút mũi tên > cho đẹp hơn */
+.btn-detail {
+    text-decoration: none;
+    color: #999;
+    font-weight: bold;
+    font-size: 18px; /* To hơn xíu cho dễ bấm */
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.btn-detail:hover {
+    color: #007bff; /* Hover màu xanh */
+    transform: translateX(3px); /* Hiệu ứng di chuyển nhẹ */
+}

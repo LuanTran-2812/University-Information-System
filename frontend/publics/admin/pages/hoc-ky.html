@@ -1,0 +1,88 @@
+<div class="semester-page-container">
+    <div class="page-header">
+        <div class="header-title">
+            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">tune</span>
+            <h2>Danh sách học kỳ</h2>
+        </div>
+
+        <div class="header-actions">
+            <div class="search-box">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" placeholder="Tìm kiếm">
+            </div>
+            <button class="btn-add-semester">
+                + Thêm
+            </button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="semester-table">
+            <thead>
+                <tr>
+                    <th>Mã học kỳ</th>
+                    <th>Năm học</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Thời gian đăng ký</th>
+                    <th>Trạng thái</th>
+                    <th style="text-align: center;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="semester-table-body">
+                </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination"></div>
+</div>
+
+<div id="semester-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Thêm học kỳ</h3>
+            <span class="material-symbols-outlined close-btn" onclick="closeSemesterModal()">close</span>
+        </div>
+
+        <form id="modal-add-semester-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Mã học kỳ <span class="required">*</span></label>
+                    <input type="text" id="maHK" placeholder="Ví dụ: HK2_2526" required>
+                </div>
+                <div class="form-group">
+                    <label>Năm học <span class="required">*</span></label>
+                    <input type="text" id="namHoc" placeholder="2025-2026" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Ngày bắt đầu <span class="required">*</span></label>
+                    <input type="date" id="ngayBatDau" required>
+                </div>
+                <div class="form-group">
+                    <label>Ngày kết thúc <span class="required">*</span></label>
+                    <input type="date" id="ngayKetThuc" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Thời gian đăng ký môn <span class="required">*</span></label>
+                    <div class="date-range-group">
+                        <input type="date" id="moDangKy" required>
+                        <span class="arrow">➝</span>
+                        <input type="date" id="dongDangKy" required>
+                    </div>
+                </div>
+                
+                <div class="form-group full-width" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="daKhoa" style="width: 20px; height: 20px;">
+                    <label for="daKhoa" style="margin: 0; cursor: pointer;">Khóa học kỳ này (Chuyển sang trạng thái Đã đóng)</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <input type="hidden" id="editing-semester-id">
+                <button type="submit" class="btn-save-orange" id="modal-submit-btn">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>

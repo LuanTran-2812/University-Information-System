@@ -1,0 +1,73 @@
+const userService = require('../services/userService');
+
+//  Hàm lấy danh sách sinh viên
+const getStudents = async (req, res, next) => {
+  try {
+    const students = await userService.getAllStudents();
+    res.json({
+      success: true,
+      data: students
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Hàm lấy danh sách Khoa 
+const getFaculties = async (req, res, next) => {
+  try {
+    const faculties = await userService.getAllFaculties();
+    res.json({ 
+      success: true, 
+      data: faculties 
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+//  Hàm tạo người dùng mới
+const createUser = async (req, res, next) => {
+  try {
+    await userService.createUser(req.body);
+    res.json({ 
+      success: true, 
+      message: 'Thêm thành công!' 
+    });
+  } catch (err) {
+    // Trả về lỗi 400 để frontend biết
+    res.status(400).json({ 
+      success: false, 
+      message: err.message 
+    });
+  }
+};
+
+const getUserDetail = async (req, res, next) => {
+  try {
+    const { email } = req.query; // Lấy email từ URL (ví dụ: /api/users/detail?email=abc@...)
+    const user = await userService.getUserDetail(email);
+    
+    if (user) {
+      res.json({ success: true, data: user });
+    } else {
+      res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const { email } = req.params; // Lấy email từ URL
+    await userService.deleteUser(email);
+    res.json({ success: true, message: 'Xóa người dùng thành công!' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getStudents, createUser, getFaculties, getUserDetail, deleteUser };
