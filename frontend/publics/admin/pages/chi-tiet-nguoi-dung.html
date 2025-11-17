@@ -1,0 +1,80 @@
+<div class="user-detail-container">
+    <h2 class="page-title">
+        Chi tiết người dùng 
+        <span class="material-symbols-outlined" style="color: #007bff;">person_edit</span>
+    </h2>
+    
+    <div class="detail-layout">
+        <div class="left-column">
+            <h3 class="section-title">Thông tin cơ bản</h3>
+            
+            <form id="update-user-form" class="detail-form">
+                <input type="hidden" id="original-email">
+
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <div class="input-box">
+                        <input type="text" id="detail-fullname" readonly class="readonly-input">
+                        <span class="char-counter">0/80</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tên thay thế</label>
+                    <div class="input-box">
+                        <input type="text" id="detail-alt-name" placeholder="Nhập họ tên mới">
+                        <span class="char-counter">0/120</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Vai trò</label>
+                    <div class="input-box">
+                        <select id="detail-role" disabled class="readonly-input no-arrow">
+                            <option value="Sinh viên">Sinh viên</option>
+                            <option value="Giảng viên">Giảng viên</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <span class="material-symbols-outlined dropdown-icon">expand_more</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-box">
+                        <input type="email" id="detail-email" readonly class="readonly-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <div class="input-box">
+                        <input type="text" id="detail-phone">
+                        <span class="char-counter">0/12</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Khoa</label>
+                    <div class="input-box">
+                        <input type="text" id="detail-khoa" readonly class="readonly-input">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save-orange">Save</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="right-column">
+            <div class="avatar-wrapper">
+                <img src="../img/image 10.png" alt="User Avatar" id="detail-avatar">
+                <div class="avatar-actions">
+                    <button class="btn-outline">Thay đổi ảnh</button>
+                    <button class="btn-outline">Đổi mật khẩu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

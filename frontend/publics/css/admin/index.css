@@ -121,7 +121,7 @@ header.top-header {
     display: flex;
     justify-content: space-between; 
     
-/* <<< THAY ĐỔI 1: Đổi từ 'flex-end' sang 'center' để căn giữa .header-right với .header-left */
+
     align-items: center; 
     
     width: 100%;
@@ -141,12 +141,8 @@ header.top-header {
     font-weight: 700;
 }
 
-/* === [SỬA] Nhóm chứa Search và Icons === */
-/* <<< THAY ĐỔI 2: 
-    1. Đổi tên từ '.search-and-icons' thành '.search-wrapper' để khớp với HTML.
-    2. Các thuộc tính 'display: flex' và 'align-items: center' này
-       sẽ căn ngang 2 icon (mail, notification) với thanh tìm kiếm.
-*/
+
+
 .search-wrapper {
     display: flex;
     align-items: center;
@@ -333,22 +329,20 @@ header.top-header {
     width: 10px; /* Tổng không gian cho thanh cuộn (2px viền + 6px + 2px viền) */
 }
 
-/* 2. Phần rãnh (track) - làm cho nó VÔ HÌNH */
+/* 2. Phần rãnh (track) */
 .custom-select-menu::-webkit-scrollbar-track {
     background: transparent; /* Xóa nền của rãnh */
     border-radius: 10px;
 }
 
-/* 3. Phần con trượt (thumb) - đây là "bí mật" */
+
 .custom-select-menu::-webkit-scrollbar-thumb {
     background: #c5cde8; /* Màu của con trượt */
     
-    /* Đây là phần quan trọng: */
+ 
     border-radius: 10px; /* Bo tròn con trượt */
     
-    /* Tạo một đường viền 2px CÙNG MÀU VỚI NỀN MENU (#FFFFFF).
-     Việc này tạo ảo giác con trượt đang "nổi" cách xa cạnh 2px.
-    */
+   
     border: 2px solid #FFFFFF; 
     
     /* Bảo đảm viền không bị đè lên bởi background */

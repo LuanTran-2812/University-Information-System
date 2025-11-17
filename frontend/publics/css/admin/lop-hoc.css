@@ -1,0 +1,116 @@
+/* =========================================
+   1. CONTAINER & HEADER
+   ========================================= */
+   .class-page-container {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    min-height: 85vh;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-left-group { display: flex; align-items: center; gap: 20px; }
+.header-left-group h2 { font-size: 20px; font-weight: 600; margin: 0; }
+
+.semester-select-wrapper { position: relative; }
+.semester-dropdown {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    font-size: 14px;
+    color: #374151;
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+    min-width: 180px;
+}
+
+/* =========================================
+   2. BUTTONS & SEARCH
+   ========================================= */
+.header-actions { display: flex; gap: 12px; }
+.search-box { display: flex; align-items: center; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
+.btn-white { background: #fff; border: 1px solid #E5E7EB; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+.btn-blue { background: #4F46E5; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+.btn-icon-only { background: #fff; border: 1px solid #E5E7EB; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* =========================================
+   3. BẢNG DỮ LIỆU (CĂN CHỈNH % CHUẨN)
+   ========================================= */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.class-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; 
+}
+
+/* Định nghĩa chiều rộng cho từng cột (Tổng = 100%) */
+.class-table th:nth-child(1) { width: 5%; }  /* Checkbox */
+.class-table th:nth-child(2) { width: 10%; } /* Mã lớp */
+.class-table th:nth-child(3) { width: 25%; } /* Tên môn (Dài nhất) */
+.class-table th:nth-child(4) { width: 20%; } /* Tên giảng viên */
+.class-table th:nth-child(5) { width: 15%; } /* Số SV */
+.class-table th:nth-child(6) { width: 15%; } /* Trạng thái */
+.class-table th:nth-child(7) { width: 10%; } /* Hành động */
+
+/* Style chung cho hàng */
+.class-table th, .class-table td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #E5E7EB;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.class-table th {
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.class-table td { font-size: 14px; color: #111; }
+
+/* Căn chỉnh nội dung bên trong từng cột */
+.class-table th:nth-child(1), .class-table td:nth-child(1) { text-align: center; }
+.class-table th:nth-child(2), .class-table td:nth-child(2) { text-align: center; font-weight: 600; }
+.class-table th:nth-child(3), .class-table td:nth-child(3) { text-align: left; }
+.class-table th:nth-child(4), .class-table td:nth-child(4) { text-align: left; }
+.class-table th:nth-child(5), .class-table td:nth-child(5) { text-align: center; font-family: 'Consolas', monospace; font-weight: 600; }
+.class-table th:nth-child(6), .class-table td:nth-child(6) { text-align: center; }
+.class-table th:nth-child(7), .class-table td:nth-child(7) { text-align: center; }
+
+/* Badge */
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+}
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+.page-btn { width: 32px; height: 32px; border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.page-btn.active { background: #4F46E5; color: white; border-color: #4F46E5; }
+
+/* Modal Dropdown */
+.full-width-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
