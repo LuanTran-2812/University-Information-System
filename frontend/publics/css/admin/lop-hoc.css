@@ -1,14 +1,6 @@
 /* =========================================
    1. CONTAINER & HEADER
    ========================================= */
-   .class-page-container {
-    background-color: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    min-height: 85vh;
-}
-
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -37,11 +29,38 @@
    2. BUTTONS & SEARCH
    ========================================= */
 .header-actions { display: flex; gap: 12px; }
-.search-box { display: flex; align-items: center; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box { display: flex; align-items: center; background: #FFFAFA; border: 1px solid #E4E4E4; border-radius: 8px; padding: 8px 12px; width: 240px; }
 .search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
-.btn-white { background: #fff; border: 1px solid #E5E7EB; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-.btn-blue { background: #4F46E5; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-.btn-icon-only { background: #fff; border: 1px solid #E5E7EB; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.search-box input::placeholder {
+    color: #959595;
+    opacity: 1; /* Một số trình duyệt tự làm mờ placeholder, nên set opacity 1 */
+}
+
+.btn-white { background: #FFFAFA; border: 1px solid #E4E4E4; padding: 8px 16px; border-radius: 8px; cursor: pointer; color: #959595;}
+.btn-white .icon-filter {
+    font-size: 18px;
+    color: #959595;
+}
+
+.btn-blue {
+    background: #4F46E5;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.btn-blue .icon-btn {
+    color: white;
+    font-size: 18px;
+}
+
+.btn-icon-only { background: #FFFAFA; border: 1px solid #E4E4E4; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #959595;}
 
 /* =========================================
    3. BẢNG DỮ LIỆU (CĂN CHỈNH % CHUẨN)
@@ -51,6 +70,7 @@
     border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    height: 800px;
 }
 
 .class-table {
@@ -60,7 +80,7 @@
 }
 
 /* Định nghĩa chiều rộng cho từng cột (Tổng = 100%) */
-.class-table th:nth-child(1) { width: 5%; }  /* Checkbox */
+.class-table th:nth-child(1) { width: 5%; }   /* Checkbox */
 .class-table th:nth-child(2) { width: 10%; } /* Mã lớp */
 .class-table th:nth-child(3) { width: 25%; } /* Tên môn (Dài nhất) */
 .class-table th:nth-child(4) { width: 20%; } /* Tên giảng viên */

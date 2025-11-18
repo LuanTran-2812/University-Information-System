@@ -155,3 +155,74 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// ============================================================
+// 5. GLOBAL UTILS - HÀM PHÂN TRANG DÙNG CHUNG
+// ============================================================
+
+function renderPagination(totalItems, rowsPerPage, currentPage, onPageChange) {
+    const paginationEl = document.querySelector('.pagination');
+    if (!paginationEl) return;
+    paginationEl.innerHTML = '';
+
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    if (totalPages <= 1) return;
+
+    // CẤU HÌNH: Số lượng nút hiển thị tối đa (5 nút)
+    const MAX_VISIBLE_PAGES = 5;
+
+    const createBtn = (text, targetPage, isActive = false, isDisabled = false) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${isActive ? 'active' : ''}`;
+        btn.innerHTML = text;
+        btn.disabled = isDisabled;
+        btn.style.minWidth = "35px"; // Cố định chiều rộng
+
+        if (!isDisabled) {
+            btn.onclick = () => {
+                // Gọi callback để trang con xử lý
+                if (typeof onPageChange === 'function') {
+                    onPageChange(targetPage);
+                }
+            };
+        }
+        paginationEl.appendChild(btn);
+    };
+
+    // 1. Nút Previous
+    createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentPage - 1, false, currentPage === 1);
+
+    // 2. Logic "Cửa sổ trượt" (Sliding Window)
+    let startPage, endPage;
+    if (totalPages <= MAX_VISIBLE_PAGES) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        const maxPagesBeforeCurrent = Math.floor(MAX_VISIBLE_PAGES / 2);
+        const maxPagesAfterCurrent = Math.ceil(MAX_VISIBLE_PAGES / 2) - 1;
+
+        if (currentPage <= maxPagesBeforeCurrent + 1) {
+            startPage = 1;
+            endPage = MAX_VISIBLE_PAGES;
+        } else if (currentPage + maxPagesAfterCurrent >= totalPages) {
+            startPage = totalPages - MAX_VISIBLE_PAGES + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - maxPagesBeforeCurrent;
+            endPage = currentPage + maxPagesAfterCurrent;
+        }
+    }
+
+    // 3. Render nút số
+    for (let i = startPage; i <= endPage; i++) {
+        createBtn(i, i, i === currentPage);
+    }
+
+    // 4. Nút Next
+    createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentPage + 1, false, currentPage === totalPages);
+}
+
+// Export hàm renderPagination ra window
+if (typeof window !== 'undefined') {
+    window.renderPagination = renderPagination;
+}

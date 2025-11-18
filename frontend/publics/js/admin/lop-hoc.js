@@ -5,44 +5,84 @@ let currentSemesterId = "";
 let allClassesData = [];
 let currentClassPage = 1;
 
-// 1. HÀM KHỞI TẠO
+// --- 1. HÀM KHỞI TẠO CHÍNH ---
 async function initClassPage() {
-    await loadSemestersToFilter();
+    allClassesData = [];
+    currentSemesterId = "";
     
-    const filter = document.getElementById('semester-filter');
-    if(filter) {
-        filter.addEventListener('change', (e) => {
-            currentSemesterId = e.target.value;
-            fetchAndInitClassTable(currentSemesterId);
-        });
+    const tbody = document.getElementById('class-table-body');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Vui lòng chọn Học kỳ trên thanh công cụ để xem lớp học.</td></tr>';
     }
+
+    await loadSemestersToCustomFilter();
 
     setupAddClassButton();
     setupAddClassForm();
 }
 
-// 2. Tải Học kỳ vào Dropdown Filter (Header)
-async function loadSemestersToFilter() {
+// --- 2. LOGIC CUSTOM DROPDOWN ---
+async function loadSemestersToCustomFilter() {
     try {
         const response = await fetch('http://localhost:8000/api/semesters');
         const result = await response.json();
-        const filter = document.getElementById('semester-filter');
-        
-        if (result.success && filter) {
-            filter.innerHTML = ''; 
-            if (result.data.length > 0) {
-                currentSemesterId = result.data[0].MaHocKy;
-                fetchAndInitClassTable(currentSemesterId); 
-            }
-            result.data.forEach(hk => {
-                const option = document.createElement('option');
-                option.value = hk.MaHocKy;
-                option.text = `${hk.MaHocKy} (${hk.NamHoc})`;
-                filter.appendChild(option);
+
+        const wrapper = document.getElementById('semester-custom-wrapper');
+        const trigger = document.getElementById('semester-trigger');
+        const optionsContainer = document.getElementById('semester-options-container');
+        const textDisplay = document.getElementById('selected-semester-text');
+        const hiddenInput = document.getElementById('semester-filter-value');
+
+        if (result.success && optionsContainer) {
+            optionsContainer.innerHTML = '';
+
+            // A. Xử lý đóng/mở menu (Cloning để xóa sự kiện cũ)
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+            
+            // Lấy lại trigger mới sau khi clone để gắn sự kiện
+            const currentTrigger = document.getElementById('semester-trigger');
+            const currentTextDisplay = document.getElementById('selected-semester-text');
+
+            currentTrigger.addEventListener('click', function(e) {
+                wrapper.classList.toggle('open');
+                e.stopPropagation();
             });
-            filter.value = currentSemesterId;
+
+            // Đóng menu khi click ra ngoài
+            window.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    wrapper.classList.remove('open');
+                }
+            });
+
+            // B. Tạo danh sách Option từ API
+            result.data.forEach(hk => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'custom-option'; 
+                optionDiv.dataset.value = hk.MaHocKy;
+                optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
+
+                // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ ===
+                optionDiv.addEventListener('click', function() {
+                    currentTextDisplay.textContent = this.textContent; 
+                    
+                    currentTrigger.classList.add('selected');
+
+                    wrapper.classList.remove('open');
+                    
+                    document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    currentSemesterId = this.dataset.value;
+                    if (hiddenInput) hiddenInput.value = currentSemesterId;
+                    fetchAndInitClassTable(currentSemesterId);
+                });
+
+                optionsContainer.appendChild(optionDiv);
+            });
         }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Lỗi tải học kỳ:", err); }
 }
 
 // 3. Tải danh sách Lớp theo Mã HK
@@ -65,24 +105,29 @@ async function fetchAndInitClassTable(maHK) {
 
 // 4. Hàm Vẽ Bảng (Cắt 10 dòng)
 function renderClassTable(page) {
-
-    const rowsPerPage = 10;
+    const ROWS_PER_PAGE = 7;
     const tbody = document.getElementById('class-table-body');
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    // Xử lý trường hợp không có dữ liệu
     if (allClassesData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Không có lớp học nào trong học kỳ này.</td></tr>';
-        // Xóa phân trang nếu không có dữ liệu
         const paginationEl = document.querySelector('.pagination');
         if (paginationEl) paginationEl.innerHTML = '';
         return;
     }
 
-    // Tính toán cắt dữ liệu
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
     const pageData = allClassesData.slice(start, end);
+
+    // LOGIC MỚI: Lùi trang nếu trang hiện tại rỗng
+    if (pageData.length === 0 && page > 1) {
+        currentClassPage = page - 1;
+        renderClassTable(currentClassPage);
+        return;
+    }
 
     pageData.forEach(cls => {
         let badgeClass = 'grey';
@@ -116,38 +161,13 @@ function renderClassTable(page) {
     });
     
     attachClassActionEvents();
-    renderClassPagination(); // Vẽ nút phân trang
-}
-
-// 5. Hàm Vẽ Nút Phân Trang
-function renderClassPagination() {
-    const rowsPerPage = 10;
-    const paginationEl = document.querySelector('.pagination');
-    if (!paginationEl) return;
-    paginationEl.innerHTML = '';
-
-    const totalPages = Math.ceil(allClassesData.length / rowsPerPage);
-    if (totalPages <= 1) return; // Nếu chỉ có 1 trang thì không cần hiện nút
-
-    const createBtn = (text, page, disabled = false) => {
-        const btn = document.createElement('button');
-        btn.className = `page-btn ${page === currentClassPage ? 'active' : ''}`;
-        btn.innerHTML = text; 
-        btn.disabled = disabled;
-        btn.onclick = () => {
-            currentClassPage = page;
-            renderClassTable(currentClassPage);
-        };
-        paginationEl.appendChild(btn);
-    };
-
-    createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentClassPage - 1, currentClassPage === 1);
     
-    for (let i = 1; i <= totalPages; i++) {
-        createBtn(i, i);
+    if (typeof renderPagination === 'function') {
+        renderPagination(allClassesData.length, ROWS_PER_PAGE, page, (newPage) => {
+            currentClassPage = newPage;
+            renderClassTable(newPage);
+        });
     }
-
-    createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentClassPage + 1, currentClassPage === totalPages);
 }
 
 function attachClassActionEvents() {

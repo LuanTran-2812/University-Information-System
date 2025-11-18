@@ -1,41 +1,38 @@
-<div class="semester-page-container">
-    <div class="page-header">
-        <div class="header-title">
-            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">tune</span>
-            <h2>Danh sách học kỳ</h2>
-        </div>
-
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
-            </div>
-            <button class="btn-add-semester">
-                + Thêm
-            </button>
-        </div>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách học kỳ</h2>
     </div>
 
-    <div class="table-wrapper">
-        <table class="semester-table">
-            <thead>
-                <tr>
-                    <th>Mã học kỳ</th>
-                    <th>Năm học</th>
-                    <th>Ngày bắt đầu</th>
-                    <th>Ngày kết thúc</th>
-                    <th>Thời gian đăng ký</th>
-                    <th>Trạng thái</th>
-                    <th style="text-align: center;">Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="semester-table-body">
-                </tbody>
-        </table>
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Tìm kiếm">
+        </div>
+        <button class="btn-blue btn-add-semester">
+            <span class="material-symbols-outlined icon-btn">add</span>Thêm
+        </button>
     </div>
-    
-    <div class="pagination"></div>
 </div>
+
+<div class="table-wrapper">
+    <table class="semester-table">
+        <thead>
+            <tr>
+                <th>Mã học kỳ</th>
+                <th>Năm học</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Thời gian đăng ký</th>
+                <th>Trạng thái</th>
+                <th style="text-align: center;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="semester-table-body">
+            </tbody>
+    </table>
+</div>
+
+<div class="pagination"></div>
 
 <div id="semester-modal" class="modal-overlay">
     <div class="modal-content">

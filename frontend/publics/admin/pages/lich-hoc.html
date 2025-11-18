@@ -1,48 +1,39 @@
-<div class="schedule-page-container">
-    <div class="page-header">
-        <div class="header-left-group">
-            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">calendar_month</span>
-            <h2 style="margin-right: 20px;">Lịch học</h2>
-            
-            <div class="semester-select-wrapper">
-                <select id="semester-filter" class="semester-dropdown">
-                    <option value="">Đang tải học kỳ...</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
-            </div>
-            <button class="btn-white">Lọc <span class="material-symbols-outlined">filter_list</span></button>
-            <button class="btn-blue btn-add-schedule">+ Thêm</button>
-            <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
-        </div>
-    </div>
-
-    <div class="table-wrapper">
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox"></th>
-                    <th>Mã lớp</th>
-                    <th>Tên môn</th>
-                    <th>Tên giảng viên</th>
-                    <th>Phòng học</th>
-                    <th>Thứ</th>
-                    <th>Tiết</th>
-                    <th>Tuần học</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="schedule-table-body"></tbody>
-        </table>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách lịch học</h2>
     </div>
     
-    <div class="pagination"></div>
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Tìm kiếm">
+        </div>
+        <button class="btn-white">Lọc <span class="material-symbols-outlined icon-filter">filter_list</span></button>
+        <button class="btn-blue btn-add-schedule"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
+        <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
+    </div>
 </div>
+
+<div class="table-wrapper">
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox"></th>
+                <th>Mã lớp</th>
+                <th>Tên môn</th>
+                <th>Tên giảng viên</th>
+                <th>Phòng học</th>
+                <th>Thứ</th>
+                <th>Tiết</th>
+                <th>Tuần học</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="schedule-table-body"></tbody>
+    </table>
+</div>
+    
+<div class="pagination"></div>
 
 <div id="schedule-modal" class="modal-overlay">
     <div class="modal-content" style="width: 800px;">

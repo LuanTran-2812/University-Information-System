@@ -1,52 +1,104 @@
+let allSemestersData = [];
+let currentSemesterPage = 1;
+
 let isSemesterEditMode = false; // Biến cờ cho học kỳ
 
+// 1. TẢI DỮ LIỆU (Fetch & Init)
 async function loadSemesterList() {
     try {
         const response = await fetch('http://localhost:8000/api/semesters');
         const result = await response.json();
 
         if (result.success) {
-            const tbody = document.getElementById('semester-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            result.data.forEach(hk => {
-                const rawDate = (d) => d ? d.split('T')[0] : '';
-                const displayDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '';
-
-                let badgeClass = 'grey';
-                const status = hk.TrangThai || '';
-                if (status.includes('Mở đăng ký')) badgeClass = 'blue';
-                else if (status.includes('Đang diễn ra')) badgeClass = 'green';
-                else if (status.includes('Đã đóng')) badgeClass = 'red';
-                else if (status.includes('Kết thúc')) badgeClass = 'orange';
-
-                const dataString = JSON.stringify({
-                    MaHocKy: hk.MaHocKy, NamHoc: hk.NamHoc,
-                    NgayBatDau: rawDate(hk.NgayBatDau), NgayKetThuc: rawDate(hk.NgayKetThuc),
-                    MoDangKy: rawDate(hk.MoDangKy), DongDangKy: rawDate(hk.DongDangKy),
-                    DaKhoa: hk.DaKhoa
-                }).replace(/"/g, '&quot;');
-
-                const row = `
-                    <tr>
-                        <td style="font-weight:500;">${hk.MaHocKy}</td>
-                        <td>${hk.NamHoc}</td>
-                        <td>${displayDate(hk.NgayBatDau)}</td>
-                        <td>${displayDate(hk.NgayKetThuc)}</td>
-                        <td>${displayDate(hk.MoDangKy)} - ${displayDate(hk.DongDangKy)}</td>
-                        <td><span class="badge ${badgeClass}" style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; background-color: ${getBadgeColor(badgeClass)}">${status}</span></td>
-                        <td style="text-align: center;">
-                            <button class="action-btn edit-semester-btn" data-info="${dataString}" style="border:none; background:none; cursor:pointer; margin-right:10px;"><span class="material-symbols-outlined">edit</span></button>
-                            <button class="action-btn delete-semester-btn" data-id="${hk.MaHocKy}" style="border:none; background:none; cursor:pointer;"><span class="material-symbols-outlined" style="color: #ef4444;">delete</span></button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            attachSemesterActionEvents();
+            // Lưu dữ liệu vào biến toàn cục
+            allSemestersData = result.data;
+            currentSemesterPage = 1; // Reset về trang 1 khi tải lại
+            
+            // Gọi hàm vẽ bảng
+            renderSemesterTable(currentSemesterPage);
         }
     } catch (error) { console.error('Lỗi tải học kỳ:', error); }
+}
+
+// 2. VẼ BẢNG (Có phân trang)
+function renderSemesterTable(page) {
+    const ROWS_PER_PAGE = 7; 
+    const tbody = document.getElementById('semester-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // Xử lý trường hợp không có dữ liệu
+    if (allSemestersData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Chưa có dữ liệu học kỳ.</td></tr>';
+        const paginationEl = document.querySelector('.pagination');
+        if (paginationEl) paginationEl.innerHTML = '';
+        return;
+    }
+
+    // Tính toán cắt dữ liệu
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
+    const pageData = allSemestersData.slice(start, end);
+
+    // Tự động lùi trang nếu trang hiện tại rỗng (do xóa hết item ở trang cuối)
+    if (pageData.length === 0 && page > 1) {
+        currentSemesterPage = page - 1;
+        renderSemesterTable(currentSemesterPage);
+        return;
+    }
+
+    // Hàm helper format ngày
+    const rawDate = (d) => d ? d.split('T')[0] : '';
+    const displayDate = (d) => {
+        if (!d) return '';
+        const date = new Date(d);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    pageData.forEach(hk => {
+        let badgeClass = 'grey';
+        const status = hk.TrangThai || '';
+        if (status.includes('Mở đăng ký')) badgeClass = 'blue';
+        else if (status.includes('Đang diễn ra')) badgeClass = 'green';
+        else if (status.includes('Đã đóng')) badgeClass = 'red';
+        else if (status.includes('Kết thúc')) badgeClass = 'orange';
+
+        const dataString = JSON.stringify({
+            MaHocKy: hk.MaHocKy, NamHoc: hk.NamHoc,
+            NgayBatDau: rawDate(hk.NgayBatDau), NgayKetThuc: rawDate(hk.NgayKetThuc),
+            MoDangKy: rawDate(hk.MoDangKy), DongDangKy: rawDate(hk.DongDangKy),
+            DaKhoa: hk.DaKhoa
+        }).replace(/"/g, '&quot;');
+
+        const row = `
+            <tr>
+                <td style="font-weight:500;">${hk.MaHocKy}</td>
+                <td>${hk.NamHoc}</td>
+                <td>${displayDate(hk.NgayBatDau)}</td>
+                <td>${displayDate(hk.NgayKetThuc)}</td>
+                <td>${displayDate(hk.MoDangKy)} - ${displayDate(hk.DongDangKy)}</td>
+                <td><span class="badge ${badgeClass}" style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; background-color: ${getBadgeColor(badgeClass)}">${status}</span></td>
+                <td style="text-align: center;">
+                    <button class="action-btn edit-semester-btn" data-info="${dataString}" style="border:none; background:none; cursor:pointer; margin-right:10px;"><span class="material-symbols-outlined">edit</span></button>
+                    <button class="action-btn delete-semester-btn" data-id="${hk.MaHocKy}" style="border:none; background:none; cursor:pointer;"><span class="material-symbols-outlined" style="color: #ef4444;">delete</span></button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+
+    attachSemesterActionEvents();
+
+    // GỌI HÀM PHÂN TRANG TỪ MAIN.JS
+    if (typeof renderPagination === 'function') {
+        renderPagination(allSemestersData.length, ROWS_PER_PAGE, page, (newPage) => {
+            currentSemesterPage = newPage;
+            renderSemesterTable(newPage);
+        });
+    }
 }
 
 function getBadgeColor(type) {
@@ -66,21 +118,23 @@ function attachSemesterActionEvents() {
             const id = e.currentTarget.dataset.id;
             if (confirm(`Xóa học kỳ ${id}?`)) {
                 try {
-                    // Endpoint /delete/ theo logic gốc + phản hồi kết quả
                     const res = await fetch(`http://localhost:8000/api/semesters/delete/${id}`, { method: 'DELETE' });
                     let ok = true; let result = null;
                     try { result = await res.json(); } catch(_) { ok = false; }
+                    
                     if (ok && result && result.success) {
                         alert('Đã xóa học kỳ!');
+                        loadSemesterList(); // Tải lại danh sách sau khi xóa
                     } else {
                         alert('Lỗi xóa học kỳ' + (result && result.message ? ': ' + result.message : '')); 
                     }
-                    loadSemesterList(); // Refresh danh sách
                 } catch (err) { alert('Lỗi kết nối!'); }
             }
         });
     });
 }
+
+// ... (Các hàm bên dưới giữ nguyên logic cũ: Setup Button, Modal, Form Submit) ...
 
 function setupAddSemesterButton() {
     const btnAdd = document.querySelector('.btn-add-semester'); 
@@ -132,7 +186,6 @@ function setupAddSemesterForm() {
         let url = 'http://localhost:8000/api/semesters/create';
         let method = 'POST';
         if (isSemesterEditMode) {
-            // Endpoint /update/ theo logic gốc
             url = `http://localhost:8000/api/semesters/update/${data.maHK}`;
             method = 'PUT';
         }
@@ -159,7 +212,11 @@ window.closeSemesterModal = function() { document.getElementById('semester-modal
 // Export
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'isSemesterEditMode', { get: () => isSemesterEditMode });
+    window.allSemestersData = allSemestersData; // Export mảng dữ liệu (nếu cần debug)
+    Object.defineProperty(window, 'currentSemesterPage', { get: () => currentSemesterPage });
+    
     window.loadSemesterList = loadSemesterList;
+    window.renderSemesterTable = renderSemesterTable;
     window.setupAddSemesterButton = setupAddSemesterButton;
     window.setupAddSemesterForm = setupAddSemesterForm;
 }

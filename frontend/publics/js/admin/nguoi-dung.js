@@ -1,3 +1,5 @@
+// CẤU HÌNH: Số dòng mỗi trang
+const ROWS_PER_PAGE = 7; 
 let allUsersData = [];
 let currentPage = 1;
 
@@ -27,24 +29,38 @@ async function fetchAndInitUserTable() {
 
 // B. Vẽ bảng người dùng (phân trang)
 function renderUserTable(page) {
-    const rowsPerPage = 10;
     const tbody = document.getElementById('student-table-body');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+    // Tính toán vị trí dựa trên ROWS_PER_PAGE (7 dòng)
+    // Lưu ý: Biến ROWS_PER_PAGE phải được khai báo ở trên cùng file (const ROWS_PER_PAGE = 7;)
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
     const pageData = allUsersData.slice(start, end);
+
+    // Xử lý trường hợp trang hiện tại không còn dữ liệu (ví dụ sau khi xóa)
+    if (pageData.length === 0 && page > 1) {
+        currentPage = page - 1;
+        renderUserTable(currentPage);
+        return;
+    }
 
     pageData.forEach(user => {
         const roleClass = user.VaiTro === 'Giảng viên' ? 'font-weight: bold; color: #2563eb;' : 'color: #4B5563;';
+        
         const row = `
             <tr>
+                <td style="text-align: center; width: 50px;">
+                    <input type="checkbox" class="custom-checkbox" value="${user.Email}">
+                </td>
+
                 <td style="padding-left: 24px; font-weight: 500;">${user.HoTen || 'N/A'}</td>
                 <td style="${roleClass}">${user.VaiTro}</td>
                 <td style="color: #4B5563;">${user.Phone || ''}</td>
                 <td style="color: #4B5563;">${user.Email}</td>
                 <td style="color: #4B5563;">${user.CreatedDate || ''}</td>
+                
                 <td style="text-align: center;">
                     <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
                         <button class="action-btn delete-user-btn" data-email="${user.Email}" 
@@ -62,12 +78,18 @@ function renderUserTable(page) {
     });
 
     attachUserActionEvents();
-    renderUserPagination();
+    
+    if (typeof renderPagination === 'function') {
+        renderPagination(allUsersData.length, ROWS_PER_PAGE, page, (newPage) => {
+            currentPage = newPage;
+            renderUserTable(newPage);
+        });
+    }
 }
 
 // C. Gắn sự kiện cho các nút trong bảng
 function attachUserActionEvents() {
-    // 1. Xem chi tiết (giữ logic gọi loadPage như main-backup, có fallback)
+    // 1. Xem chi tiết
     document.querySelectorAll('.btn-detail').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -110,40 +132,10 @@ function attachUserActionEvents() {
     });
 }
 
-// D. Vẽ phân trang
-function renderUserPagination() {
-    const rowsPerPage = 10;
-    const paginationEl = document.querySelector('.pagination');
-    if (!paginationEl) return;
-    paginationEl.innerHTML = '';
-    
-    const totalPages = Math.ceil(allUsersData.length / rowsPerPage);
-    if (totalPages <= 1) return;
-
-    const createBtn = (text, page, disabled = false) => {
-        const btn = document.createElement('button');
-        btn.className = `page-btn ${page === currentPage ? 'active' : ''}`;
-        btn.innerHTML = text;
-        btn.disabled = disabled;
-        btn.onclick = () => {
-            if (!disabled) {
-                currentPage = page;
-                renderUserTable(page);
-            }
-        };
-        paginationEl.appendChild(btn);
-    };
-
-    createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentPage - 1, currentPage === 1);
-    for (let i = 1; i <= totalPages; i++) createBtn(i, i);
-    createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentPage + 1, currentPage === totalPages);
-}
-
-// E. Nút Thêm người dùng
+// D. Nút Thêm người dùng
 function setupAddButton() {
     const btnAdd = document.querySelector('.btn-add, .btn-blue');
     if (btnAdd && btnAdd.innerText.includes('Thêm')) {
-        // Clone để reset mọi listener cũ, giống main-backup
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         newBtn.addEventListener('click', () => {
@@ -159,7 +151,7 @@ function setupAddButton() {
     }
 }
 
-// F. Form thêm người dùng
+// E. Form thêm người dùng
 function setupAddUserForm() {
     const form = document.getElementById('add-user-form');
     if (!form) return;
@@ -203,7 +195,7 @@ function setupAddUserForm() {
     });
 }
 
-// G. Tải danh sách khoa vào dropdown
+// F. Tải danh sách khoa vào dropdown
 async function loadFacultiesToDropdown() {
     try {
         const response = await fetch('http://localhost:8000/api/faculties');
@@ -227,7 +219,7 @@ async function loadFacultiesToDropdown() {
     }
 }
 
-// H. Xem chi tiết người dùng
+// G. Xem chi tiết người dùng
 async function loadUserDetail() {
     const email = sessionStorage.getItem('selectedUserEmail');
     if (!email) return;

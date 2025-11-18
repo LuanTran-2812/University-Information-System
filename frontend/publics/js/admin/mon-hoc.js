@@ -1,7 +1,7 @@
 let allSubjectsData = [];
 let currentSubjectPage = 1;
 let currentSubjectId = null; // null = Thêm mới, có giá trị = Sửa
-const rowsPerPage = 10;
+const rowsPerPage = 7;
 
 async function fetchAndInitSubjectTable() {
     try {
@@ -20,9 +20,17 @@ function renderSubjectTable(page) {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
+    // Tính toán vị trí
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
     const pageData = allSubjectsData.slice(start, end);
+
+    // LOGIC MỚI: Nếu trang hiện tại không còn dữ liệu (do xóa) và không phải trang 1 -> lùi về trang trước
+    if (pageData.length === 0 && page > 1) {
+        currentSubjectPage = page - 1;
+        renderSubjectTable(currentSubjectPage);
+        return;
+    }
 
     pageData.forEach(sub => {
         let constraintHTML = '';
@@ -52,31 +60,13 @@ function renderSubjectTable(page) {
         tbody.innerHTML += row;
     });
 
-    renderSubjectPagination();
+    if (typeof renderPagination === 'function') {
+        renderPagination(allSubjectsData.length, rowsPerPage, page, (newPage) => {
+            currentSubjectPage = newPage;
+            renderSubjectTable(newPage);
+        });
+    }
     attachSubjectActionEvents();
-}
-
-function renderSubjectPagination() {
-    const paginationEl = document.querySelector('.pagination');
-    if (!paginationEl) return;
-    paginationEl.innerHTML = '';
-    const totalPages = Math.ceil(allSubjectsData.length / rowsPerPage);
-
-    const createBtn = (text, page, disabled = false) => {
-        const btn = document.createElement('button');
-        btn.className = `page-btn ${page === currentSubjectPage ? 'active' : ''}`;
-        btn.innerHTML = text;
-        btn.disabled = disabled;
-        btn.onclick = () => {
-            currentSubjectPage = page;
-            renderSubjectTable(currentSubjectPage);
-        };
-        paginationEl.appendChild(btn);
-    };
-
-    createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentSubjectPage - 1, currentSubjectPage === 1);
-    for (let i = 1; i <= totalPages; i++) createBtn(i, i);
-    createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentSubjectPage + 1, currentSubjectPage === totalPages);
 }
 
 function attachSubjectActionEvents() {

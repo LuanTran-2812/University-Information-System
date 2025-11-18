@@ -1,56 +1,98 @@
+let allSchedulesData = [];
+let currentSchedulePage = 1;
+
 let currentSemesterIdForSchedule = "";
 let classListForSchedule = []; 
 let isScheduleEditMode = false; 
 let currentScheduleOldData = null; // Lưu thông tin cũ để đối chiếu khi sửa
 
+// --- 1. HÀM KHỞI TẠO ---
 async function initSchedulePage() {
-    // Phải dùng hàm loadSemestersToFilter của Lớp học (vì nó có sẵn trong file gốc)
-    // Tạm thời định nghĩa lại ở đây
-    async function loadSemestersToFilter() {
-        try {
-            const response = await fetch('http://localhost:8000/api/semesters');
-            const result = await response.json();
-            const filter = document.getElementById('semester-filter');
-            
-            if (result.success && filter) {
-                filter.innerHTML = ''; 
-                if (result.data.length > 0) {
-                    currentSemesterIdForSchedule = result.data[0].MaHocKy;
-                    // fetchAndInitScheduleTable(currentSemesterIdForSchedule); // Sẽ gọi ở dưới
-                }
-                result.data.forEach(hk => {
-                    const option = document.createElement('option');
-                    option.value = hk.MaHocKy;
-                    option.text = `${hk.MaHocKy} (${hk.NamHoc})`;
-                    filter.appendChild(option);
-                });
-                filter.value = currentSemesterIdForSchedule;
-            }
-        } catch (err) { console.error(err); }
-    }
+    // A. Reset dữ liệu và hiển thị thông báo
+    allSchedulesData = [];
+    currentSemesterIdForSchedule = "";
     
-    await loadSemestersToFilter(); 
-    
-    const filter = document.getElementById('semester-filter');
-    if(filter) {
-        // Reset event listener bằng cách clone
-        const newFilter = filter.cloneNode(true);
-        filter.parentNode.replaceChild(newFilter, filter);
-        
-        newFilter.addEventListener('change', (e) => {
-            currentSemesterIdForSchedule = e.target.value;
-            fetchAndInitScheduleTable(currentSemesterIdForSchedule);
-        });
-        
-        if(newFilter.options.length > 0) {
-            currentSemesterIdForSchedule = newFilter.value;
-            fetchAndInitScheduleTable(currentSemesterIdForSchedule);
-        }
+    const tbody = document.getElementById('schedule-table-body');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px;">Vui lòng chọn Học kỳ trên thanh công cụ để xem lịch học.</td></tr>';
+        const paginationEl = document.querySelector('.pagination');
+        if (paginationEl) paginationEl.innerHTML = '';
     }
 
+    // B. Gọi hàm tải Custom Dropdown (Đã đồng bộ với lop-hoc.js)
+    await loadSemestersToCustomFilterForSchedule();
+
+    // C. Setup các chức năng khác
     setupAddScheduleButton();
     setupAddScheduleForm();
     initWeekOptions();
+}
+
+// --- 2. LOGIC CUSTOM DROPDOWN (ĐÃ ĐỒNG BỘ) ---
+async function loadSemestersToCustomFilterForSchedule() {
+    try {
+        const response = await fetch('http://localhost:8000/api/semesters');
+        const result = await response.json();
+
+        const wrapper = document.getElementById('semester-custom-wrapper');
+        const trigger = document.getElementById('semester-trigger');
+        const optionsContainer = document.getElementById('semester-options-container');
+        const textDisplay = document.getElementById('selected-semester-text');
+        const hiddenInput = document.getElementById('semester-filter-value');
+
+        if (result.success && optionsContainer) {
+            optionsContainer.innerHTML = '';
+
+            // A. Xử lý đóng/mở menu (Clone để xóa sự kiện cũ)
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+            
+            // Lấy lại trigger mới sau khi clone để gắn sự kiện
+            const currentTrigger = document.getElementById('semester-trigger');
+            const currentTextDisplay = document.getElementById('selected-semester-text');
+
+            currentTrigger.addEventListener('click', function(e) {
+                wrapper.classList.toggle('open'); 
+                e.stopPropagation();
+            });
+
+            // Đóng menu khi click ra ngoài
+            window.addEventListener('click', function(e) {
+                if (wrapper && !wrapper.contains(e.target)) {
+                    wrapper.classList.remove('open');
+                }
+            });
+
+            // B. Tạo danh sách Option từ API
+            result.data.forEach(hk => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'custom-option'; 
+                optionDiv.dataset.value = hk.MaHocKy;
+                optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
+
+                // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ ===
+                optionDiv.addEventListener('click', function() {
+                    // 1. Cập nhật giao diện
+                    currentTextDisplay.textContent = this.textContent; 
+                    
+                    currentTrigger.classList.add('selected');
+
+                    wrapper.classList.remove('open');
+                    
+                    document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // 2. Logic dữ liệu (Riêng cho Lịch học)
+                    currentSemesterIdForSchedule = this.dataset.value;
+                    if (hiddenInput) hiddenInput.value = currentSemesterIdForSchedule;
+
+                    fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+                });
+
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
+    } catch (err) { console.error("Lỗi tải học kỳ:", err); }
 }
 
 function initWeekOptions() {
@@ -65,62 +107,93 @@ function initWeekOptions() {
     selKT.value = 15;
 }
 
+// 3. TẢI DỮ LIỆU BẢNG
 async function fetchAndInitScheduleTable(maHK) {
     if (!maHK) return;
     try {
         const response = await fetch(`http://localhost:8000/api/schedules?maHK=${maHK}`);
         const result = await response.json();
         
-        const tbody = document.getElementById('schedule-table-body');
-        tbody.innerHTML = '';
-        
         if (result.success) {
-            if (result.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học.</td></tr>';
-                return;
-            }
-
-            result.data.forEach(s => {
-                // Chuẩn bị dữ liệu cho nút Sửa
-                const dataString = JSON.stringify(s).replace(/"/g, '&quot;');
-
-                const row = `
-                    <tr>
-                        <td style="text-align: center;"><input type="checkbox"></td>
-                        <td style="font-weight:600; text-align:center;">${s.MaLopHoc}</td>
-                        <td>${s.TenMon}</td>
-                        <td>${s.TenGiangVien || '-'}</td>
-                        <td style="text-align:center; font-weight:bold; color:#2563eb;">${s.PhongHoc}</td>
-                        <td style="text-align:center;">${s.Thu}</td>
-                        <td style="text-align:center;">${s.Tiet}</td>
-                        <td style="text-align:center;">${s.TuanBatDau} - ${s.TuanKetThuc}</td>
-                        <td style="text-align: center;">
-                            <button class="action-btn edit-schedule-btn" data-info="${dataString}" 
-                                style="border:none; background:none; cursor:pointer; margin-right:8px;">
-                                <span class="material-symbols-outlined" style="color:#3b82f6">edit</span>
-                            </button>
-                            <button class="action-btn delete-schedule-btn" 
-                                data-lop="${s.MaLopHoc}" data-hk="${s.MaHocKy}" data-mon="${s.MaMon}" 
-                                data-thu="${s.Thu}" data-tiet="${s.Tiet}" data-phong="${s.PhongHoc}"
-                                style="border:none; background:none; cursor:pointer;">
-                                <span class="material-symbols-outlined" style="color:#ef4444">delete</span>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            attachScheduleActionEvents();
+            allSchedulesData = result.data;
+            currentSchedulePage = 1;
+            renderScheduleTable(currentSchedulePage);
         }
     } catch (err) { console.error(err); }
+}
+
+// 4. VẼ BẢNG (PHÂN TRANG)
+function renderScheduleTable(page) {
+    const ROWS_PER_PAGE = 7; 
+    const tbody = document.getElementById('schedule-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    // Xử lý không có dữ liệu
+    if (allSchedulesData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học trong học kỳ này.</td></tr>';
+        const paginationEl = document.querySelector('.pagination');
+        if (paginationEl) paginationEl.innerHTML = '';
+        return;
+    }
+
+    // Tính toán cắt trang
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
+    const pageData = allSchedulesData.slice(start, end);
+
+    // Tự động lùi trang nếu trang hiện tại rỗng
+    if (pageData.length === 0 && page > 1) {
+        currentSchedulePage = page - 1;
+        renderScheduleTable(currentSchedulePage);
+        return;
+    }
+
+    pageData.forEach(s => {
+        const dataString = JSON.stringify(s).replace(/"/g, '&quot;');
+
+        const row = `
+            <tr>
+                <td style="text-align: center;"><input type="checkbox"></td>
+                <td style="font-weight:600; text-align:center;">${s.MaLopHoc}</td>
+                <td>${s.TenMon}</td>
+                <td>${s.TenGiangVien || '-'}</td>
+                <td style="text-align:center; font-weight:bold; color:#2563eb;">${s.PhongHoc}</td>
+                <td style="text-align:center;">${s.Thu}</td>
+                <td style="text-align:center;">${s.Tiet}</td>
+                <td style="text-align:center;">${s.TuanBatDau} - ${s.TuanKetThuc}</td>
+                <td style="text-align: center;">
+                    <button class="action-btn edit-schedule-btn" data-info="${dataString}" 
+                        style="border:none; background:none; cursor:pointer; margin-right:8px;">
+                        <span class="material-symbols-outlined" style="color:#3b82f6">edit</span>
+                    </button>
+                    <button class="action-btn delete-schedule-btn" 
+                        data-lop="${s.MaLopHoc}" data-hk="${s.MaHocKy}" data-mon="${s.MaMon}" 
+                        data-thu="${s.Thu}" data-tiet="${s.Tiet}" data-phong="${s.PhongHoc}"
+                        style="border:none; background:none; cursor:pointer;">
+                        <span class="material-symbols-outlined" style="color:#ef4444">delete</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+
+    attachScheduleActionEvents();
+    
+    if (typeof renderPagination === 'function') {
+        renderPagination(allSchedulesData.length, ROWS_PER_PAGE, page, (newPage) => {
+            currentSchedulePage = newPage;
+            renderScheduleTable(newPage);
+        });
+    }
 }
 
 function attachScheduleActionEvents() {
     // 1. Sự kiện Sửa
     document.querySelectorAll('.edit-schedule-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            // Lấy data từ nút
-            const button = e.currentTarget; // Đảm bảo lấy đúng thẻ button
+            const button = e.currentTarget; 
             const data = JSON.parse(button.dataset.info);
             await openScheduleEditModal(data);
         });
@@ -132,14 +205,16 @@ function attachScheduleActionEvents() {
             const d = e.currentTarget.dataset;
             if(confirm(`Xóa lịch học lớp ${d.lop} thứ ${d.thu}?`)) {
                 const query = `maLop=${d.lop}&maHK=${d.hk}&maMon=${d.mon}&thu=${d.thu}&tiet=${d.tiet}&phong=${d.phong}`;
-                await fetch(`http://localhost:8000/api/schedules/delete?${query}`, { method: 'DELETE' });
-                fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+                try {
+                    await fetch(`http://localhost:8000/api/schedules/delete?${query}`, { method: 'DELETE' });
+                    fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+                } catch(err) { alert('Lỗi kết nối!'); }
             }
         });
     });
 }
 
-// === LOGIC MODAL SỬA/THÊM ===
+// === LOGIC MODAL SỬA/THÊM (GIỮ NGUYÊN) ===
 
 function setupAddScheduleButton() {
     const btn = document.querySelector('.btn-add-schedule');
@@ -154,6 +229,12 @@ function setupAddScheduleButton() {
             document.getElementById('scheduleClassSelect').disabled = false;
             document.querySelector('#schedule-modal h3').innerText = 'Thêm lịch học';
             
+            // Quan trọng: Khi thêm lịch, phải tải lớp của HK đang chọn
+            if (!currentSemesterIdForSchedule) {
+                alert("Vui lòng chọn học kỳ trước khi thêm lịch!");
+                return;
+            }
+            
             await loadClassesForScheduleModal();
             document.getElementById('schedule-modal').classList.add('active');
         });
@@ -167,16 +248,15 @@ async function openScheduleEditModal(data) {
     await loadClassesForScheduleModal();
 
     // Điền dữ liệu cũ
-    // 1. Chọn đúng lớp trong dropdown (Value là "MaLop|MaMon")
     const selectVal = `${data.MaLopHoc}|${data.MaMon}`;
     document.getElementById('scheduleClassSelect').value = selectVal;
     document.getElementById('scheduleClassSelect').disabled = true; // Không cho sửa lớp
 
-    // 2. Điền tên môn, GV (Giả lập sự kiện change)
+    // Điền tên môn, GV
     document.getElementById('scheduleMonName').value = data.TenMon;
     document.getElementById('scheduleGVName').value = data.TenGiangVien;
 
-    // 3. Điền các thông tin khác
+    // Điền các thông tin khác
     document.getElementById('schedulePhong').value = data.PhongHoc;
     document.getElementById('scheduleThu').value = data.Thu;
     document.getElementById('scheduleTiet').value = data.Tiet;
@@ -202,7 +282,6 @@ async function loadClassesForScheduleModal() {
             select.innerHTML += `<option value="${val}">${cls.MaLopHoc} - ${cls.TenMon}</option>`;
         });
 
-        // Sự kiện chọn lớp -> Tự điền tên
         select.addEventListener('change', (e) => {
             const [maLop, maMon] = e.target.value.split('|');
             const selectedClass = classListForSchedule.find(c => c.MaLopHoc === maLop && c.MaMonHoc === maMon);
@@ -225,44 +304,37 @@ function setupAddScheduleForm() {
         e.preventDefault();
         const [maLop, maMon] = document.getElementById('scheduleClassSelect').value.split('|');
         
-        // Lấy giá trị từ các ô input
         const valPhong = document.getElementById('schedulePhong').value;
         const valThu = document.getElementById('scheduleThu').value;
         const valTiet = document.getElementById('scheduleTiet').value;
         const valTuanBD = document.getElementById('scheduleTuanBD').value;
         const valTuanKT = document.getElementById('scheduleTuanKT').value;
 
-        // Tạo payload "bao sân" (Chứa cả tên biến cho API Thêm và API Sửa)
         const payload = {
             maLop: maLop,
             maMon: maMon,
             maHK: currentSemesterIdForSchedule,
             
-            // 1. Dữ liệu cho API THÊM (Create)
             phong: valPhong,
             thu: valThu,
             tiet: valTiet,
             tuanBD: valTuanBD,
             tuanKT: valTuanKT,
 
-            // 2. Dữ liệu cho API SỬA (Update - có chữ new)
             newPhong: valPhong,
             newThu: valThu,
             newTiet: valTiet,
             newTuanBD: valTuanBD,
             newTuanKT: valTuanKT,
             
-            // 3. Dữ liệu cũ (Chỉ dùng khi Sửa)
             oldPhong: isScheduleEditMode ? currentScheduleOldData.PhongHoc : null,
             oldThu: isScheduleEditMode ? currentScheduleOldData.Thu : null,
             oldTiet: isScheduleEditMode ? currentScheduleOldData.Tiet : null
         };
 
-        // Chọn API
         let url = 'http://localhost:8000/api/schedules/create';
         let method = 'POST';
         if (isScheduleEditMode) {
-            // Endpoint /update/ (không có params) theo logic gốc
             url = 'http://localhost:8000/api/schedules/update';
             method = 'PUT';
         }
@@ -287,14 +359,19 @@ function setupAddScheduleForm() {
 
 window.closeScheduleModal = function() { document.getElementById('schedule-modal').classList.remove('active'); }
 
-// Export (thêm getter để phản ánh trạng thái động giống file gốc)
+// Export
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'currentSemesterIdForSchedule', { get: () => currentSemesterIdForSchedule });
     Object.defineProperty(window, 'isScheduleEditMode', { get: () => isScheduleEditMode });
     Object.defineProperty(window, 'currentScheduleOldData', { get: () => currentScheduleOldData });
-    window.classListForSchedule = classListForSchedule; // mảng tham chiếu
+    
+    window.allSchedulesData = allSchedulesData; 
+    Object.defineProperty(window, 'currentSchedulePage', { get: () => currentSchedulePage });
+    
+    window.classListForSchedule = classListForSchedule;
     window.initSchedulePage = initSchedulePage;
     window.fetchAndInitScheduleTable = fetchAndInitScheduleTable;
+    window.renderScheduleTable = renderScheduleTable; 
     window.openScheduleEditModal = openScheduleEditModal;
     window.setupAddScheduleButton = setupAddScheduleButton;
     window.setupAddScheduleForm = setupAddScheduleForm;
