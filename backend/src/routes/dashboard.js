@@ -5,4 +5,6 @@ const dashboardController = require('../controllers/dashboardController');
 // Định nghĩa: GET /api/dashboard/stats
 router.get('/stats', dashboardController.getStats);
 
-module.exports = router; 
+router.get('/lecturer-stats', dashboardController.getLecturerStats);
+
+module.exports = router;
