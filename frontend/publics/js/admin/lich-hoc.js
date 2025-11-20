@@ -2,6 +2,7 @@ let allSchedulesData = [];
 let currentSchedulePage = 1;
 
 let currentSemesterIdForSchedule = "";
+let currentSemesterStatusForSchedule = ""; // <-- BIẾN MỚI LƯU TRẠNG THÁI
 let classListForSchedule = []; 
 let isScheduleEditMode = false; 
 let currentScheduleOldData = null; // Lưu thông tin cũ để đối chiếu khi sửa
@@ -11,6 +12,7 @@ async function initSchedulePage() {
     // A. Reset dữ liệu và hiển thị thông báo
     allSchedulesData = [];
     currentSemesterIdForSchedule = "";
+    currentSemesterStatusForSchedule = ""; // <-- Reset biến trạng thái
     
     const tbody = document.getElementById('schedule-table-body');
     if (tbody) {
@@ -68,6 +70,7 @@ async function loadSemestersToCustomFilterForSchedule() {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'custom-option'; 
                 optionDiv.dataset.value = hk.MaHocKy;
+                optionDiv.dataset.status = hk.TrangThai; // <-- LƯU TRẠNG THÁI
                 optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
 
                 // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ ===
@@ -84,6 +87,7 @@ async function loadSemestersToCustomFilterForSchedule() {
 
                     // 2. Logic dữ liệu (Riêng cho Lịch học)
                     currentSemesterIdForSchedule = this.dataset.value;
+                    currentSemesterStatusForSchedule = this.dataset.status; // <-- CẬP NHẬT TRẠNG THÁI
                     if (hiddenInput) hiddenInput.value = currentSemesterIdForSchedule;
 
                     fetchAndInitScheduleTable(currentSemesterIdForSchedule);
@@ -193,6 +197,12 @@ function attachScheduleActionEvents() {
     // 1. Sự kiện Sửa
     document.querySelectorAll('.edit-schedule-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            // === KIỂM TRA TRẠNG THÁI (Sửa) ===
+            if (currentSemesterStatusForSchedule === "Đã đóng") { // Điều chỉnh chuỗi trạng thái phù hợp
+                alert("Học kỳ đã đóng. Không thể cập nhật lịch học.");
+                return;
+            }
+            // =================================
             const button = e.currentTarget; 
             const data = JSON.parse(button.dataset.info);
             await openScheduleEditModal(data);
@@ -202,6 +212,13 @@ function attachScheduleActionEvents() {
     // 2. Sự kiện Xóa
     document.querySelectorAll('.delete-schedule-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
+            // === KIỂM TRA TRẠNG THÁI (Xóa) ===
+            if (currentSemesterStatusForSchedule === "Đã đóng") { // Điều chỉnh chuỗi trạng thái phù hợp
+                alert("Học kỳ đã đóng. Không thể xóa lịch học.");
+                return;
+            }
+            // =================================
+            
             const d = e.currentTarget.dataset;
             if(confirm(`Xóa lịch học lớp ${d.lop} thứ ${d.thu}?`)) {
                 const query = `maLop=${d.lop}&maHK=${d.hk}&maMon=${d.mon}&thu=${d.thu}&tiet=${d.tiet}&phong=${d.phong}`;
@@ -220,6 +237,20 @@ function setupAddScheduleButton() {
     const btn = document.querySelector('.btn-add-schedule');
     if(btn) {
         btn.addEventListener('click', async () => {
+            
+            // 1. Kiểm tra đã chọn HK chưa (Logic cũ)
+            if (!currentSemesterIdForSchedule) {
+                alert("Vui lòng chọn học kỳ trước khi thêm lịch!");
+                return;
+            }
+            
+            // 2. KIỂM TRA TRẠNG THÁI (Thêm)
+            if (currentSemesterStatusForSchedule === "Đã đóng") { // Điều chỉnh chuỗi trạng thái phù hợp
+                alert("Học kỳ đã đóng. Không thể thêm mới lịch học.");
+                return;
+            }
+            // =================================
+            
             isScheduleEditMode = false; // Chế độ Thêm
             document.getElementById('modal-add-schedule-form').reset();
             document.getElementById('scheduleGVName').value = '';
@@ -228,12 +259,6 @@ function setupAddScheduleButton() {
             // Mở khóa chọn Lớp
             document.getElementById('scheduleClassSelect').disabled = false;
             document.querySelector('#schedule-modal h3').innerText = 'Thêm lịch học';
-            
-            // Quan trọng: Khi thêm lịch, phải tải lớp của HK đang chọn
-            if (!currentSemesterIdForSchedule) {
-                alert("Vui lòng chọn học kỳ trước khi thêm lịch!");
-                return;
-            }
             
             await loadClassesForScheduleModal();
             document.getElementById('schedule-modal').classList.add('active');
@@ -362,6 +387,7 @@ window.closeScheduleModal = function() { document.getElementById('schedule-modal
 // Export
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'currentSemesterIdForSchedule', { get: () => currentSemesterIdForSchedule });
+    Object.defineProperty(window, 'currentSemesterStatusForSchedule', { get: () => currentSemesterStatusForSchedule }); // <-- EXPORT MỚI
     Object.defineProperty(window, 'isScheduleEditMode', { get: () => isScheduleEditMode });
     Object.defineProperty(window, 'currentScheduleOldData', { get: () => currentScheduleOldData });
     

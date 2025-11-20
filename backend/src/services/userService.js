@@ -5,9 +5,9 @@ const getAllStudents = async () => {
   try {
     const pool = await getPool();
     const query = `
-      SELECT HoTen, Email, N'Sinh viên' as VaiTro FROM SinhVien
+      SELECT HoTen, Email, MSSV, ChuyenNganh, N'Sinh viên' as VaiTro FROM SinhVien
       UNION ALL
-      SELECT HoTen, Email, N'Giảng viên' as VaiTro FROM GiangVien
+      SELECT HoTen, Email, MSCB, ChuyenNganh, N'Giảng viên' as VaiTro FROM GiangVien
     `;
     const result = await pool.request().query(query);
     return result.recordset;

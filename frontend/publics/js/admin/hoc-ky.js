@@ -64,7 +64,8 @@ function renderSemesterTable(page) {
         if (status.includes('Mở đăng ký')) badgeClass = 'blue';
         else if (status.includes('Đang diễn ra')) badgeClass = 'green';
         else if (status.includes('Đã đóng')) badgeClass = 'red';
-        else if (status.includes('Kết thúc')) badgeClass = 'orange';
+        else if (status.includes('Kết thúc đăng ký')) badgeClass = 'orange';
+        else if (status.includes('Đã kết thúc')) badgeClass = 'yellow';
 
         const dataString = JSON.stringify({
             MaHocKy: hk.MaHocKy, NamHoc: hk.NamHoc,
@@ -72,7 +73,14 @@ function renderSemesterTable(page) {
             MoDangKy: rawDate(hk.MoDangKy), DongDangKy: rawDate(hk.DongDangKy),
             DaKhoa: hk.DaKhoa
         }).replace(/"/g, '&quot;');
-
+        
+        const isClosable = hk.DaKhoa !== 1 && !status.includes('Đã đóng');
+        const closeButton = isClosable ? 
+            `<button class="action-btn close-semester-btn" data-id="${hk.MaHocKy}" style="border:none; background:none; cursor:pointer;"><span class="material-symbols-outlined" style="color: #ef4444;">lock</span></button>` : 
+            `<button class="action-btn" disabled style="color: #ccc; cursor: default;"><span class="material-symbols-outlined">lock</span></button>`;
+        
+        const deleteButton = ``;
+        
         const row = `
             <tr>
                 <td style="font-weight:500;">${hk.MaHocKy}</td>
@@ -80,10 +88,10 @@ function renderSemesterTable(page) {
                 <td>${displayDate(hk.NgayBatDau)}</td>
                 <td>${displayDate(hk.NgayKetThuc)}</td>
                 <td>${displayDate(hk.MoDangKy)} - ${displayDate(hk.DongDangKy)}</td>
-                <td><span class="badge ${badgeClass}" style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; background-color: ${getBadgeColor(badgeClass)}">${status}</span></td>
+                <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td style="text-align: center;">
                     <button class="action-btn edit-semester-btn" data-info="${dataString}" style="border:none; background:none; cursor:pointer; margin-right:10px;"><span class="material-symbols-outlined">edit</span></button>
-                    <button class="action-btn delete-semester-btn" data-id="${hk.MaHocKy}" style="border:none; background:none; cursor:pointer;"><span class="material-symbols-outlined" style="color: #ef4444;">delete</span></button>
+                    ${closeButton}
                 </td>
             </tr>
         `;
@@ -92,18 +100,12 @@ function renderSemesterTable(page) {
 
     attachSemesterActionEvents();
 
-    // GỌI HÀM PHÂN TRANG TỪ MAIN.JS
     if (typeof renderPagination === 'function') {
         renderPagination(allSemestersData.length, ROWS_PER_PAGE, page, (newPage) => {
             currentSemesterPage = newPage;
             renderSemesterTable(newPage);
         });
     }
-}
-
-function getBadgeColor(type) {
-    const colors = { 'blue': '#3b82f6', 'green': '#22c55e', 'red': '#ef4444', 'orange': '#f97316', 'grey': '#9ca3af' };
-    return colors[type] || '#9ca3af';
 }
 
 function attachSemesterActionEvents() {
@@ -113,28 +115,31 @@ function attachSemesterActionEvents() {
             openSemesterEditModal(data);
         });
     });
-    document.querySelectorAll('.delete-semester-btn').forEach(btn => {
+    
+    document.querySelectorAll('.close-semester-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
-            if (confirm(`Xóa học kỳ ${id}?`)) {
+            if (confirm(`Bạn có chắc muốn KHÓA (Đóng) học kỳ ${id}? Thao tác này sẽ chuyển trạng thái về "Đã đóng".`)) {
                 try {
-                    const res = await fetch(`http://localhost:8000/api/semesters/delete/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`http://localhost:8000/api/semesters/update/${id}`, { 
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ daKhoa: 1 })
+                    });
                     let ok = true; let result = null;
                     try { result = await res.json(); } catch(_) { ok = false; }
                     
                     if (ok && result && result.success) {
-                        alert('Đã xóa học kỳ!');
-                        loadSemesterList(); // Tải lại danh sách sau khi xóa
+                        alert('Đã đóng học kỳ thành công!');
+                        loadSemesterList(); // Tải lại danh sách sau khi đóng
                     } else {
-                        alert('Lỗi xóa học kỳ' + (result && result.message ? ': ' + result.message : '')); 
+                        alert('Lỗi khi đóng học kỳ' + (result && result.message ? ': ' + result.message : '')); 
                     }
                 } catch (err) { alert('Lỗi kết nối!'); }
             }
         });
     });
 }
-
-// ... (Các hàm bên dưới giữ nguyên logic cũ: Setup Button, Modal, Form Submit) ...
 
 function setupAddSemesterButton() {
     const btnAdd = document.querySelector('.btn-add-semester'); 
@@ -159,7 +164,6 @@ function openSemesterEditModal(data) {
     document.getElementById('ngayKetThuc').value = data.NgayKetThuc;
     document.getElementById('moDangKy').value = data.MoDangKy;
     document.getElementById('dongDangKy').value = data.DongDangKy;
-    document.getElementById('daKhoa').checked = data.DaKhoa;
     document.querySelector('#semester-modal h3').innerText = 'Cập nhật học kỳ';
     openSemesterModal();
 }
@@ -180,7 +184,6 @@ function setupAddSemesterForm() {
             ngayKetThuc: document.getElementById('ngayKetThuc').value,
             moDangKy: document.getElementById('moDangKy').value,
             dongDangKy: document.getElementById('dongDangKy').value,
-            daKhoa: document.getElementById('daKhoa').checked ? 1 : 0
         };
 
         let url = 'http://localhost:8000/api/semesters/create';

@@ -10,12 +10,7 @@ async function fetchAndInitUserTable() {
         const result = await response.json();
         
         if (result.success) {
-            // Giữ nguyên logic từ main-backup: map thêm Phone & CreatedDate
-            allUsersData = result.data.map(user => ({
-                ...user,
-                Phone: "09" + Math.floor(Math.random() * 90000000 + 10000000),
-                CreatedDate: "23/10/2025"
-            }));
+            allUsersData = result.data;
             currentPage = 1;
             renderUserTable(currentPage);
         } else {
@@ -51,15 +46,12 @@ function renderUserTable(page) {
         
         const row = `
             <tr>
-                <td style="text-align: center; width: 50px;">
-                    <input type="checkbox" class="custom-checkbox" value="${user.Email}">
-                </td>
-
-                <td style="padding-left: 24px; font-weight: 500;">${user.HoTen || 'N/A'}</td>
+                <td style="text-align: center;"><input type="checkbox"></td>
+                <td>${user.HoTen || 'N/A'}</td>
                 <td style="${roleClass}">${user.VaiTro}</td>
-                <td style="color: #4B5563;">${user.Phone || ''}</td>
+                <td style="color: #4B5563;">${user.MSSV || user.MSCB}</td>
                 <td style="color: #4B5563;">${user.Email}</td>
-                <td style="color: #4B5563;">${user.CreatedDate || ''}</td>
+                <td style="color: #4B5563;">${user.ChuyenNganh}</td>
                 
                 <td style="text-align: center;">
                     <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">

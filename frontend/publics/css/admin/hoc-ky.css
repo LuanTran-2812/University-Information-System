@@ -128,11 +128,12 @@
     text-align: center;
     width: 110px;
 }
-.badge.blue { background-color: #E0F2FE; color: #0284C7; }
-.badge.green { background-color: #DCFCE7; color: #16A34A; }
-.badge.red { background-color: #FEE2E2; color: #DC2626; }
-.badge.orange { background-color: #FFEDD5; color: #EA580C; }
-.badge.grey { background-color: #F3F4F6; color: #4B5563; }
+.badge.blue { background-color: #E6F7FF; color: #1890FF; }
+.badge.green { background-color: #E9FFEF; color: #409261; }
+.badge.red { background-color: #FFF1F0; color: #FF4D4F; }
+.badge.orange { background-color: #FFF2DD; color: #D98634; }
+.badge.grey { background-color: #E4E4E4; color: #3F3748; }
+.badge.yellow { background-color: #FFFBE6; color: #FAAD14; }
 
 .action-btn {
     background: none; border: none; cursor: pointer; color: #9CA3AF; font-size: 18px; margin: 0 4px;
@@ -170,8 +171,25 @@
 
 .modal-header {
     background-color: #4472C4; color: white; padding: 15px 20px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; 
+    justify-content: space-between;
+    align-items: center;
 }
+
+.modal-spacer {
+    width: 24px; 
+    height: 24px;
+    visibility: hidden;
+}
+
+.modal-header.modal-centered-title h3 {
+    flex-grow: 1;
+    text-align: center;
+}
+.modal-header.modal-centered-title .close-btn {
+    flex-shrink: 0;
+}
+
 .modal-header h3 { margin: 0; font-size: 18px; font-weight: 500; }
 .close-btn { cursor: pointer; font-size: 24px; }
 .close-btn:hover { opacity: 0.8; }

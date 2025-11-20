@@ -38,8 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // ============================================================
             
             if (pageUrl.includes('trang-chu.html')) {
-                if (typeof updateDashboardStats === 'function') {
-                    updateDashboardStats();
+                // Gọi hàm khởi tạo chung
+                if (typeof initDashboardPage === 'function') {
+                    initDashboardPage();
                 }
             }
 
