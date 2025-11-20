@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('guest-btn');
   if (guestBtn) {
     guestBtn.addEventListener('click', () => {
-      // Determine base path based on current location
       const isLiveServer = window.location.port === '5500';
       const basePath = isLiveServer ? '/frontend/publics' : '';
       window.location.href = basePath + '/user/index.html';
@@ -34,11 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 2b. Quay lại View ban đầu (từ form về initial view) ---
+  // --- 2b. Quay lại View ban đầu ---
   const backToInitial = document.getElementById('back-to-initial');
   if (backToInitial) {
     backToInitial.addEventListener('click', () => {
-      // Ẩn form đăng nhập, hiện view chọn vai trò
       if (loginForm) loginForm.classList.add('hidden');
       if (initialView) initialView.classList.remove('hidden');
     });
@@ -60,37 +58,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await response.json();
         console.log(data);
+        
         if (response.ok) {
+          // 1. Lưu Token
           localStorage.setItem('token', data.token);
           
-          // Determine base path based on current location
+          // 2. Lưu Email (QUAN TRỌNG: Để trang Giảng viên biết ai đang đăng nhập)
+          localStorage.setItem('userEmail', email); 
+          
+          // Xác định đường dẫn cơ sở (cho Live Server)
           const isLiveServer = window.location.port === '5500';
           const basePath = isLiveServer ? '/frontend/publics' : '';
           
-          // Use redirectUrl from backend if available
+          // Ưu tiên dùng redirectUrl từ Backend gửi về
           if (data.redirectUrl) {
-            // Adjust redirect URL for Live Server
+            // Backend trả về dạng /admin/index.html -> ta ghép với basePath
             const redirectPath = basePath + data.redirectUrl;
             window.location.href = redirectPath;
           } else {
-            // Fallback: Normalize role on frontend
+            // Fallback: Tự kiểm tra vai trò nếu backend không gửi redirectUrl
             const rawRole = (data.role || '');
             const normalized = rawRole.normalize ? rawRole.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawRole;
             const roleKey = normalized.replace(/\s+/g, '').toLowerCase();
             
             console.log('Raw role:', rawRole, 'Normalized:', roleKey);
 
-            // Map to dashboards - DB roles: "Admin", "Giảng Viên", "Sinh Viên"
-            // After normalize & lowercase: "admin", "giangvien", "sinhvien"
             if (roleKey === 'admin') {
               window.location.href = basePath + '/admin/index.html';
             } else if (roleKey === 'giangvien' || roleKey.includes('giang')) {
-              window.location.href = basePath + '/dashboard-lecturer.html';
+              window.location.href = basePath + '/lecturer/index.html'; // Đã sửa lại đúng đường dẫn folder lecturer
             } else if (roleKey === 'sinhvien' || roleKey.includes('sinh')) {
-              window.location.href = basePath + '/dashboard-student.html';
+              window.location.href = basePath + '/student/index.html'; // Dự phòng cho sinh viên
             } else {
-              // Role unknown
-              alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole + '. Vui lòng liên hệ quản trị.');
+              alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole);
             }
           }
         } else {
@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         console.error('Error during login:', error);
+        alert('Lỗi kết nối đến Server!');
       }
     });
   }

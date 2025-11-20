@@ -1,0 +1,104 @@
+/* =========================================
+   1. CONTAINER & HEADER
+   ========================================= */
+.calendar-container {
+    background: #fff; padding: 20px; border-radius: 16px; min-height: 85vh;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.calendar-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.calendar-header h2 { margin: 0; font-size: 24px; font-weight: 700; color: #333; }
+
+/* =========================================
+   2. CONTROLS (NÚT LỌC & ĐIỀU HƯỚNG)
+   ========================================= */
+.calendar-controls { display: flex; gap: 20px; align-items: center; }
+
+.nav-btn button {
+    background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 0 10px; font-weight: bold; color: #666;
+}
+.nav-btn button:hover { color: #000; }
+
+/* --- NÚT LỌC "TRÁ HÌNH" (QUAN TRỌNG) --- */
+.sort-wrapper {
+    position: relative; /* Làm mốc tọa độ */
+    display: inline-block;
+    overflow: hidden; /* Quan trọng */
+    cursor: pointer;
+}
+
+/* Giao diện cái nút "Sort" đẹp (Nằm dưới) - ĐÂY LÀ PHẦN BẠN THIẾU */
+.sort-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Hiệu ứng khi rê chuột vào */
+.sort-wrapper:hover .sort-label {
+    background-color: #F9FAFB;
+    border-color: #3B82F6;
+    color: #3B82F6;
+}
+
+/* Ô input tàng hình đè lên trên */
+.month-input-hidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Vẫn tàng hình */
+    z-index: 10;
+    cursor: pointer;
+}
+
+/* FIX LỖI: Phóng to icon lịch để nhận click toàn bộ vùng */
+.month-input-hidden::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    opacity: 0; /* Tàng hình luôn */
+    cursor: pointer;
+}
+
+/* =========================================
+   3. GRID LỊCH
+   ========================================= */
+.calendar-grid { border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+.weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    background: #fff; border-bottom: 1px solid #eee;
+}
+.weekdays div { padding: 15px; text-align: center; font-weight: 700; font-size: 14px; color: #333; }
+
+.days { display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; gap: 1px; }
+.day-cell {
+    background: #fff; min-height: 120px; padding: 10px; position: relative;
+}
+.day-number { font-weight: 700; font-size: 14px; margin-bottom: 5px; }
+.day-cell.other-month { background: #fafafa; color: #ccc; }
+
+/* =========================================
+   4. SỰ KIỆN (EVENT) TRONG LỊCH
+   ========================================= */
+.event-box {
+    font-size: 11px; padding: 4px 8px; margin-bottom: 4px; border-radius: 4px;
+    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.event-blue { background-color: #E0E7FF; color: #4338CA; border-left: 3px solid #4338CA; }
+.event-red { background-color: #FEE2E2; color: #B91C1C; border-left: 3px solid #B91C1C; }

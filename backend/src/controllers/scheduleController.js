@@ -33,4 +33,14 @@ const updateSchedule = async (req, res, next) => {
     } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
-module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule };
+const getLecturerSchedule = async (req, res, next) => {
+    try {
+        const { email } = req.query;
+        const schedule = await scheduleService.getLecturerSchedule(email);
+        res.json({ success: true, data: schedule });
+    } catch (err) { next(err); }
+};
+
+module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule,
+                  getLecturerSchedule
+ };
