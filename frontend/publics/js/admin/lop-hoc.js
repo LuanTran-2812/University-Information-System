@@ -62,16 +62,24 @@ async function loadSemestersToCustomFilter() {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'custom-option'; 
                 optionDiv.dataset.value = hk.MaHocKy;
-                optionDiv.dataset.status = hk.TrangThai; // <-- Lưu trạng thái
+                optionDiv.dataset.status = hk.TrangThai; // Lưu trạng thái
                 optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
 
-                // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ ===
+                // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ (Đồng bộ với lich-hoc.js) ===
                 optionDiv.addEventListener('click', function() {
-                    // ... (các lệnh cập nhật giao diện) ...
-                    
+                    // 1. Cập nhật hiển thị text và trạng thái chọn
+                    currentTextDisplay.textContent = this.textContent;
+                    currentTrigger.classList.add('selected');
+                    wrapper.classList.remove('open');
+                    document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // 2. Cập nhật dữ liệu học kỳ
                     currentSemesterId = this.dataset.value;
-                    currentSemesterStatus = this.dataset.status; // <-- Cập nhật trạng thái
+                    currentSemesterStatus = this.dataset.status;
                     if (hiddenInput) hiddenInput.value = currentSemesterId;
+
+                    // 3. Tải dữ liệu lớp theo học kỳ vừa chọn
                     fetchAndInitClassTable(currentSemesterId);
                 });
 
@@ -189,7 +197,23 @@ function attachClassActionEvents() {
             
             const maLop = e.currentTarget.dataset.id;
             const maMon = e.currentTarget.dataset.mon;
-            // ... (Logic xóa lớp) ...
+            if (!currentSemesterId) {
+                alert('Chưa chọn học kỳ!');
+                return;
+            }
+            if (confirm(`Xóa lớp ${maLop} (môn ${maMon}) trong học kỳ ${currentSemesterId}?`)) {
+                try {
+                    const url = `http://localhost:8000/api/classes/delete?maLop=${maLop}&maHK=${currentSemesterId}&maMon=${maMon}`;
+                    const res = await fetch(url, { method: 'DELETE' });
+                    const result = await res.json().catch(()=>({success:false,message:'Phản hồi không hợp lệ'}));
+                    if (result.success) {
+                        alert('Đã xóa lớp học!');
+                        fetchAndInitClassTable(currentSemesterId);
+                    } else {
+                        alert('Lỗi xóa lớp: ' + (result.message || 'Không rõ')); 
+                    }
+                } catch(err) { alert('Lỗi kết nối server!'); }
+            }
         });
     });
 }
@@ -241,7 +265,19 @@ function setupAddClassButton() {
             // ===========================
 
             isClassEditMode = false;
-            // ... (các logic reset và mở modal) ...
+            // Reset form và mở modal (khôi phục logic giống main-backup)
+            const form = document.getElementById('modal-add-class-form');
+            if (form) form.reset();
+            const maLopEl = document.getElementById('maLop');
+            const monSelectEl = document.getElementById('classMonHocSelect');
+            if (maLopEl) maLopEl.disabled = false;
+            if (monSelectEl) monSelectEl.disabled = false;
+            const titleEl = document.querySelector('#class-modal h3');
+            if (titleEl) titleEl.innerText = 'Thêm lớp học';
+            const btnSave = document.getElementById('btn-save-class');
+            if (btnSave) btnSave.innerText = 'Lưu';
+            await loadDataForClassModal();
+            openClassModal();
         });
     }
 }
@@ -337,6 +373,7 @@ function getBadgeColor(type) {
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'isClassEditMode', { get: () => isClassEditMode });
     Object.defineProperty(window, 'currentSemesterId', { get: () => currentSemesterId });
+    Object.defineProperty(window, 'currentSemesterStatus', { get: () => currentSemesterStatus });
     window.allClassesData = allClassesData; // tham chiếu mảng trực tiếp
     Object.defineProperty(window, 'currentClassPage', { get: () => currentClassPage });
     window.initClassPage = initClassPage;
