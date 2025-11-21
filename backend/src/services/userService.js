@@ -111,5 +111,30 @@ const deleteUser = async (email) => {
   }
 };
 
-// Nhớ export thêm hàm deleteUser
-module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser };
+// Xóa nhiều người dùng
+const deleteMultipleUsers = async (emails) => {
+  try {
+    const pool = await getPool();
+    let deletedCount = 0;
+
+    for (const email of emails) {
+      if (!email) {
+        console.warn('Email không hợp lệ:', email);
+        continue;
+      }
+
+      const result = await pool.request()
+        .input('email', sql.NVarChar, email)
+        .query('DELETE FROM TaiKhoan WHERE Email = @email');
+      
+      deletedCount += result.rowsAffected[0];
+    }
+
+    return deletedCount;
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Nhớ export thêm hàm deleteUser và deleteMultipleUsers
+module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser, deleteMultipleUsers };

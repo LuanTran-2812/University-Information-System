@@ -95,4 +95,33 @@ const getAllLecturers = async () => {
     } catch (err) { throw err; }
 };
 
-module.exports = { getClassesBySemester, createClass, updateClass, deleteClass, getAllLecturers };
+// Xóa nhiều lớp học
+const deleteMultipleClasses = async (classes) => {
+    try {
+        const pool = await getPool();
+        let deletedCount = 0;
+
+        for (const cls of classes) {
+            const { maLop, maHK, maMon } = cls;
+            
+            if (!maLop || !maHK || !maMon) {
+                console.warn('Thiếu thông tin lớp học:', cls);
+                continue;
+            }
+
+            const result = await pool.request()
+                .input('maLop', sql.VarChar, maLop)
+                .input('maHK', sql.VarChar, maHK)
+                .input('maMon', sql.VarChar, maMon)
+                .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+            
+            deletedCount += result.rowsAffected[0];
+        }
+
+        return deletedCount;
+    } catch (err) { 
+        throw err; 
+    }
+};
+
+module.exports = { getClassesBySemester, createClass, updateClass, deleteClass, getAllLecturers, deleteMultipleClasses };

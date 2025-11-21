@@ -32,10 +32,16 @@
 }
 .btn-blue .icon-btn { color: white; font-size: 18px; }
 
-.btn-icon-only { 
+.btn-icon-delete-subject { 
     background: #FFFAFA; border: 1px solid #E4E4E4; width: 40px; 
     border-radius: 8px; cursor: pointer; 
     display: flex; align-items: center; justify-content: center; color: #959595;
+}
+
+/* Vô hiệu hóa nút Xóa khi không có checkbox nào được chọn */
+.btn-icon-delete-subject:disabled {
+    cursor: not-allowed;
+    opacity: 0.5; /* Làm mờ để thể hiện trạng thái vô hiệu hóa */
 }
 
 /* =========================================

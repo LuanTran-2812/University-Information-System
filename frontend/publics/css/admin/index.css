@@ -299,7 +299,7 @@ header.top-header {
     /* Thêm viền xám nhạt như trong hình */
     border: 1px solid #E0E0E0;
     
-    max-height: 172px;
+    max-height: 174px;
     overflow-y: auto;
     z-index: 10;
 }

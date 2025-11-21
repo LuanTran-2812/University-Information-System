@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (pageUrl.includes('nguoi-dung.html')) {
                 if (typeof fetchAndInitUserTable === 'function') {
                     fetchAndInitUserTable();
-                    setupAddButton(); // Gắn sự kiện cho nút "Thêm người dùng"
+                    setupUserButtons(); // Gắn sự kiện cho nút "Thêm người dùng"
                 }
             }
 

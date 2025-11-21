@@ -10,7 +10,7 @@
         </div>
         <button class="btn-white">Lọc <span class="material-symbols-outlined icon-filter">filter_list</span></button>
         <button class="btn-blue btn-add-schedule"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
-        <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn-icon-delete-schedule"><span class="material-symbols-outlined">delete</span></button>
     </div>
 </div>
 
@@ -18,7 +18,7 @@
     <table class="schedule-table">
         <thead>
             <tr>
-                <th><input type="checkbox"></th>
+                <th><input type="checkbox" id="selectAllCheckbox"></th>
                 <th>Mã lớp</th>
                 <th>Tên môn</th>
                 <th>Tên giảng viên</th>
@@ -26,7 +26,7 @@
                 <th>Thứ</th>
                 <th>Tiết</th>
                 <th>Tuần học</th>
-                <th></th>
+                <th>Hành động</th>
             </tr>
         </thead>
         <tbody id="schedule-table-body"></tbody>

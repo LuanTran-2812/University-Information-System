@@ -3,7 +3,10 @@ const ROWS_PER_PAGE = 7;
 let allUsersData = [];
 let currentPage = 1;
 
-// A. Tải danh sách người dùng từ API
+// Set lưu trữ Email các dòng được chọn
+const selectedUserEmails = new Set();
+
+// --- A. Tải danh sách người dùng từ API ---
 async function fetchAndInitUserTable() {
     try {
         const response = await fetch('http://localhost:8000/api/users/students');
@@ -12,6 +15,7 @@ async function fetchAndInitUserTable() {
         if (result.success) {
             allUsersData = result.data;
             currentPage = 1;
+            selectedUserEmails.clear(); // Reset lựa chọn khi reload
             renderUserTable(currentPage);
         } else {
             console.error('Lỗi:', result.message);
@@ -22,19 +26,19 @@ async function fetchAndInitUserTable() {
     }
 }
 
-// B. Vẽ bảng người dùng (phân trang)
+// --- B. Vẽ bảng người dùng (phân trang) ---
 function renderUserTable(page) {
     const tbody = document.getElementById('student-table-body');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // Tính toán vị trí dựa trên ROWS_PER_PAGE (7 dòng)
-    // Lưu ý: Biến ROWS_PER_PAGE phải được khai báo ở trên cùng file (const ROWS_PER_PAGE = 7;)
+    // Cập nhật trạng thái nút xóa ngay khi render
+    updateUserDeleteButtonState();
+
     const start = (page - 1) * ROWS_PER_PAGE;
     const end = start + ROWS_PER_PAGE;
     const pageData = allUsersData.slice(start, end);
 
-    // Xử lý trường hợp trang hiện tại không còn dữ liệu (ví dụ sau khi xóa)
     if (pageData.length === 0 && page > 1) {
         currentPage = page - 1;
         renderUserTable(currentPage);
@@ -42,11 +46,16 @@ function renderUserTable(page) {
     }
 
     pageData.forEach(user => {
-        const roleClass = user.VaiTro === 'Giảng viên' ? 'font-weight: bold; color: #2563eb;' : 'color: #4B5563;';
+        const roleClass = user.VaiTro === 'Giảng viên' ? 'font-weight: bold; color: #2563eb;' : 'font-weight: bold; color: #FAAD14;';
         
+        // Kiểm tra xem user này có đang được chọn không
+        const isChecked = selectedUserEmails.has(user.MSSV || user.MSCB) ? 'checked' : '';
+
         const row = `
             <tr>
-                <td style="text-align: center;"><input type="checkbox"></td>
+                <td style="text-align: center;">
+                    <input type="checkbox" class="user-checkbox" value="${user.MSSV || user.MSCB}" ${isChecked}>
+                </td>
                 <td>${user.HoTen || 'N/A'}</td>
                 <td style="${roleClass}">${user.VaiTro}</td>
                 <td style="color: #4B5563;">${user.MSSV || user.MSCB}</td>
@@ -70,6 +79,8 @@ function renderUserTable(page) {
     });
 
     attachUserActionEvents();
+    setupUserCheckboxes();      // Thiết lập sự kiện checkbox
+    updateUserDeleteButtonState(); // Cập nhật nút xóa hàng loạt
     
     if (typeof renderPagination === 'function') {
         renderPagination(allUsersData.length, ROWS_PER_PAGE, page, (newPage) => {
@@ -79,7 +90,100 @@ function renderUserTable(page) {
     }
 }
 
-// C. Gắn sự kiện cho các nút trong bảng
+// --- C. Quản lý Checkbox & Xóa Batch (Logic mới thêm) ---
+
+function updateSelectedUserEmails(id, isChecked) {
+    if (isChecked) selectedUserEmails.add(id);
+    else selectedUserEmails.delete(id);
+}
+
+function setupUserCheckboxes() {
+    const selectAll = document.getElementById('selectAllUserCheckbox');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+
+    if (!selectAll) return;
+
+    // Kiểm tra trạng thái "Chọn tất cả" dựa trên các dòng đang hiển thị
+    const allOnPageChecked = Array.from(checkboxes).length > 0 && Array.from(checkboxes).every(c => c.checked);
+    selectAll.checked = allOnPageChecked;
+
+    // Sự kiện nút Chọn tất cả
+    selectAll.onchange = function () {
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll.checked;
+            updateSelectedUserEmails(cb.value, cb.checked);
+        });
+        updateUserDeleteButtonState();
+    };
+
+    // Sự kiện từng checkbox con
+    checkboxes.forEach(cb => {
+        cb.onchange = function () {
+            updateSelectedUserEmails(this.value, this.checked);
+            if (!this.checked) selectAll.checked = false;
+            else {
+                const allCheckedOnPage = Array.from(checkboxes).every(c => c.checked);
+                if (allCheckedOnPage) selectAll.checked = true;
+            }
+            updateUserDeleteButtonState();
+        };
+    });
+}
+
+function updateUserDeleteButtonState() {
+    const deleteBtn = document.querySelector('.btn-icon-delete-user');
+    if (deleteBtn) {
+        if (selectedUserEmails.size > 0) {
+            deleteBtn.disabled = false;
+            deleteBtn.style.opacity = '1';
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.style.opacity = '0.5';
+        }
+    }
+}
+
+async function handleMultipleDeleteUser(e) {
+    e.preventDefault();
+
+    const selectedEmails = Array.from(selectedUserEmails);
+    if (selectedEmails.length === 0) {
+        alert('Vui lòng chọn ít nhất một người dùng để xóa.');
+        return;
+    }
+
+    if (confirm(`Bạn có chắc chắn muốn xóa ${selectedEmails.length} người dùng đã chọn?`)) {
+        try {
+            // Giả định API backend hỗ trợ xóa nhiều: POST /api/users/delete-multiple
+            // Body: { emails: [...] }
+            const response = await fetch('http://localhost:8000/api/users/delete-multiple', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emails: selectedEmails })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`Đã xóa thành công ${selectedEmails.length} người dùng!`);
+                selectedUserEmails.clear();
+                
+                const selectAll = document.getElementById('selectAllUserCheckbox');
+                if (selectAll) selectAll.checked = false;
+
+                fetchAndInitUserTable();
+            } else {
+                alert('Lỗi server: ' + result.message);
+            }
+        } catch (err) { 
+            console.error(err);
+            alert('Lỗi kết nối hoặc server!'); 
+        }
+    }
+}
+
+// --- D. Gắn sự kiện & Nút chức năng ---
+
 function attachUserActionEvents() {
     // 1. Xem chi tiết
     document.querySelectorAll('.btn-detail').forEach(btn => {
@@ -98,7 +202,7 @@ function attachUserActionEvents() {
         });
     });
 
-    // 2. Xóa người dùng
+    // 2. Xóa từng người dùng (Giữ lại logic cũ)
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const email = e.target.closest('.delete-user-btn').dataset.email;
@@ -112,6 +216,8 @@ function attachUserActionEvents() {
                 
                 if (result.success) {
                     alert('Xóa thành công!');
+                    // Xóa khỏi set nếu có
+                    if(selectedUserEmails.has(email)) selectedUserEmails.delete(email);
                     fetchAndInitUserTable();
                 } else {
                     alert('Lỗi: ' + result.message);
@@ -124,8 +230,8 @@ function attachUserActionEvents() {
     });
 }
 
-// D. Nút Thêm người dùng
-function setupAddButton() {
+function setupUserButtons() {
+    // 1. Nút Thêm
     const btnAdd = document.querySelector('.btn-add, .btn-blue');
     if (btnAdd && btnAdd.innerText.includes('Thêm')) {
         const newBtn = btnAdd.cloneNode(true);
@@ -141,9 +247,22 @@ function setupAddButton() {
             } catch (err) { console.warn('Không thể điều hướng loadPage:', err); }
         });
     }
+
+    // 2. Nút Xóa Hàng Loạt (Logic mới)
+    const btnDeleteBatch = document.querySelector('.btn-icon-delete-user');
+    if (btnDeleteBatch) {
+        const newBtnDel = btnDeleteBatch.cloneNode(true);
+        btnDeleteBatch.parentNode.replaceChild(newBtnDel, btnDeleteBatch);
+        
+        newBtnDel.addEventListener('click', handleMultipleDeleteUser);
+        
+        // Khởi tạo trạng thái disable ban đầu
+        newBtnDel.disabled = true;
+        newBtnDel.style.opacity = '0.5';
+    }
 }
 
-// E. Form thêm người dùng
+// --- E. Form & Dropdown ---
 function setupAddUserForm() {
     const form = document.getElementById('add-user-form');
     if (!form) return;
@@ -187,7 +306,6 @@ function setupAddUserForm() {
     });
 }
 
-// F. Tải danh sách khoa vào dropdown
 async function loadFacultiesToDropdown() {
     try {
         const response = await fetch('http://localhost:8000/api/faculties');
@@ -211,7 +329,6 @@ async function loadFacultiesToDropdown() {
     }
 }
 
-// G. Xem chi tiết người dùng
 async function loadUserDetail() {
     const email = sessionStorage.getItem('selectedUserEmail');
     if (!email) return;
@@ -234,14 +351,26 @@ async function loadUserDetail() {
     }
 }
 
+// --- F. Main Execution ---
+document.addEventListener('DOMContentLoaded', () => {
+    if(document.getElementById('student-table-body')) {
+        fetchAndInitUserTable();
+        setupUserButtons(); // Setup cả nút thêm và nút xóa hàng loạt
+    }
+});
+
 // Export functions và variables
 if (typeof window !== 'undefined') {
     window.allUsersData = allUsersData;
     window.currentPage = currentPage;
     window.fetchAndInitUserTable = fetchAndInitUserTable;
     window.renderUserTable = renderUserTable;
-    window.setupAddButton = setupAddButton;
+    window.setupUserButtons = setupUserButtons;
     window.setupAddUserForm = setupAddUserForm;
     window.loadUserDetail = loadUserDetail;
     window.loadFacultiesToDropdown = loadFacultiesToDropdown;
+    
+    // Export thêm biến quản lý xóa
+    window.selectedUserEmails = selectedUserEmails;
+    window.updateSelectedUserEmails = updateSelectedUserEmails;
 }

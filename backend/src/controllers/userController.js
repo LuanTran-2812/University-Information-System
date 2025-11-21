@@ -70,4 +70,23 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-module.exports = { getStudents, createUser, getFaculties, getUserDetail, deleteUser };
+const deleteMultipleUsers = async (req, res, next) => {
+  try {
+    const { emails } = req.body; // Array of email addresses
+    
+    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({ success: false, message: 'Danh sách email không hợp lệ' });
+    }
+
+    const deletedCount = await userService.deleteMultipleUsers(emails);
+    res.json({ 
+      success: true, 
+      message: `Đã xóa thành công ${deletedCount} người dùng`,
+      deletedCount 
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getStudents, createUser, getFaculties, getUserDetail, deleteUser, deleteMultipleUsers };

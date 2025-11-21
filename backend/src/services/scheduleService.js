@@ -121,4 +121,48 @@ const updateSchedule = async (data) => {
     } catch (err) { throw err; }
 };
 
-module.exports = { getSchedulesBySemester, createSchedule, deleteSchedule, updateSchedule };
+// Xóa nhiều lịch học
+const deleteMultipleSchedules = async (schedules) => {
+    try {
+        const pool = await getPool();
+        let deletedCount = 0;
+
+        // Xóa từng lịch học trong danh sách
+        for (const schedule of schedules) {
+            const { MaLopHoc, MaHocKy, MaMon, Thu, Tiet, PhongHoc } = schedule;
+            
+            // Validate dữ liệu
+            if (!MaLopHoc || !MaHocKy || !MaMon || !Thu || !Tiet || !PhongHoc) {
+                console.warn('Bỏ qua lịch học không hợp lệ:', schedule);
+                continue;
+            }
+
+            const result = await pool.request()
+                .input('maLop', sql.VarChar, MaLopHoc)
+                .input('maHK', sql.VarChar, MaHocKy)
+                .input('maMon', sql.VarChar, MaMon)
+                .input('thu', sql.Int, Thu)
+                .input('tiet', sql.VarChar, Tiet)
+                .input('phong', sql.VarChar, PhongHoc)
+                .query(`
+                    DELETE FROM LichHoc 
+                    WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
+                      AND Thu=@thu AND Tiet=@tiet AND PhongHoc=@phong
+                `);
+            
+            deletedCount += result.rowsAffected[0];
+        }
+
+        return deletedCount;
+    } catch (err) { 
+        throw err; 
+    }
+};
+
+module.exports = { 
+    getSchedulesBySemester, 
+    createSchedule, 
+    deleteSchedule, 
+    updateSchedule, 
+    deleteMultipleSchedules 
+};

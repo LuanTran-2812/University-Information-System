@@ -10,7 +10,9 @@
         </div>
         <button class="btn-white">Lọc <span class="material-symbols-outlined icon-filter">filter_list</span></button>
         <button class="btn-blue btn-add-class"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
-        <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
+        <button class="btn-icon-delete-class">
+            <span class="material-symbols-outlined">delete</span>
+        </button>
     </div>
 </div>
 
@@ -18,7 +20,7 @@
     <table class="class-table">
         <thead>
             <tr>
-                <th><input type="checkbox"></th>
+                <th><input type="checkbox" id="selectAllClassCheckbox"></th>
                 <th>Mã lớp</th>
                 <th>Tên môn</th>
                 <th>Tên giảng viên</th>
