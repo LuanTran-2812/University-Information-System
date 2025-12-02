@@ -325,3 +325,5 @@ LEFT JOIN
     AND L.MaHocKy = LH.MaHocKy
     AND L.MaMonHoc = LH.MaMon
 ;
+
+
