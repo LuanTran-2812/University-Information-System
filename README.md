@@ -1,0 +1,1 @@
+Chạy creatdatbase->trigger->addatabase
