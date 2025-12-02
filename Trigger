@@ -1,0 +1,318 @@
+USE test111;
+GO
+
+IF OBJECT_ID('trg_CheckGiangVienDungKhoa', 'TR') IS NOT NULL
+    DROP TRIGGER trg_CheckGiangVienDungKhoa;
+GO
+
+IF OBJECT_ID('trg_CheckMonTienQuyetCungKhoa', 'TR') IS NOT NULL
+    DROP TRIGGER trg_CheckMonTienQuyetCungKhoa;
+GO
+
+IF OBJECT_ID('trg_KiemTraSiSoLop', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_KiemTraSiSoLop;
+GO
+
+IF OBJECT_ID('trg_GiamSiSoKhiHuy', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_GiamSiSoKhiHuy;
+GO
+
+IF OBJECT_ID('trg_CheckTrungLichHoc', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_CheckTrungLichHoc;
+GO
+
+IF OBJECT_ID('trg_CheckTrungPhongHoc', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_CheckTrungPhongHoc;
+GO
+
+IF OBJECT_ID('trg_CheckPhongDungToa', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_CheckPhongDungToa;
+GO
+
+IF OBJECT_ID('trg_ChanTrungMonHoc', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_ChanTrungMonHoc;
+GO
+
+IF OBJECT_ID('trg_CheckDiemDungMon', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_CheckDiemDungMon;
+GO
+
+CREATE TRIGGER trg_CheckGiangVienDungKhoa
+ON LopHoc
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Điều kiện lỗi: GV có Khoa KHÁC với KhoaPhuTrach của Môn đó
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN GiangVien gv ON i.MSCB = gv.MSCB
+        JOIN MonHoc mh ON i.MaMonHoc = mh.MaMon
+        WHERE gv.Khoa <> mh.KhoaPhuTrach -- So sánh tên khoa
+    )
+    BEGIN
+        -- Nếu tìm thấy lỗi 
+        RAISERROR (N'Lỗi: Giảng viên phải thuộc Khoa phụ trách môn học này mới được đứng lớp!', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_CheckMonTienQuyetCungKhoa
+ON MonTienQuyet
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Điều kiện lỗi: Khoa của môn chính KHÁC Khoa của môn tiên quyết
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN MonHoc MH_Chinh ON i.MaMon = MH_Chinh.MaMon
+        JOIN MonHoc MH_TienQuyet ON i.MaMonTienQuyet = MH_TienQuyet.MaMon
+        WHERE MH_Chinh.KhoaPhuTrach <> MH_TienQuyet.KhoaPhuTrach
+    )
+    BEGIN
+        -- Báo lỗi và hoàn tác
+        RAISERROR (N'Lỗi: Môn tiên quyết phải thuộc cùng Khoa với môn học!', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_KiemTraSiSoLop
+ON DangKy
+AFTER INSERT
+AS
+BEGIN
+    -- Tự động cập nhật tăng Sĩ số hiện tại cho lớp học
+    UPDATE L
+    SET L.SiSoHienTai = L.SiSoHienTai + (
+        SELECT COUNT(*) 
+        FROM inserted i 
+        WHERE i.MaLopHoc = L.MaLopHoc 
+          AND i.MaHocKy = L.MaHocKy 
+          AND i.MaMon = L.MaMonHoc
+    )
+    FROM LopHoc L
+    JOIN inserted i 
+      ON L.MaLopHoc = i.MaLopHoc 
+      AND L.MaHocKy = i.MaHocKy 
+      AND L.MaMonHoc = i.MaMon; 
+
+    -- Kiểm tra xem có lớp nào bị lố sĩ số không
+    IF EXISTS (
+        SELECT 1
+        FROM LopHoc L
+        JOIN inserted i 
+          ON L.MaLopHoc = i.MaLopHoc 
+          AND L.MaHocKy = i.MaHocKy 
+          AND L.MaMonHoc = i.MaMon
+        WHERE L.SiSoHienTai > L.SiSoToiDa -- Điều kiện vi phạm
+    )
+    BEGIN
+        -- Nếu vi phạm: Báo lỗi và Hoàn tác (Rollback) mọi thay đổi
+        RAISERROR (N'Lỗi: Lớp học đã đầy, không thể đăng ký thêm!', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_GiamSiSoKhiHuy
+ON DangKy
+AFTER DELETE
+AS
+BEGIN
+    -- Tự động trừ đi sĩ số khi xóa khỏi bảng Đăng ký
+    UPDATE L
+    SET L.SiSoHienTai = L.SiSoHienTai - (
+        SELECT COUNT(*) 
+        FROM deleted d 
+        WHERE d.MaLopHoc = L.MaLopHoc 
+          AND d.MaHocKy = L.MaHocKy 
+          AND d.MaMon = L.MaMonHoc
+    )
+    FROM LopHoc L
+    JOIN deleted d
+      ON L.MaLopHoc = d.MaLopHoc 
+      AND L.MaHocKy = d.MaHocKy 
+      AND L.MaMonHoc = d.MaMon;
+END;
+GO
+
+
+CREATE TRIGGER trg_CheckTrungLichHoc
+ON DangKy
+AFTER INSERT
+AS
+BEGIN
+    -- Kiểm tra sự tồn tại của xung đột lịch
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i 
+        -- A. Lấy lịch học của môn MỚI đăng ký
+        JOIN LichHoc LH_Moi 
+            ON i.MaLopHoc = LH_Moi.MaLopHoc 
+            AND i.MaHocKy = LH_Moi.MaHocKy 
+            AND i.MaMon = LH_Moi.MaMon
+
+        -- B. Tìm các môn CŨ mà sinh viên ĐÃ đăng ký (trong cùng học kỳ)
+        JOIN DangKy DK_Cu 
+            ON i.MSSV = DK_Cu.MSSV 
+            AND i.MaHocKy = DK_Cu.MaHocKy
+            AND DK_Cu.TrangThai = N'Đã đăng ký' -- Chỉ so với các môn đang học (đã hủy thì ko tính)
+            -- Loại trừ chính dòng vừa insert (vì đây là trigger AFTER INSERT)
+            AND (DK_Cu.MaLopHoc <> i.MaLopHoc OR DK_Cu.MaMon <> i.MaMon)
+
+        -- C. Lấy lịch học của các môn CŨ
+        JOIN LichHoc LH_Cu
+            ON DK_Cu.MaLopHoc = LH_Cu.MaLopHoc
+            AND DK_Cu.MaHocKy = LH_Cu.MaHocKy
+            AND DK_Cu.MaMon = LH_Cu.MaMon
+
+        -- D. ĐIỀU KIỆN TRÙNG LỊCH (Logic giao nhau)
+        WHERE 
+            -- 1. Cùng Thứ
+            LH_Moi.Thu = LH_Cu.Thu
+            
+            -- 2. Giao nhau về Tuần học (Khoảng tuần A giao khoảng tuần B)
+            AND LH_Moi.TuanBatDau <= LH_Cu.TuanKetThuc 
+            AND LH_Cu.TuanBatDau <= LH_Moi.TuanKetThuc
+
+            -- 3. Giao nhau về Tiết học (Khoảng tiết A giao khoảng tiết B)
+            -- QUAN TRỌNG: Phải CAST về INT vì bạn đang để VARCHAR
+            AND LH_Moi.TietBatDau <= LH_Cu.TietKetThuc
+            AND LH_Cu.TietBatDau  <= LH_Moi.TietKetThuc
+    )
+    BEGIN
+        -- Nếu tìm thấy dòng nào thỏa mãn tất cả điều kiện trên -> Có trùng lịch
+        RAISERROR (N'Lỗi: Sinh viên bị trùng lịch học với một môn đã đăng ký trước đó!', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_CheckTrungPhongHoc
+ON LichHoc
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Kiểm tra có phòng nào bị trùng lịch không
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i -- Lịch vừa xếp
+        JOIN LichHoc lh -- Lịch đã có trong database
+            ON i.PhongHoc = lh.PhongHoc   -- Cùng Phòng
+            AND i.MaHocKy = lh.MaHocKy    -- Cùng Học kỳ
+            AND i.Thu = lh.Thu            -- Cùng Thứ
+        WHERE 
+            -- Loại trừ chính nó (quan trọng khi Update)
+            (i.MaLopHoc <> lh.MaLopHoc OR i.MaMon <> lh.MaMon)
+            
+            -- ĐIỀU KIỆN GIAO NHAU (OVERLAP)
+            -- 1. Giao nhau về Tuần
+            AND i.TuanBatDau <= lh.TuanKetThuc 
+            AND lh.TuanBatDau <= i.TuanKetThuc
+
+            -- 2. Giao nhau về Tiết (Bắt buộc ép kiểu INT)
+            AND i.TietBatDau <= lh.TietKetThuc
+            AND lh.TietBatDau <= i.TietKetThuc 
+    )
+    BEGIN
+        -- Thông báo lỗi chi tiết
+        DECLARE @Phong VARCHAR(10);
+        SELECT TOP 1 @Phong = PhongHoc FROM inserted;
+        
+        RAISERROR (N'Lỗi: Phòng học %s đã có lớp khác học trong khoảng thời gian này!', 16, 1, @Phong);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_CheckPhongDungToa
+ON LichHoc
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Kiểm tra logic: Phòng học (LichHoc) phải khớp với Địa chỉ (Khoa)
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        -- Join sang Môn học để biết môn đó của Khoa nào
+        JOIN MonHoc mh ON i.MaMon = mh.MaMon
+        -- Join sang Khoa để lấy Địa chỉ tòa nhà (Ví dụ: B1, B5, C1...)
+        JOIN Khoa k ON mh.KhoaPhuTrach = k.TenKhoa
+        
+        WHERE 
+            -- Logic so sánh chuỗi:
+            i.PhongHoc NOT LIKE (k.DiaChi + '%')
+    )
+    BEGIN
+        -- Lấy thông tin chi tiết để báo lỗi
+        DECLARE @Phong VARCHAR(10);
+        DECLARE @Khoa NVARCHAR(100);
+        DECLARE @ToaNha NVARCHAR(200);
+
+        SELECT TOP 1 
+            @Phong = i.PhongHoc, 
+            @Khoa = k.TenKhoa,
+            @ToaNha = k.DiaChi
+        FROM inserted i
+        JOIN MonHoc mh ON i.MaMon = mh.MaMon
+        JOIN Khoa k ON mh.KhoaPhuTrach = k.TenKhoa
+        WHERE i.PhongHoc NOT LIKE (k.DiaChi + '%');
+
+        RAISERROR (N'Lỗi: Phòng %s không thuộc tòa nhà %s của khoa %s!', 16, 1, @Phong, @ToaNha, @Khoa);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_ChanTrungMonHoc
+ON DangKy
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Kiểm tra xem sinh viên có đăng ký 2 lớp cho cùng 1 môn trong 1 học kỳ không
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        -- Tìm trong bảng Đăng Ký xem có dòng nào trùng Môn + trùng HK + trùng MSSV không
+        JOIN DangKy dk 
+          ON i.MSSV = dk.MSSV 
+          AND i.MaHocKy = dk.MaHocKy 
+          AND i.MaMon = dk.MaMon
+        WHERE 
+            dk.TrangThai = N'Đã đăng ký'   -- Chỉ tính các môn ĐANG HỌC (nếu 'Đã hủy' thì được phép đăng ký lớp mới)
+            AND dk.MaLopHoc <> i.MaLopHoc  -- Khác mã lớp (nghĩa là cố tình đăng ký 2 lớp khác nhau cho cùng 1 môn)
+    )
+    BEGIN
+        -- Lấy tên môn để báo lỗi cho rõ ràng
+        DECLARE @TenMon NVARCHAR(150);
+        SELECT TOP 1 @TenMon = MH.TenMon 
+        FROM inserted i 
+        JOIN MonHoc MH ON i.MaMon = MH.MaMon;
+
+        RAISERROR (N'Lỗi: Sinh viên đã đăng ký môn %s ở một lớp khác rồi! Vui lòng hủy lớp cũ trước khi đổi lớp.', 16, 1, @TenMon);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_CheckDiemDungMon
+ON ChiTietDiem
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Kiểm tra: Mã Môn trong Cấu trúc điểm PHẢI TRÙNG với Mã Môn của Lớp học
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN CauTrucDiem ctd ON i.MaThanhPhan = ctd.MaThanhPhan
+        WHERE i.MaMon <> ctd.MaMon -- Nếu môn của lớp khác môn của cấu trúc điểm
+    )
+    BEGIN
+        RAISERROR (N'Lỗi: Mã thành phần điểm không thuộc môn học của lớp này!', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
