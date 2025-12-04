@@ -74,7 +74,7 @@ function renderSemesterTable(page) {
             DaKhoa: hk.DaKhoa
         }).replace(/"/g, '&quot;');
         
-        const isClosable = hk.DaKhoa !== 1 && !status.includes('Đã đóng');
+        const isClosable = hk.DaKhoa !== 1 && status.includes('Đã kết thúc');
         const closeButton = isClosable ? 
             `<button class="action-btn close-semester-btn" data-id="${hk.MaHocKy}" style="border:none; background:none; cursor:pointer;"><span class="material-symbols-outlined" style="color: #ef4444;">lock</span></button>` : 
             `<button class="action-btn" disabled style="color: #ccc; cursor: default;"><span class="material-symbols-outlined">lock</span></button>`;

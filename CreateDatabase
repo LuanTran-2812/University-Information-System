@@ -246,19 +246,19 @@ SELECT
     (
         CASE
             -- 1. Ưu tiên cao nhất: Admin đã khóa (nút đóng)
-            WHEN DaKhoa = 1 THEN N'Đã đóng (bị khóa)'
+            WHEN DaKhoa = 1 THEN N'Đã đóng'
 
             -- 2. Đã qua ngày kết thúc
-            WHEN GETDATE() > NgayKetThuc THEN N'Đã đóng'
+            WHEN GETDATE() > NgayKetThuc THEN N'Đã kết thúc'
 
             -- 3. Đang trong thời gian đăng ký
             WHEN GETDATE() BETWEEN MoDangKy AND DongDangKy THEN N'Mở đăng ký'
 
-            -- 4. Đã qua ngày đăng ký nhưng chưa hết học kỳ
-            WHEN GETDATE() > DongDangKy THEN N'Kết thúc đăng ký'
-
-            -- 5. Đã bắt đầu học kỳ (nhưng chưa tới ngày đăng ký)
+			-- 4. Đã bắt đầu học kỳ (nhưng chưa tới ngày đăng ký)
             WHEN GETDATE() >= NgayBatDau THEN N'Đang diễn ra'
+
+            -- 5. Đã qua ngày đăng ký nhưng chưa hết học kỳ
+            WHEN GETDATE() > DongDangKy THEN N'Kết thúc đăng ký'
 
             -- 6. Mặc định (chưa tới ngày bắt đầu)
             ELSE N'Chưa mở'
@@ -284,28 +284,27 @@ SELECT
     -- Cột trạng thái dẫn xuất
     (
         CASE
-            -- 1. Ưu tiên cao nhất: ĐANG ĐĂNG KÝ
+			-- 1. Ưu tiên cao nhất: CHƯA XẾP LỊCH HỌC
+			WHEN LH.TuanBatDau IS NULL THEN N'Chưa xếp lịch học'
+
+            -- 2. Ưu tiên 2: ĐANG ĐĂNG KÝ
             WHEN GETDATE() BETWEEN HK.MoDangKy AND HK.DongDangKy
                 THEN N'Đang đăng ký'
 
-            -- 2. Ưu tiên 2: ĐÃ KẾT THÚC (Học xong)
+            -- 3. Ưu tiên 3: ĐÃ KẾT THÚC (Học xong)
             WHEN LH.TuanKetThuc IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) > LH.TuanKetThuc
                 THEN N'Đã kết thúc'
 
-            -- 3. Ưu tiên 3: ĐANG HỌC
+            -- 4. Ưu tiên 4: ĐANG HỌC
             WHEN LH.TuanBatDau IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) BETWEEN LH.TuanBatDau AND LH.TuanKetThuc
                 THEN N'Đang học'
 
-            -- 4. Ưu tiên 4: KẾT THÚC ĐĂNG KÝ
+            -- 4. Ưu tiên 5: KẾT THÚC ĐĂNG KÝ
             WHEN GETDATE() > HK.DongDangKy AND (LH.TuanBatDau IS NULL OR (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) < LH.TuanBatDau)
                 THEN N'Kết thúc đăng ký'
 
-            -- 5. Ưu tiên 5: ĐÃ XẾP LỊCH
-            WHEN LH.TuanBatDau IS NOT NULL
-                THEN N'Đã xếp lịch'
-                
-            -- 6. Mặc định: CHƯA XẾP LỊCH HỌC
-            ELSE N'Chưa xếp lịch học'
+            -- 6. Mặc định: ĐÃ XẾP LỊCH HỌC
+            ELSE N'Đã xếp lịch'
         END
     ) AS TrangThai
 

@@ -16,13 +16,14 @@ async function initClassPage() {
     
     const tbody = document.getElementById('class-table-body');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Vui lòng chọn Học kỳ trên thanh công cụ để xem lớp học.</td></tr>';
+        // Cập nhật thông báo chờ
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Đang tải danh sách học kỳ...</td></tr>';
     }
 
     await loadSemestersToCustomFilter();
 
     setupAddClassButton();
-    setupBatchDeleteClassButton(); // <--- Setup nút xóa hàng loạt
+    setupBatchDeleteClassButton(); 
     setupAddClassForm();
 }
 
@@ -59,13 +60,26 @@ async function loadSemestersToCustomFilter() {
                 }
             });
 
+            let activeSemester = null; // Biến lưu học kỳ hiện hành để auto-select
+
             // B. Tạo danh sách Option từ API
             result.data.forEach(hk => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'custom-option'; 
                 optionDiv.dataset.value = hk.MaHocKy;
                 optionDiv.dataset.status = hk.TrangThai; 
-                optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
+                
+                // --- LOGIC MỚI: Xử lý hiển thị "-- Hiện hành --" ---
+                let label = `${hk.MaHocKy} (${hk.NamHoc})`;
+                if (hk.TrangThai === 'Đang diễn ra') {
+                    label += ' -- Hiện hành --';
+                    // Lưu lại học kỳ này để chọn mặc định
+                    activeSemester = {
+                        ...hk,
+                        displayLabel: label
+                    };
+                }
+                optionDiv.textContent = label;
 
                 // === SỰ KIỆN KHI CHỌN MỘT HỌC KỲ ===
                 optionDiv.addEventListener('click', function() {
@@ -89,6 +103,31 @@ async function loadSemestersToCustomFilter() {
 
                 optionsContainer.appendChild(optionDiv);
             });
+
+            // --- LOGIC MỚI: Tự động chọn học kỳ hiện hành ---
+            if (activeSemester) {
+                // Cập nhật text hiển thị trên UI
+                currentTextDisplay.textContent = activeSemester.displayLabel;
+                currentTrigger.classList.add('selected');
+
+                // Set active class cho option tương ứng trong dropdown
+                const allOptions = optionsContainer.querySelectorAll('.custom-option');
+                allOptions.forEach(opt => {
+                    if(opt.dataset.value === activeSemester.MaHocKy) opt.classList.add('selected');
+                });
+
+                // Cập nhật biến toàn cục
+                currentSemesterId = activeSemester.MaHocKy;
+                currentSemesterStatus = activeSemester.TrangThai;
+                if (hiddenInput) hiddenInput.value = activeSemester.MaHocKy;
+
+                // Tải dữ liệu ngay lập tức
+                fetchAndInitClassTable(currentSemesterId);
+            } else {
+                // Trường hợp không có học kỳ nào "Đang diễn ra"
+                const tbody = document.getElementById('class-table-body');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Vui lòng chọn Học kỳ trên thanh công cụ để xem lớp học.</td></tr>';
+            }
         }
     } catch (err) { console.error("Lỗi tải học kỳ:", err); }
 }
@@ -137,10 +176,12 @@ function renderClassTable(page) {
     pageData.forEach(cls => {
         let badgeClass = 'grey';
         const status = cls.TrangThai || 'Chưa xếp lịch';
-        
-        if (status.includes('Đang học')) badgeClass = 'green';
+        if (status.includes('Đang đăng ký')) badgeClass = 'blue';
+        else if (status.includes('Đang học')) badgeClass = 'green';
         else if (status.includes('Đã kết thúc')) badgeClass = 'red';
-        else if (status.includes('Đang đăng ký')) badgeClass = 'blue';
+        else if (status.includes('Đã hủy lớp')) badgeClass = 'red';
+        else if (status.includes('Đã xếp lịch')) badgeClass = 'orange';
+        else if (status.includes('Kết thúc đăng ký')) badgeClass = 'yellow';
 
         const dataString = JSON.stringify(cls).replace(/"/g, '&quot;');
 
@@ -157,7 +198,7 @@ function renderClassTable(page) {
                 <td>${cls.TenMon || 'N/A'}</td>
                 <td>${cls.TenGiangVien || '<span style="color:#999; font-style:italic;">Chưa phân công</span>'}</td>
                 <td>${cls.SiSoHienTai} / ${cls.SiSoToiDa}</td>
-                <td><span class="badge ${badgeClass}" style="padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #fff; background-color: ${getBadgeColor(badgeClass)}">${status}</span></td>
+                <td><span class="badge ${badgeClass}">${status}</span></td>
                 <td style="text-align: center;">
                     <button class="action-btn edit-class-btn" data-info="${dataString}" style="border:none; background:none; cursor:pointer; margin-right:8px;">
                         <span class="material-symbols-outlined" style="color:#3b82f6">edit</span>
@@ -198,7 +239,6 @@ function updateSelectedClassIds(id, isChecked) {
 
 /**
  * Thiết lập sự kiện cho checkbox Chọn Tất Cả và checkbox con.
- * (Lưu ý: Bạn cần thêm id="selectAllClassCheckbox" vào HTML file lop-hoc.html phần thead)
  */
 function setupClassCheckboxes() {
     const selectAll = document.getElementById('selectAllClassCheckbox');
@@ -237,7 +277,6 @@ function setupClassCheckboxes() {
 
 /**
  * Vô hiệu hóa/Kích hoạt nút Xóa dựa trên số lượng mục đã chọn.
- * (Lưu ý: Bạn cần đổi class nút xóa trong HTML thành btn-icon-delete-class)
  */
 function updateClassDeleteButtonState() {
     const deleteBtn = document.querySelector('.btn-icon-delete-class');
@@ -311,7 +350,7 @@ async function handleMultipleDeleteClass(e) {
 // --- 6. GẮN SỰ KIỆN NÚT ---
 
 function attachClassActionEvents() {
-    // Sửa (giữ nguyên logic cũ)
+    // Sửa
     document.querySelectorAll('.edit-class-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (currentSemesterStatus === "Đã đóng") {
@@ -323,7 +362,7 @@ function attachClassActionEvents() {
         });
     });
 
-    // Xóa từng dòng (giữ nguyên logic cũ)
+    // Xóa từng dòng
     document.querySelectorAll('.delete-class-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             if (currentSemesterStatus === "Đã đóng") {
@@ -509,17 +548,6 @@ function setupAddClassForm() {
 window.openClassModal = function() { document.getElementById('class-modal').classList.add('active'); }
 window.closeClassModal = function() { document.getElementById('class-modal').classList.remove('active'); }
 
-// === HÀM HỖ TRỢ TÔ MÀU BADGE (DÙNG CHUNG) ===
-function getBadgeColor(type) {
-    const colors = {
-        'blue': '#3b82f6',   
-        'green': '#22c55e',  
-        'red': '#ef4444',    
-        'orange': '#f97316', 
-        'grey': '#9ca3af'    
-    };
-    return colors[type] || '#9ca3af';
-}
 
 // Export
 if (typeof window !== 'undefined') {

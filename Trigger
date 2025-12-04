@@ -37,6 +37,10 @@ IF OBJECT_ID('trg_CheckDiemDungMon', 'TR') IS NOT NULL
     DROP TRIGGER trg_CheckDiemDungMon;
 GO
 
+IF OBJECT_ID('trg_CheckTrungLichGiangVien', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_CheckTrungLichGiangVien;
+GO
+
 CREATE TRIGGER trg_CheckGiangVienDungKhoa
 ON LopHoc
 AFTER INSERT, UPDATE
@@ -313,6 +317,69 @@ BEGIN
     BEGIN
         RAISERROR (N'Lỗi: Mã thành phần điểm không thuộc môn học của lớp này!', 16, 1);
         ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
+CREATE TRIGGER trg_CheckTrungLichGiangVien
+ON LichHoc
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    -- Kiểm tra có xung đột lịch giảng dạy không
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        -- 1. Tìm Giảng viên của lịch học MỚI (Từ bảng LopHoc)
+        JOIN LopHoc LH_Moi 
+            ON i.MaLopHoc = LH_Moi.MaLopHoc 
+            AND i.MaHocKy = LH_Moi.MaHocKy 
+            AND i.MaMon = LH_Moi.MaMonHoc
+            
+        -- 2. Tìm các lịch học ĐÃ CÓ trong hệ thống (cùng học kỳ, cùng thứ)
+        JOIN LichHoc DB_Lich
+            ON i.MaHocKy = DB_Lich.MaHocKy 
+            AND i.Thu = DB_Lich.Thu
+            
+        -- 3. Tìm Giảng viên của lịch học ĐÃ CÓ
+        JOIN LopHoc LH_Cu 
+            ON DB_Lich.MaLopHoc = LH_Cu.MaLopHoc 
+            AND DB_Lich.MaHocKy = LH_Cu.MaHocKy 
+            AND DB_Lich.MaMon = LH_Cu.MaMonHoc
+
+        WHERE 
+            -- ĐIỀU KIỆN 1: Cùng một Giảng viên
+            LH_Moi.MSCB = LH_Cu.MSCB
+            AND LH_Moi.MSCB IS NOT NULL -- Bỏ qua nếu lớp chưa có GV
+
+            -- ĐIỀU KIỆN 2: Giao nhau về thời gian (Tuần & Tiết)
+            AND (i.TuanBatDau <= DB_Lich.TuanKetThuc AND DB_Lich.TuanBatDau <= i.TuanKetThuc)
+            AND (i.TietBatDau <= DB_Lich.TietKetThuc AND DB_Lich.TietBatDau <= i.TietKetThuc)
+
+            -- ĐIỀU KIỆN 3: Loại trừ chính dòng đang sửa (Tránh so sánh với chính nó)
+            AND NOT (
+                i.MaLopHoc = DB_Lich.MaLopHoc AND 
+                i.MaMon = DB_Lich.MaMon AND 
+                i.MaHocKy = DB_Lich.MaHocKy AND
+                i.PhongHoc = DB_Lich.PhongHoc AND
+                i.Thu = DB_Lich.Thu AND
+                i.TietBatDau = DB_Lich.TietBatDau AND
+                i.TietKetThuc = DB_Lich.TietKetThuc
+            )
+    )
+    BEGIN
+        -- Lấy tên Giảng viên để hiển thị lỗi cho chi tiết
+        DECLARE @TenGV NVARCHAR(100);
+        SELECT TOP 1 @TenGV = GV.HoTen
+        FROM inserted i
+        JOIN LopHoc LH ON i.MaLopHoc = LH.MaLopHoc AND i.MaHocKy = LH.MaHocKy AND i.MaMon = LH.MaMonHoc
+        JOIN GiangVien GV ON LH.MSCB = GV.MSCB;
+
+        -- Báo lỗi và Rollback
+        DECLARE @Msg NVARCHAR(2048) = N'Giảng viên ' + @TenGV + N' đã có lịch dạy trùng thời gian này ở lớp khác!';
+
+		ROLLBACK TRANSACTION;
+		;THROW 51000, @Msg, 1;
     END
 END;
 GO

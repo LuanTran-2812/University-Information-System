@@ -17,14 +17,12 @@ const createSchedule = async (req, res, next) => {
 
 const deleteSchedule = async (req, res, next) => {
     try {
-        // Lấy các tham số từ query string
-        const { maLop, maHK, maMon, thu, tiet, phong } = req.query;
-        await scheduleService.deleteSchedule(maLop, maHK, maMon, thu, tiet, phong);
+        // Lấy các tham số từ query string (Đã thay đổi tiet -> tietBD, tietKT)
+        const { maLop, maHK, maMon, thu, tietBD, tietKT, phong } = req.query;
+        await scheduleService.deleteSchedule(maLop, maHK, maMon, thu, tietBD, tietKT, phong);
         res.json({ success: true, message: 'Xóa thành công!' });
     } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
-
-
 
 const updateSchedule = async (req, res, next) => {
     try {
