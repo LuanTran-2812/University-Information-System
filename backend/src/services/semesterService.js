@@ -45,28 +45,51 @@ const createSemester = async (data) => {
 const updateSemester = async (id, data) => {
   try {
       const pool = await getPool();
-      const { namHoc, ngayBatDau, ngayKetThuc, moDangKy, dongDangKy, daKhoa } = data; // Thêm biến daKhoa
+      const { namHoc, ngayBatDau, ngayKetThuc, moDangKy, dongDangKy, daKhoa } = data; 
+      
+      let query = 'UPDATE HocKy SET ';
+      const request = pool.request().input('id', sql.VarChar, id);
+      const updates = [];
+      
+      // 1. Cập nhật trạng thái khóa (được dùng bởi nút 'Đóng học kỳ')
+      if (daKhoa !== undefined) {
+          updates.push('DaKhoa = @daKhoa');
+          request.input('daKhoa', sql.Bit, daKhoa); 
+      }
+      
+      // 2. Cập nhật thông tin cơ bản (được dùng bởi form Sửa)
+      if (namHoc) {
+          updates.push('NamHoc = @namHoc');
+          request.input('namHoc', sql.VarChar, namHoc);
+      }
+      if (ngayBatDau) {
+          updates.push('NgayBatDau = @ngayBD');
+          request.input('ngayBD', sql.Date, ngayBatDau);
+      }
+      if (ngayKetThuc) {
+          updates.push('NgayKetThuc = @ngayKT');
+          request.input('ngayKT', sql.Date, ngayKetThuc);
+      }
+      if (moDangKy) {
+          updates.push('MoDangKy = @moDK');
+          request.input('moDK', sql.Date, moDangKy);
+      }
+      if (dongDangKy) {
+          updates.push('DongDangKy = @dongDK');
+          request.input('dongDK', sql.Date, dongDangKy);
+      }
+      
+      if (updates.length === 0) {
+          return { success: true, message: 'Không có dữ liệu thay đổi.' };
+      }
 
-      await pool.request()
-          .input('id', sql.VarChar, id)
-          .input('namHoc', sql.VarChar, namHoc)
-          .input('ngayBD', sql.Date, ngayBatDau)
-          .input('ngayKT', sql.Date, ngayKetThuc)
-          .input('moDK', sql.Date, moDangKy)
-          .input('dongDK', sql.Date, dongDangKy)
-          .input('daKhoa', sql.Bit, daKhoa) // Nhận thêm trạng thái khóa thủ công
-          .query(`
-              UPDATE HocKy 
-              SET NamHoc = @namHoc, 
-                  NgayBatDau = @ngayBD, NgayKetThuc = @ngayKT,
-                  MoDangKy = @moDK, DongDangKy = @dongDK,
-                  DaKhoa = @daKhoa
-              WHERE MaHocKy = @id
-          `);
+      query += updates.join(', ');
+      query += ' WHERE MaHocKy = @id';
+
+      await request.query(query);
       return { success: true };
   } catch (err) { throw err; }
 };
-
 
 const deleteSemester = async (id) => {
   try {

@@ -5,9 +5,9 @@ const getAllStudents = async () => {
   try {
     const pool = await getPool();
     const query = `
-      SELECT HoTen, Email, N'Sinh viên' as VaiTro FROM SinhVien
+      SELECT HoTen, Email, MSSV, ChuyenNganh, N'Sinh viên' as VaiTro FROM SinhVien
       UNION ALL
-      SELECT HoTen, Email, N'Giảng viên' as VaiTro FROM GiangVien
+      SELECT HoTen, Email, MSCB, ChuyenNganh, N'Giảng viên' as VaiTro FROM GiangVien
     `;
     const result = await pool.request().query(query);
     return result.recordset;
@@ -111,5 +111,30 @@ const deleteUser = async (email) => {
   }
 };
 
-// Nhớ export thêm hàm deleteUser
-module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser };
+// Xóa nhiều người dùng
+const deleteMultipleUsers = async (emails) => {
+  try {
+    const pool = await getPool();
+    let deletedCount = 0;
+
+    for (const email of emails) {
+      if (!email) {
+        console.warn('Email không hợp lệ:', email);
+        continue;
+      }
+
+      const result = await pool.request()
+        .input('email', sql.NVarChar, email)
+        .query('DELETE FROM TaiKhoan WHERE Email = @email');
+      
+      deletedCount += result.rowsAffected[0];
+    }
+
+    return deletedCount;
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Nhớ export thêm hàm deleteUser và deleteMultipleUsers
+module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser, deleteMultipleUsers };

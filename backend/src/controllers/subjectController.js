@@ -33,14 +33,25 @@ const updateSubject = async (req, res, next) => {
     }
   };
   
-  const deleteSubject = async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      await subjectService.deleteSubject(id);
-      res.json({ success: true, message: 'Xóa thành công!' });
-    } catch (err) {
-      res.status(400).json({ success: false, message: 'Không thể xóa (Dữ liệu đang được sử dụng)!' });
-    }
-  };
-  
-  module.exports = { getSubjects, createSubject, updateSubject, deleteSubject };
+const deleteSubject = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await subjectService.deleteSubject(id);
+    res.json({ success: true, message: 'Xóa thành công!' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: 'Không thể xóa (Dữ liệu đang được sử dụng)!' });
+  }
+};
+
+// BULK DELETE
+const deleteMultipleSubjects = async (req, res) => {
+  try {
+    const { maMons } = req.body; // Expect: { maMons: ['M001','M002', ...] }
+    const result = await subjectService.deleteMultipleSubjects(maMons);
+    res.json({ success: true, message: `Đã xóa ${result.deletedCount} môn học!`, deletedCount: result.deletedCount });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getSubjects, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };

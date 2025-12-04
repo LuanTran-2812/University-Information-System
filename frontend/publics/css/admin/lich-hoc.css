@@ -1,10 +1,81 @@
-
-.schedule-page-container { 
-    background-color: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); min-height: 85vh;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
+.header-left-group { display: flex; align-items: center; gap: 20px; }
+.header-left-group h2 { font-size: 20px; font-weight: 600; margin: 0; }
 
-/* TABLE */
+.semester-select-wrapper { position: relative; }
+.semester-dropdown {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    font-size: 14px;
+    color: #374151;
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+    min-width: 180px;
+}
+
+/* =========================================
+   2. BUTTONS & SEARCH (ĐÃ ĐỒNG BỘ TỪ LOP-HOC.CSS)
+   ========================================= */
+.header-actions { display: flex; gap: 12px; }
+.search-box { display: flex; align-items: center; background: #FFFAFA; border: 1px solid #E4E4E4; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
+.search-box input::placeholder {
+    color: #959595;
+    opacity: 1; 
+}
+
+.btn-white { background: #FFFAFA; border: 1px solid #E4E4E4; padding: 8px 16px; border-radius: 8px; cursor: pointer; color: #959595;}
+.btn-white .icon-filter {
+    font-size: 18px;
+    color: #959595;
+}
+
+.btn-blue {
+    background: #4F46E5;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.btn-blue .icon-btn {
+    color: white;
+    font-size: 18px;
+}
+
+.btn-icon-delete-schedule { background: #FFFAFA; border: 1px solid #E4E4E4; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #959595; }
+
+/* Vô hiệu hóa nút Xóa khi không có checkbox nào được chọn */
+.btn-icon-delete-schedule:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+/* =========================================
+   3. BẢNG DỮ LIỆU (TABLE WRAPPER TỪ LOP-HOC.CSS)
+   ========================================= */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    height: 449px;
+}
+
+/* TABLE (CSS GỐC CỦA SCHEDULE.CSS) */
 .schedule-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .schedule-table th { background: #F9FAFB; color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 14px 10px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .schedule-table td { padding: 14px 10px; font-size: 14px; color: #111; border-bottom: 1px solid #F3F4F6; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -31,12 +102,25 @@
 .schedule-table td:nth-child(8) { text-align: center; }
 .schedule-table td:nth-child(9) { text-align: center; }
 
-/* Modal */
+/* =========================================
+   4. PAGINATION & MODAL SELECTS (TỪ LOP-HOC.CSS)
+   ========================================= */
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+.page-btn { width: 32px; height: 32px; border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.page-btn.active { background: #4F46E5; color: white; border-color: #4F46E5; }
+
+.full-width-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+
+/* =========================================
+   5. MODAL (CSS GỐC CỦA SCHEDULE.CSS)
+   ========================================= */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
 .modal-overlay.active { display: flex; }
 .modal-content { background: #fff; border-radius: 12px; overflow: hidden; animation: slideDown 0.3s ease; }
 .modal-header { background-color: #4472C4; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
 .form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
 .full-width { grid-column: span 2; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #333; }
 .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }

@@ -33,6 +33,25 @@ const updateSchedule = async (req, res, next) => {
     } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
+const deleteMultipleSchedules = async (req, res, next) => {
+    try {
+        const { schedules } = req.body;
+        
+        if (!schedules || !Array.isArray(schedules) || schedules.length === 0) {
+            return res.status(400).json({ success: false, message: 'Danh sách lịch học không hợp lệ!' });
+        }
+
+        const deletedCount = await scheduleService.deleteMultipleSchedules(schedules);
+        res.json({ 
+            success: true, 
+            message: `Đã xóa thành công ${deletedCount} lịch học!`,
+            deletedCount 
+        });
+    } catch (err) { 
+        res.status(400).json({ success: false, message: err.message }); 
+    }
+};
+
 const getLecturerSchedule = async (req, res, next) => {
     try {
         const { email } = req.query;
@@ -41,6 +60,4 @@ const getLecturerSchedule = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule,
-                  getLecturerSchedule
- };
+module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule, deleteMultipleSchedules, getLecturerSchedule };

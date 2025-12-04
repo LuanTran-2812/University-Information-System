@@ -38,4 +38,23 @@ const getLecturers = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers };
+const deleteMultipleClasses = async (req, res, next) => {
+    try {
+        const { classes } = req.body; // Array of { maLop, maHK, maMon }
+        
+        if (!classes || !Array.isArray(classes) || classes.length === 0) {
+            return res.status(400).json({ success: false, message: 'Danh sách lớp không hợp lệ' });
+        }
+
+        const deletedCount = await classService.deleteMultipleClasses(classes);
+        res.json({ 
+            success: true, 
+            message: `Đã xóa thành công ${deletedCount} lớp học`,
+            deletedCount 
+        });
+    } catch (err) { 
+        res.status(400).json({ success: false, message: err.message }); 
+    }
+};
+
+module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers, deleteMultipleClasses };

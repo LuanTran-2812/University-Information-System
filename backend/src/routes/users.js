@@ -21,5 +21,6 @@ router.get('/faculties', userController.getFaculties);
 
 router.get('/detail', userController.getUserDetail); // API: GET /api/users/detail?email=...
 router.delete('/delete/:email', userController.deleteUser);
+router.post('/delete-multiple', userController.deleteMultipleUsers); // Xóa nhiều người dùng
 
 module.exports = router;

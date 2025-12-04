@@ -13,6 +13,19 @@ const getStats = async (req, res, next) => {
   }
 };
 
+// 2. Khai báo hàm getWeeklySchedule
+const getWeeklySchedule = async (req, res, next) => {
+  try {
+    const data = await dashboardService.getWeeklySchedule();
+    res.json({
+      success: true,
+      data: data
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getLecturerStats = async (req, res, next) => {
     try {
         const { email } = req.query; // Lấy email từ ?email=...
@@ -21,4 +34,8 @@ const getLecturerStats = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getStats, getLecturerStats };
+module.exports = { 
+    getStats,
+    getWeeklySchedule,
+    getLecturerStats
+};

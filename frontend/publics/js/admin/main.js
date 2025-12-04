@@ -5,7 +5,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const navLinks = document.querySelectorAll(".main-nav .nav-link");
 
     // ============================================================
-    // 1. CORE FUNCTIONS - Fetch & Load Page
+    // CẤU HÌNH ROUTER - Ánh xạ trang HTML với hàm API tương ứng
+    // ============================================================
+    const PAGE_ROUTER = {
+        'pages/trang-chu.html': () => {
+            if (typeof window.initDashboardPage === 'function') window.initDashboardPage();
+        },
+        'pages/nguoi-dung.html': () => {
+            if (typeof window.fetchAndInitUserTable === 'function') window.fetchAndInitUserTable();
+            if (typeof window.setupUserButtons === 'function') window.setupUserButtons();
+        },
+        'pages/them-nguoi-dung.html': async () => {
+            if (typeof window.loadFacultiesToDropdown === 'function') await window.loadFacultiesToDropdown();
+            if (typeof window.setupAddUserForm === 'function') window.setupAddUserForm();
+        },
+        'pages/chi-tiet-nguoi-dung.html': () => {
+            if (typeof window.loadUserDetail === 'function') window.loadUserDetail();
+        },
+        'pages/hoc-ky.html': () => {
+            if (typeof window.loadSemesterList === 'function') window.loadSemesterList();
+            if (typeof window.setupAddSemesterButton === 'function') window.setupAddSemesterButton();
+            if (typeof window.setupAddSemesterForm === 'function') window.setupAddSemesterForm();
+        },
+        'pages/mon-hoc.html': () => {
+            if (typeof window.fetchAndInitSubjectTable === 'function') window.fetchAndInitSubjectTable();
+            if (typeof window.setupAddSubjectButton === 'function') window.setupAddSubjectButton();
+            if (typeof window.setupAddSubjectForm === 'function') window.setupAddSubjectForm();
+        },
+        'pages/lop-hoc.html': () => {
+            if (typeof window.initClassPage === 'function') window.initClassPage();
+        },
+        'pages/lich-hoc.html': () => {
+            if (typeof window.initSchedulePage === 'function') window.initSchedulePage();
+        }
+    };
+
+    // ============================================================
+    // 1. CORE FUNCTIONS
     // ============================================================
 
     async function fetchHtml(url) {
@@ -21,137 +57,194 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadPage(pageUrl, controlsUrl, title) {
-        contentAreaSlot.innerHTML = "<h2>Đang tải...</h2>";
+        contentAreaSlot.innerHTML = `<div class="loading-spinner">Đang tải dữ liệu...</div>`;
         
         try {
+            // 1. Tải HTML giao diện
             const [pageHtml, controlsHtml] = await Promise.all([
                 fetchHtml(pageUrl),
                 fetchHtml(controlsUrl)
             ]);
 
+            // 2. Render HTML vào trang
             pageTitleSlot.innerText = title;
             controlsSlot.innerHTML = controlsHtml;
             contentAreaSlot.innerHTML = pageHtml;
 
-            // ============================================================
-            // ROUTING - Gọi logic tương ứng với từng trang
-            // ============================================================
+            // 3. ROUTING - Gọi API/Logic tương ứng
+            // Tìm hàm xử lý trong bảng Router
+            const pageAction = PAGE_ROUTER[pageUrl];
             
-            if (pageUrl.includes('trang-chu.html')) {
-                if (typeof updateDashboardStats === 'function') {
-                    updateDashboardStats();
-                }
-            }
-
-            if (pageUrl.includes('nguoi-dung.html')) {
-                if (typeof fetchAndInitUserTable === 'function') {
-                    fetchAndInitUserTable();
-                    setupAddButton(); // Gắn sự kiện cho nút "Thêm người dùng"
-                }
-            }
-
-            if (pageUrl.includes('them-nguoi-dung.html')) {
-                if (typeof setupAddUserForm === 'function') {
-                    await loadFacultiesToDropdown(); 
-                    setupAddUserForm();
-                }
-            }
-
-            if (pageUrl.includes('chi-tiet-nguoi-dung.html')) {
-                if (typeof loadUserDetail === 'function') {
-                    loadUserDetail();
-                }
-            }
-
-            if (pageUrl.includes('hoc-ky.html')) {
-                if (typeof loadSemesterList === 'function') {
-                    loadSemesterList();
-                    setupAddSemesterButton();
-                    setupAddSemesterForm();
-                }
-            }
-
-            if (pageUrl.includes('mon-hoc.html')) {
-                if (typeof fetchAndInitSubjectTable === 'function') {
-                    fetchAndInitSubjectTable();
-                    setupAddSubjectButton();
-                    setupAddSubjectForm();
-                }
-            }
-
-            if (pageUrl.includes('lop-hoc.html')) {
-                if (typeof initClassPage === 'function') {
-                    initClassPage();
-                }
-            }
-
-            if (pageUrl.includes('lich-hoc.html')) {
-                if (typeof initSchedulePage === 'function') {
-                    initSchedulePage();
-                }
+            if (pageAction) {
+                console.log(`Đang chạy logic cho trang: ${pageUrl}`);
+                await pageAction(); // Chạy hàm tương ứng
+            } else {
+                console.warn(`Chưa cấu hình logic cho trang: ${pageUrl}`);
             }
 
         } catch (error) {
             console.error("Lỗi khi tải trang:", error);
-            contentAreaSlot.innerHTML = "<p>Đã xảy ra lỗi khi tải trang.</p>";
+            contentAreaSlot.innerHTML = "<p>Đã xảy ra lỗi khi tải trang. Vui lòng thử lại.</p>";
         }
     }
 
     // ============================================================
-    // 2. NAVIGATION - Gắn sự kiện cho menu
+    // 2. NAVIGATION - Gắn sự kiện click sidebar
     // ============================================================
     
     navLinks.forEach(link => {
         link.addEventListener("click", (event) => {
             event.preventDefault();
 
-            // Xóa active khỏi tất cả
+            // 1. Cập nhật URL trên thanh địa chỉ
+            const href = link.getAttribute('href');
+            history.pushState(null, '', href); 
+
+            // 2. Xử lý UI active
             navLinks.forEach(item => item.classList.remove("active"));
-            
-            // Thêm active vào link được click
             link.classList.add("active");
 
-            // Lấy thông tin từ data-attributes
+            // 3. Gọi hàm load nội dung
             const pageUrl = link.dataset.page;
             const controlsUrl = link.dataset.controls;
             const title = link.dataset.title;
 
-            // Tải nội dung trang
             loadPage(pageUrl, controlsUrl, title);
         });
     });
 
     // ============================================================
-    // 3. LOAD DEFAULT PAGE
+    // 3. INITIAL LOAD & BROWSER NAVIGATION (SỬA ĐỔI)
     // ============================================================
     
-    const defaultActiveLink = document.querySelector(".main-nav .nav-link.active");
-    if (defaultActiveLink) {
-        loadPage(
-            defaultActiveLink.dataset.page,
-            defaultActiveLink.dataset.controls,
-            defaultActiveLink.dataset.title
-        );
+    function handleLocation() {
+        const currentPath = window.location.pathname;
+        let activeLink = document.querySelector(`.main-nav .nav-link[href="${currentPath}"]`);
+
+        if (!activeLink) {
+             activeLink = document.querySelector(`.main-nav .nav-link[data-page="pages/trang-chu.html"]`);
+        }
+
+        if (activeLink) {
+            // Update UI Sidebar
+            navLinks.forEach(item => item.classList.remove("active"));
+            activeLink.classList.add("active");
+
+            // Load nội dung
+            loadPage(
+                activeLink.dataset.page,
+                activeLink.dataset.controls,
+                activeLink.dataset.title
+            );
+        }
     }
+
+    // Chạy logic khi trang vừa load xong (F5 hoặc mở mới)
+    handleLocation();
+
+    // Xử lý sự kiện nút Back/Forward của trình duyệt (MỚI THÊM)
+    window.addEventListener("popstate", handleLocation);
 
     // ============================================================
     // 4. LOGOUT HANDLER
     // ============================================================
     
-    document.querySelectorAll('.bottom-nav .nav-link').forEach(link => {
-        const text = link.querySelector('span:last-child');
-        if (text && text.textContent.trim().toLowerCase() === 'log out') {
-            link.addEventListener('click', (event) => {
+    // Tìm nút logout
+    const logoutLinks = document.querySelectorAll('.bottom-nav .nav-link');
+    
+    logoutLinks.forEach(link => {
+        const textSpan = link.querySelector('span:last-child');
+        
+        if (textSpan && textSpan.textContent.trim().toLowerCase() === 'log out') {
+            
+            link.addEventListener('click', async (event) => {
                 event.preventDefault();
                 
-                // Xóa token
-                localStorage.removeItem('token');
-                
-                // Redirect về login
-                const isLiveServer = window.location.port === '5500';
-                const basePath = isLiveServer ? '/frontend/publics' : '';
-                window.location.href = basePath + '/login.html';
+                try {
+                    const response = await fetch('/api/auth/logout', {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    window.location.href = '/login.html';
+
+                } catch (error) {
+                    console.error('Lỗi khi đăng xuất:', error);
+                    window.location.href = '/login.html';
+                }
             });
         }
     });
 });
+
+// ============================================================
+// 5. GLOBAL UTILS - HÀM PHÂN TRANG DÙNG CHUNG
+// ============================================================
+
+function renderPagination(totalItems, rowsPerPage, currentPage, onPageChange) {
+    const paginationEl = document.querySelector('.pagination');
+    if (!paginationEl) return;
+    paginationEl.innerHTML = '';
+
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    if (totalPages <= 1) return;
+
+    // CẤU HÌNH: Số lượng nút hiển thị tối đa (5 nút)
+    const MAX_VISIBLE_PAGES = 5;
+
+    const createBtn = (text, targetPage, isActive = false, isDisabled = false) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${isActive ? 'active' : ''}`;
+        btn.innerHTML = text;
+        btn.disabled = isDisabled;
+        btn.style.minWidth = "35px"; // Cố định chiều rộng
+
+        if (!isDisabled) {
+            btn.onclick = () => {
+                // Gọi callback để trang con xử lý
+                if (typeof onPageChange === 'function') {
+                    onPageChange(targetPage);
+                }
+            };
+        }
+        paginationEl.appendChild(btn);
+    };
+
+    // 1. Nút Previous
+    createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentPage - 1, false, currentPage === 1);
+
+    // 2. Logic "Cửa sổ trượt" (Sliding Window)
+    let startPage, endPage;
+    if (totalPages <= MAX_VISIBLE_PAGES) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        const maxPagesBeforeCurrent = Math.floor(MAX_VISIBLE_PAGES / 2);
+        const maxPagesAfterCurrent = Math.ceil(MAX_VISIBLE_PAGES / 2) - 1;
+
+        if (currentPage <= maxPagesBeforeCurrent + 1) {
+            startPage = 1;
+            endPage = MAX_VISIBLE_PAGES;
+        } else if (currentPage + maxPagesAfterCurrent >= totalPages) {
+            startPage = totalPages - MAX_VISIBLE_PAGES + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - maxPagesBeforeCurrent;
+            endPage = currentPage + maxPagesAfterCurrent;
+        }
+    }
+
+    // 3. Render nút số
+    for (let i = startPage; i <= endPage; i++) {
+        createBtn(i, i, i === currentPage);
+    }
+
+    // 4. Nút Next
+    createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentPage + 1, false, currentPage === totalPages);
+}
+
+// Export hàm renderPagination ra window
+if (typeof window !== 'undefined') {
+    window.renderPagination = renderPagination;
+}
