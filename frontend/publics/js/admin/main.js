@@ -5,7 +5,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const navLinks = document.querySelectorAll(".main-nav .nav-link");
 
     // ============================================================
-    // 1. CORE FUNCTIONS - Fetch & Load Page
+    // CẤU HÌNH ROUTER - Ánh xạ trang HTML với hàm API tương ứng
+    // ============================================================
+    const PAGE_ROUTER = {
+        'pages/trang-chu.html': () => {
+            if (typeof window.initDashboardPage === 'function') window.initDashboardPage();
+        },
+        'pages/nguoi-dung.html': () => {
+            if (typeof window.fetchAndInitUserTable === 'function') window.fetchAndInitUserTable();
+            if (typeof window.setupUserButtons === 'function') window.setupUserButtons();
+        },
+        'pages/them-nguoi-dung.html': async () => {
+            if (typeof window.loadFacultiesToDropdown === 'function') await window.loadFacultiesToDropdown();
+            if (typeof window.setupAddUserForm === 'function') window.setupAddUserForm();
+        },
+        'pages/chi-tiet-nguoi-dung.html': () => {
+            if (typeof window.loadUserDetail === 'function') window.loadUserDetail();
+        },
+        'pages/hoc-ky.html': () => {
+            if (typeof window.loadSemesterList === 'function') window.loadSemesterList();
+            if (typeof window.setupAddSemesterButton === 'function') window.setupAddSemesterButton();
+            if (typeof window.setupAddSemesterForm === 'function') window.setupAddSemesterForm();
+        },
+        'pages/mon-hoc.html': () => {
+            if (typeof window.fetchAndInitSubjectTable === 'function') window.fetchAndInitSubjectTable();
+            if (typeof window.setupAddSubjectButton === 'function') window.setupAddSubjectButton();
+            if (typeof window.setupAddSubjectForm === 'function') window.setupAddSubjectForm();
+        },
+        'pages/lop-hoc.html': () => {
+            if (typeof window.initClassPage === 'function') window.initClassPage();
+        },
+        'pages/lich-hoc.html': () => {
+            if (typeof window.initSchedulePage === 'function') window.initSchedulePage();
+        }
+    };
+
+    // ============================================================
+    // 1. CORE FUNCTIONS
     // ============================================================
 
     async function fetchHtml(url) {
@@ -21,137 +57,122 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadPage(pageUrl, controlsUrl, title) {
-        contentAreaSlot.innerHTML = "<h2>Đang tải...</h2>";
+        contentAreaSlot.innerHTML = `<div class="loading-spinner">Đang tải dữ liệu...</div>`;
         
         try {
+            // 1. Tải HTML giao diện
             const [pageHtml, controlsHtml] = await Promise.all([
                 fetchHtml(pageUrl),
                 fetchHtml(controlsUrl)
             ]);
 
+            // 2. Render HTML vào trang
             pageTitleSlot.innerText = title;
             controlsSlot.innerHTML = controlsHtml;
             contentAreaSlot.innerHTML = pageHtml;
 
-            // ============================================================
-            // ROUTING - Gọi logic tương ứng với từng trang
-            // ============================================================
+            // 3. ROUTING - Gọi API/Logic tương ứng
+            // Tìm hàm xử lý trong bảng Router
+            const pageAction = PAGE_ROUTER[pageUrl];
             
-            if (pageUrl.includes('trang-chu.html')) {
-                // Gọi hàm khởi tạo chung
-                if (typeof initDashboardPage === 'function') {
-                    initDashboardPage();
-                }
-            }
-
-            if (pageUrl.includes('nguoi-dung.html')) {
-                if (typeof fetchAndInitUserTable === 'function') {
-                    fetchAndInitUserTable();
-                    setupUserButtons(); // Gắn sự kiện cho nút "Thêm người dùng"
-                }
-            }
-
-            if (pageUrl.includes('them-nguoi-dung.html')) {
-                if (typeof setupAddUserForm === 'function') {
-                    await loadFacultiesToDropdown(); 
-                    setupAddUserForm();
-                }
-            }
-
-            if (pageUrl.includes('chi-tiet-nguoi-dung.html')) {
-                if (typeof loadUserDetail === 'function') {
-                    loadUserDetail();
-                }
-            }
-
-            if (pageUrl.includes('hoc-ky.html')) {
-                if (typeof loadSemesterList === 'function') {
-                    loadSemesterList();
-                    setupAddSemesterButton();
-                    setupAddSemesterForm();
-                }
-            }
-
-            if (pageUrl.includes('mon-hoc.html')) {
-                if (typeof fetchAndInitSubjectTable === 'function') {
-                    fetchAndInitSubjectTable();
-                    setupAddSubjectButton();
-                    setupAddSubjectForm();
-                }
-            }
-
-            if (pageUrl.includes('lop-hoc.html')) {
-                if (typeof initClassPage === 'function') {
-                    initClassPage();
-                }
-            }
-
-            if (pageUrl.includes('lich-hoc.html')) {
-                if (typeof initSchedulePage === 'function') {
-                    initSchedulePage();
-                }
+            if (pageAction) {
+                console.log(`Đang chạy logic cho trang: ${pageUrl}`);
+                await pageAction(); // Chạy hàm tương ứng
+            } else {
+                console.warn(`Chưa cấu hình logic cho trang: ${pageUrl}`);
             }
 
         } catch (error) {
             console.error("Lỗi khi tải trang:", error);
-            contentAreaSlot.innerHTML = "<p>Đã xảy ra lỗi khi tải trang.</p>";
+            contentAreaSlot.innerHTML = "<p>Đã xảy ra lỗi khi tải trang. Vui lòng thử lại.</p>";
         }
     }
 
     // ============================================================
-    // 2. NAVIGATION - Gắn sự kiện cho menu
+    // 2. NAVIGATION - Gắn sự kiện click sidebar
     // ============================================================
     
     navLinks.forEach(link => {
         link.addEventListener("click", (event) => {
             event.preventDefault();
 
-            // Xóa active khỏi tất cả
+            // 1. Cập nhật URL trên thanh địa chỉ
+            const href = link.getAttribute('href');
+            history.pushState(null, '', href); 
+
+            // 2. Xử lý UI active
             navLinks.forEach(item => item.classList.remove("active"));
-            
-            // Thêm active vào link được click
             link.classList.add("active");
 
-            // Lấy thông tin từ data-attributes
+            // 3. Gọi hàm load nội dung
             const pageUrl = link.dataset.page;
             const controlsUrl = link.dataset.controls;
             const title = link.dataset.title;
 
-            // Tải nội dung trang
             loadPage(pageUrl, controlsUrl, title);
         });
     });
 
     // ============================================================
-    // 3. LOAD DEFAULT PAGE
+    // 3. INITIAL LOAD & BROWSER NAVIGATION (SỬA ĐỔI)
     // ============================================================
     
-    const defaultActiveLink = document.querySelector(".main-nav .nav-link.active");
-    if (defaultActiveLink) {
-        loadPage(
-            defaultActiveLink.dataset.page,
-            defaultActiveLink.dataset.controls,
-            defaultActiveLink.dataset.title
-        );
+    function handleLocation() {
+        const currentPath = window.location.pathname;
+        let activeLink = document.querySelector(`.main-nav .nav-link[href="${currentPath}"]`);
+
+        if (!activeLink) {
+             activeLink = document.querySelector(`.main-nav .nav-link[data-page="pages/trang-chu.html"]`);
+        }
+
+        if (activeLink) {
+            // Update UI Sidebar
+            navLinks.forEach(item => item.classList.remove("active"));
+            activeLink.classList.add("active");
+
+            // Load nội dung
+            loadPage(
+                activeLink.dataset.page,
+                activeLink.dataset.controls,
+                activeLink.dataset.title
+            );
+        }
     }
+
+    // Chạy logic khi trang vừa load xong (F5 hoặc mở mới)
+    handleLocation();
+
+    // Xử lý sự kiện nút Back/Forward của trình duyệt (MỚI THÊM)
+    window.addEventListener("popstate", handleLocation);
 
     // ============================================================
     // 4. LOGOUT HANDLER
     // ============================================================
     
-    document.querySelectorAll('.bottom-nav .nav-link').forEach(link => {
-        const text = link.querySelector('span:last-child');
-        if (text && text.textContent.trim().toLowerCase() === 'log out') {
-            link.addEventListener('click', (event) => {
+    // Tìm nút logout
+    const logoutLinks = document.querySelectorAll('.bottom-nav .nav-link');
+    
+    logoutLinks.forEach(link => {
+        const textSpan = link.querySelector('span:last-child');
+        
+        if (textSpan && textSpan.textContent.trim().toLowerCase() === 'log out') {
+            
+            link.addEventListener('click', async (event) => {
                 event.preventDefault();
                 
-                // Xóa token
-                localStorage.removeItem('token');
-                
-                // Redirect về login
-                const isLiveServer = window.location.port === '5500';
-                const basePath = isLiveServer ? '/frontend/publics' : '';
-                window.location.href = basePath + '/login.html';
+                try {
+                    const response = await fetch('/api/auth/logout', {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    window.location.href = '/login.html';
+
+                } catch (error) {
+                    console.error('Lỗi khi đăng xuất:', error);
+                    window.location.href = '/login.html';
+                }
             });
         }
     });

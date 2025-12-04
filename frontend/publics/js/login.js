@@ -59,42 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const data = await response.json();
-        console.log(data);
+        
         if (response.ok) {
-          localStorage.setItem('token', data.token);
-          
-          // Determine base path based on current location
-          const isLiveServer = window.location.port === '5500';
-          const basePath = isLiveServer ? '/frontend/publics' : '';
-          
-          // Use redirectUrl from backend if available
           if (data.redirectUrl) {
-            // Adjust redirect URL for Live Server
-            const redirectPath = basePath + data.redirectUrl;
-            window.location.href = redirectPath;
+            window.location.href = data.redirectUrl; 
           } else {
-            // Fallback: Normalize role on frontend
-            const rawRole = (data.role || '');
-            const normalized = rawRole.normalize ? rawRole.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawRole;
-            const roleKey = normalized.replace(/\s+/g, '').toLowerCase();
-            
-            console.log('Raw role:', rawRole, 'Normalized:', roleKey);
-
-            // Map to dashboards - DB roles: "Admin", "Giảng Viên", "Sinh Viên"
-            // After normalize & lowercase: "admin", "giangvien", "sinhvien"
-            if (roleKey === 'admin') {
-              window.location.href = basePath + '/admin/index.html';
-            } else if (roleKey === 'giangvien' || roleKey.includes('giang')) {
-              window.location.href = basePath + '/dashboard-lecturer.html';
-            } else if (roleKey === 'sinhvien' || roleKey.includes('sinh')) {
-              window.location.href = basePath + '/dashboard-student.html';
-            } else {
-              // Role unknown
-              alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole + '. Vui lòng liên hệ quản trị.');
-            }
+            alert("Đăng nhập thành công nhưng không xác định được trang đích. Vui lòng liên hệ Admin.");
           }
         } else {
-          alert(data.message);
+          alert(data.message || 'Đăng nhập thất bại');
         }
       } catch (error) {
         console.error('Error during login:', error);

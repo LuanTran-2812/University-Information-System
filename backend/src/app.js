@@ -4,8 +4,11 @@ const path = require('path');
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
 const routes = require('./routes');
+const cookieParser = require('cookie-parser');
+const { verifyToken, checkRole } = require('./middleware/authMiddleware');
 
 const app = express();
+app.use(cookieParser());
 
 // Configure CORS for development (Live Server + local dev)
 app.use(cors({
@@ -38,14 +41,50 @@ app.use((req, res, next) => {
   next();
 });
 
+// --- CẤU HÌNH STATIC FILES ---
+app.use('/css', express.static(path.join(__dirname, '../../frontend/publics/css')));
+app.use('/js', express.static(path.join(__dirname, '../../frontend/publics/js')));
+app.use('/images', express.static(path.join(__dirname, '../../frontend/publics/images')));
+
+// Route cho trang Login (Công khai)
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/publics/login.html'));
+});
+// Redirect root về login nếu chưa đăng nhập
+app.get('/', (req, res) => {
+    res.redirect('/login.html');
+});
+
+
+// --- CẤU HÌNH PRIVATE ROUTES ---
+const adminRoutes = [
+    '/admin/dashboard',
+    '/admin/nguoi-dung',
+    '/admin/mon-hoc',
+    '/admin/lop-hoc',
+    '/admin/lich-hoc',
+    '/admin/hoc-ky'
+];
+// Trang Admin
+app.get(adminRoutes, verifyToken, checkRole(['admin']), (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/publics/admin/index.html'));
+});
+
+// Trang Giảng viên
+app.get('/lecturer/dashboard', verifyToken, checkRole(['giangvien', 'giang']), (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/publics/lecturer/index.html'));
+});
+
+// Trang Sinh viên
+app.get('/student/dashboard', verifyToken, checkRole(['sinhvien', 'sinh']), (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/publics/student/index.html'));
+});
+
 // Serve static files from frontend/publics
 app.use(express.static(path.join(__dirname, '../../frontend/publics')));
 
 // API routes (mounted central router)
 app.use('/api', routes);
-
-// health
-app.get('/', (req, res) => res.json({ status: 'ok' }));
 
 // error handler (last)
 app.use(errorHandler);
