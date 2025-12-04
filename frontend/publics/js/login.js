@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('guest-btn');
   if (guestBtn) {
     guestBtn.addEventListener('click', () => {
-      // Determine base path based on current location
       const isLiveServer = window.location.port === '5500';
       const basePath = isLiveServer ? '/frontend/publics' : '';
       window.location.href = basePath + '/user/index.html';
@@ -34,11 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 2b. Quay lại View ban đầu (từ form về initial view) ---
+  // --- 2b. Quay lại View ban đầu ---
   const backToInitial = document.getElementById('back-to-initial');
   if (backToInitial) {
     backToInitial.addEventListener('click', () => {
-      // Ẩn form đăng nhập, hiện view chọn vai trò
       if (loginForm) loginForm.classList.add('hidden');
       if (initialView) initialView.classList.remove('hidden');
     });
@@ -71,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         console.error('Error during login:', error);
+        alert('Lỗi kết nối đến Server!');
       }
     });
   }

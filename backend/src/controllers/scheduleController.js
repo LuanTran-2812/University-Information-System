@@ -52,4 +52,12 @@ const deleteMultipleSchedules = async (req, res, next) => {
     }
 };
 
-module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule, deleteMultipleSchedules };
+const getLecturerSchedule = async (req, res, next) => {
+    try {
+        const { email } = req.query;
+        const schedule = await scheduleService.getLecturerSchedule(email);
+        res.json({ success: true, data: schedule });
+    } catch (err) { next(err); }
+};
+
+module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule, deleteMultipleSchedules, getLecturerSchedule };

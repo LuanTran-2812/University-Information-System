@@ -30,9 +30,9 @@ const login = async (req, res, next) => {
     if (normalizedRole === 'admin') {
       redirectUrl = '/admin/dashboard';
     } else if (normalizedRole === 'giangvien' || normalizedRole.includes('giang')) {
-      redirectUrl = '/dashboard-lecturer.html';
+      redirectUrl = '/lecturer/dashboard';
     } else if (normalizedRole === 'sinhvien' || normalizedRole.includes('sinh')) {
-      redirectUrl = '/dashboard-student.html';
+      redirectUrl = '/student/dashboard';
     }
     
     res.json({ 

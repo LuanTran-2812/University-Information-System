@@ -26,7 +26,16 @@ const getWeeklySchedule = async (req, res, next) => {
   }
 };
 
+const getLecturerStats = async (req, res, next) => {
+    try {
+        const { email } = req.query; // Lấy email từ ?email=...
+        const data = await dashboardService.getLecturerStats(email);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
 module.exports = { 
     getStats,
-    getWeeklySchedule
+    getWeeklySchedule,
+    getLecturerStats
 };

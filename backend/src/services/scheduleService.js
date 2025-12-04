@@ -159,10 +159,46 @@ const deleteMultipleSchedules = async (schedules) => {
     }
 };
 
+// Lấy lịch dạy của giảng viên (theo email)
+const getLecturerSchedule = async (email) => {
+    try {
+        const pool = await getPool();
+        const DataType = sql || require('mssql');
+
+        // 1. Lấy MSCB
+        const gvResult = await pool.request()
+            .input('email', DataType.NVarChar, email)
+            .query("SELECT MSCB FROM GiangVien WHERE Email = @email");
+        
+        const mscb = gvResult.recordset[0]?.MSCB;
+        if (!mscb) return [];
+
+        // 2. Lấy lịch dạy (Join nhiều bảng để lấy tên môn, phòng, thứ, tiết)
+        const result = await pool.request()
+            .input('mscb', DataType.VarChar, mscb)
+            .query(`
+                SELECT 
+                    lh.Thu, lh.Tiet, lh.PhongHoc, 
+                    mh.TenMon, lh.MaLopHoc,
+                    lh.TuanBatDau, lh.TuanKetThuc,
+                    hk.NgayBatDau -- <--- LẤY THÊM CỘT NÀY
+                FROM LichHoc lh
+                JOIN LopHoc l ON lh.MaLopHoc = l.MaLopHoc AND lh.MaHocKy = l.MaHocKy AND lh.MaMon = l.MaMonHoc
+                JOIN MonHoc mh ON l.MaMonHoc = mh.MaMon
+                JOIN HocKy hk ON l.MaHocKy = hk.MaHocKy -- <--- JOIN THÊM BẢNG HỌC KỲ
+                WHERE l.MSCB = @mscb
+                ORDER BY lh.Thu, lh.Tiet
+            `);
+
+        return result.recordset;
+    } catch (err) { throw err; }
+};
+
 module.exports = { 
     getSchedulesBySemester, 
     createSchedule, 
     deleteSchedule, 
     updateSchedule, 
-    deleteMultipleSchedules 
+    deleteMultipleSchedules, 
+    getLecturerSchedule
 };
