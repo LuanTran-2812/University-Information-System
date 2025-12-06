@@ -8,34 +8,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // CẤU HÌNH ROUTER - Ánh xạ trang HTML với hàm API tương ứng
     // ============================================================
     const PAGE_ROUTER = {
-        'pages/trang-chu.html': () => {
+        '/admin/pages/trang-chu.html': () => {
             if (typeof window.initDashboardPage === 'function') window.initDashboardPage();
         },
-        'pages/nguoi-dung.html': () => {
+        '/admin/pages/nguoi-dung.html': () => {
             if (typeof window.fetchAndInitUserTable === 'function') window.fetchAndInitUserTable();
             if (typeof window.setupUserButtons === 'function') window.setupUserButtons();
         },
-        'pages/them-nguoi-dung.html': async () => {
+        '/admin/pages/them-nguoi-dung.html': async () => {
             if (typeof window.loadFacultiesToDropdown === 'function') await window.loadFacultiesToDropdown();
             if (typeof window.setupAddUserForm === 'function') window.setupAddUserForm();
         },
-        'pages/chi-tiet-nguoi-dung.html': () => {
+        '/admin/pages/chi-tiet-nguoi-dung.html': () => {
             if (typeof window.loadUserDetail === 'function') window.loadUserDetail();
         },
-        'pages/hoc-ky.html': () => {
+        '/admin/pages/hoc-ky.html': () => {
             if (typeof window.loadSemesterList === 'function') window.loadSemesterList();
             if (typeof window.setupAddSemesterButton === 'function') window.setupAddSemesterButton();
             if (typeof window.setupAddSemesterForm === 'function') window.setupAddSemesterForm();
         },
-        'pages/mon-hoc.html': () => {
+        '/admin/pages/mon-hoc.html': () => {
             if (typeof window.fetchAndInitSubjectTable === 'function') window.fetchAndInitSubjectTable();
             if (typeof window.setupAddSubjectButton === 'function') window.setupAddSubjectButton();
             if (typeof window.setupAddSubjectForm === 'function') window.setupAddSubjectForm();
         },
-        'pages/lop-hoc.html': () => {
+        '/admin/pages/lop-hoc.html': () => {
             if (typeof window.initClassPage === 'function') window.initClassPage();
         },
-        'pages/lich-hoc.html': () => {
+        '/admin/pages/lich-hoc.html': () => {
             if (typeof window.initSchedulePage === 'function') window.initSchedulePage();
         }
     };
@@ -60,10 +60,18 @@ document.addEventListener("DOMContentLoaded", () => {
         contentAreaSlot.innerHTML = `<div class="loading-spinner">Đang tải dữ liệu...</div>`;
         
         try {
+
+            const realPageUrl = pageUrl.startsWith('/') ? pageUrl : `/admin/${pageUrl}`;
+            
+            let realControlsUrl = '';
+            if (controlsUrl) {
+                 realControlsUrl = controlsUrl.startsWith('/') ? controlsUrl : `/admin/${controlsUrl}`;
+            }
+
             // 1. Tải HTML giao diện
             const [pageHtml, controlsHtml] = await Promise.all([
-                fetchHtml(pageUrl),
-                fetchHtml(controlsUrl)
+                fetchHtml(realPageUrl),
+                fetchHtml(realControlsUrl)
             ]);
 
             // 2. Render HTML vào trang
@@ -71,15 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
             controlsSlot.innerHTML = controlsHtml;
             contentAreaSlot.innerHTML = pageHtml;
 
-            // 3. ROUTING - Gọi API/Logic tương ứng
-            // Tìm hàm xử lý trong bảng Router
-            const pageAction = PAGE_ROUTER[pageUrl];
+            // 3. ROUTING - Tìm hàm xử lý trong bảng Router (Dùng đường dẫn đã chuẩn hóa)
+            const pageAction = PAGE_ROUTER[realPageUrl];
             
             if (pageAction) {
-                console.log(`Đang chạy logic cho trang: ${pageUrl}`);
-                await pageAction(); // Chạy hàm tương ứng
+                await pageAction(); 
             } else {
-                console.warn(`Chưa cấu hình logic cho trang: ${pageUrl}`);
+                console.warn(`Chưa cấu hình logic cho trang: ${realPageUrl}`);
             }
 
         } catch (error) {
@@ -87,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
             contentAreaSlot.innerHTML = "<p>Đã xảy ra lỗi khi tải trang. Vui lòng thử lại.</p>";
         }
     }
+
+    window.loadPage = loadPage;
 
     // ============================================================
     // 2. NAVIGATION - Gắn sự kiện click sidebar
@@ -119,18 +127,40 @@ document.addEventListener("DOMContentLoaded", () => {
     
     function handleLocation() {
         const currentPath = window.location.pathname;
+
+        if (currentPath === '/admin/nguoi-dung/them-nguoi-dung') {
+            loadPage('/admin/pages/them-nguoi-dung.html', '/admin/partials/search-bar.html', 'Thêm người dùng');
+            
+            const parentLink = document.querySelector(`.main-nav .nav-link[href="/admin/nguoi-dung"]`);
+            if (parentLink) {
+                document.querySelectorAll(".main-nav .nav-link").forEach(item => item.classList.remove("active"));
+                parentLink.classList.add("active");
+            }
+            return;
+        }
+
+        if (currentPath === '/admin/nguoi-dung/chi-tiet') {
+            loadPage('/admin/pages/chi-tiet-nguoi-dung.html', '/admin/partials/search-bar.html', 'Chi tiết người dùng');
+            
+            // Highlight menu cha
+            const parentLink = document.querySelector(`.main-nav .nav-link[href="/admin/nguoi-dung"]`);
+            if (parentLink) {
+                document.querySelectorAll(".main-nav .nav-link").forEach(item => item.classList.remove("active"));
+                parentLink.classList.add("active");
+            }
+            return;
+        }
+
         let activeLink = document.querySelector(`.main-nav .nav-link[href="${currentPath}"]`);
 
         if (!activeLink) {
-             activeLink = document.querySelector(`.main-nav .nav-link[data-page="pages/trang-chu.html"]`);
+            activeLink = document.querySelector(`.main-nav .nav-link[data-page="pages/trang-chu.html"]`);
         }
 
         if (activeLink) {
-            // Update UI Sidebar
-            navLinks.forEach(item => item.classList.remove("active"));
+            document.querySelectorAll(".main-nav .nav-link").forEach(item => item.classList.remove("active"));
             activeLink.classList.add("active");
 
-            // Load nội dung
             loadPage(
                 activeLink.dataset.page,
                 activeLink.dataset.controls,
@@ -161,16 +191,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 event.preventDefault();
                 
                 try {
-                    const response = await fetch('/api/auth/logout', {
+                    const response = await fetch('http://localhost:8000/api/auth/logout', {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        credentials: 'include' // Quan trọng: gửi cookie đi kèm
                     });
 
-                    window.location.href = '/login.html';
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Xóa thêm bất kỳ storage nào khác nếu có
+                        sessionStorage.clear();
+                        localStorage.clear();
+                        
+                        // Redirect về login
+                        window.location.href = '/login.html';
+                    } else {
+                        throw new Error('Logout failed');
+                    }
 
                 } catch (error) {
                     console.error('Lỗi khi đăng xuất:', error);
+                    // Vẫn redirect về login dù có lỗi
                     window.location.href = '/login.html';
                 }
             });

@@ -119,6 +119,19 @@
 .modal-overlay.active { display: flex; }
 .modal-content { background: #fff; border-radius: 12px; overflow: hidden; animation: slideDown 0.3s ease; }
 .modal-header { background-color: #4472C4; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+.modal-spacer {
+    width: 24px; 
+    height: 24px;
+    visibility: hidden;
+}
+
+.modal-header.modal-centered-title h3 {
+    flex-grow: 1;
+    text-align: center;
+}
+.modal-header.modal-centered-title .close-btn {
+    flex-shrink: 0;
+}
 .form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 .full-width { grid-column: span 2; }

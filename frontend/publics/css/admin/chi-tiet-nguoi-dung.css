@@ -1,186 +1,150 @@
-/* Khung chính */
-.user-detail-container {
-    background: #fff;
-    padding: 30px 40px;
-    border-radius: 16px;
-    min-height: 85vh;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-}
-
-/* Tiêu đề trang */
+/* =========================================
+   1. HEADER & FORM LAYOUT (Giống them-nguoi-dung)
+   ========================================= */
 .page-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 30px;
-    color: #1a1a1a;
-}
-
-/* Layout chia 2 cột */
-.detail-layout {
-    display: flex;
-    gap: 60px; /* Khoảng cách giữa 2 cột */
-}
-
-/* Cột Trái (Form) */
-.left-column {
-    flex: 2; /* Chiếm 2 phần */
-}
-
-/* Cột Phải (Avatar) */
-.right-column {
-    flex: 1; /* Chiếm 1 phần */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 20px;
-}
-
-.section-title {
-    font-size: 16px;
-    color: #999;
-    font-weight: 600;
-    margin-bottom: 25px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* === FORM STYLES === */
-.form-group {
-    margin-bottom: 24px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 20px; /* Đồng bộ margin */
     color: #333;
 }
 
-/* Hộp Input đẹp */
-.input-box {
-    position: relative;
-    border: 1px solid #E0E0E0;
-    border-radius: 8px;
-    padding: 0 15px;
-    height: 45px; /* Chiều cao cố định cho đều */
-    display: flex;
-    align-items: center;
-    background: #fff;
-    transition: border 0.3s;
-}
-
-.input-box:focus-within {
-    border-color: #007bff;
-}
-
-.input-box input, .input-box select {
+.detail-form {
     width: 100%;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Label: Copy chính xác từ them-nguoi-dung */
+.form-group label {
+    display: block;
+    font-size: 12px; /* 12px thay vì 13px */
+    color: #666;     /* #666 thay vì #555 */
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* =========================================
+   2. INPUT STYLES (Cơ bản + Readonly)
+   ========================================= */
+
+/* Style cơ bản: Copy từ them-nguoi-dung */
+.input-wrapper {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    height: auto; /* Để tự động theo padding */
+}
+
+.input-wrapper input,
+.input-wrapper select {
     border: none;
     outline: none;
+    width: 100%;
     font-size: 14px;
     color: #333;
     background: transparent;
-    height: 100%;
 }
 
-/* Style riêng cho Readonly (Xám) */
-.readonly-input {
-    color: #666 !important;
-    background-color: #F9FAFB !important;
-    cursor: default;
-}
-.input-box:has(.readonly-input) {
-    background-color: #F9FAFB;
-    border-color: #EEE;
+/* --- OVERRIDE: TRẠNG THÁI CHỈ ĐỌC (READONLY) --- */
+/* Khi ở chế độ xem chi tiết, làm mờ đi một chút */
+.input-wrapper.readonly-wrapper {
+    background-color: #f9f9f9; /* Xám nhẹ nền */
+    box-shadow: none;          /* Bỏ bóng đổ */
 }
 
-/* Style cho Dropdown  */
-.no-arrow {
+.input-wrapper.readonly-wrapper input,
+.input-wrapper.readonly-wrapper select {
+    color: #555;      /* Màu chữ nhạt hơn một chút */
+    cursor: default;  /* Con trỏ chuột bình thường */
+}
+
+/* Ẩn mũi tên select khi disabled */
+.input-wrapper.readonly-wrapper select:disabled {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
 }
 
-/* Icon mũi tên custom */
-.dropdown-icon {
-    position: absolute;
-    right: 10px;
-    color: #666;
-    pointer-events: none; /* Để click xuyên qua */
-}
-
-.char-counter {
-    font-size: 11px;
-    color: #bbb;
-    margin-left: 10px;
-    white-space: nowrap;
-}
-
-/* === RIGHT COLUMN (AVATAR) === */
-.avatar-wrapper {
-    text-align: center;
-    position: sticky;
-    top: 20px;
-}
-
-.avatar-wrapper img {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #fff;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.avatar-actions {
+/* =========================================
+   3. GRID SYSTEM (Xử lý 2 cột và 3 cột)
+   ========================================= */
+.form-row {
     display: flex;
-    flex-direction: column;
+    gap: 20px; /* Khoảng cách giữa các cột */
+    margin-bottom: 0; /* Margin do form-group lo */
+}
+
+/* Logic này tự động chia đều:
+   - Nếu hàng có 2 thẻ div (Hàng 1) -> Mỗi cái 50%
+   - Nếu hàng có 3 thẻ div (Hàng 2: Mã, Pass, SĐT) -> Mỗi cái 33.3%
+*/
+.form-row .form-group {
+    flex: 1; 
+    min-width: 0; 
+}
+
+/* =========================================
+   4. RADIO BUTTONS (Role)
+   ========================================= */
+.role-selection {
+    display: flex;
+    gap: 40px;
+    margin: 30px 0;
+    /* Bỏ border-top để giống trang Thêm */
+}
+
+.radio-container {
+    display: flex;
+    align-items: center;
     gap: 10px;
+    font-weight: 600;
+    color: #333;
+    cursor: not-allowed; /* Khác biệt duy nhất: Cấm click */
 }
 
-.btn-outline {
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 8px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    color: #555;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s;
+.radio-container input[type="radio"] {
+    accent-color: #007bff; 
+    width: 18px;
+    height: 18px;
+    cursor: not-allowed;
 }
 
-.btn-outline:hover {
-    border-color: #007bff;
-    color: #007bff;
-    background: #f0f7ff;
+/* Màu chữ nhạt đi khi disabled */
+.radio-container input[type="radio"]:disabled ~ span {
+    color: #888; 
 }
 
-/* === FOOTER ACTION === */
+/* =========================================
+   5. BUTTONS (Actions)
+   ========================================= */
 .form-actions {
-    margin-top: 30px;
     display: flex;
     justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
 }
 
-.btn-save-orange {
-    background-color: #FF5722;
-    color: #fff;
+.btn-save {
+    background-color: #FFE5D9; 
+    color: #FF5722; 
     border: none;
-    padding: 12px 50px;
+    padding: 12px 40px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    font-size: 14px;
-    box-shadow: 0 4px 10px rgba(255, 87, 34, 0.2);
-    transition: background 0.2s;
+    transition: 0.3s;
 }
 
-.btn-save-orange:hover {
-    background-color: #F4511E;
+.btn-save:hover {
+    background-color: #ffccbc;
 }

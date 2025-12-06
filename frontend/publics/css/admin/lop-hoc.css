@@ -122,15 +122,22 @@
 .class-table th:nth-child(6), .class-table td:nth-child(6) { text-align: center; }
 .class-table th:nth-child(7), .class-table td:nth-child(7) { text-align: center; }
 
-/* Badge */
+/* === BADGE TRẠNG THÁI === */
 .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
-    color: white;
+    text-align: center;
+    width: 110px;
 }
+.badge.blue { background-color: #E6F7FF; color: #1890FF; }
+.badge.green { background-color: #E9FFEF; color: #409261; }
+.badge.red { background-color: #FFF1F0; color: #FF4D4F; }
+.badge.orange { background-color: #FFF2DD; color: #D98634; }
+.badge.grey { background-color: #E4E4E4; color: #3F3748; }
+.badge.yellow { background-color: #FFFBE6; color: #FAAD14; }
 
 /* Pagination */
 .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }

@@ -29,10 +29,12 @@ const getFaculties = async (req, res, next) => {
 //  Hàm tạo người dùng mới
 const createUser = async (req, res, next) => {
   try {
-    await userService.createUser(req.body);
+    const result = await userService.createUser(req.body);
     res.json({ 
       success: true, 
-      message: 'Thêm thành công!' 
+      message: result.message || 'Thêm thành công!',
+      NewCode: result.newCode, // Service trả về newCode, Controller trả về NewCode cho Frontend
+      NewEmail: result.newEmail
     });
   } catch (err) {
     // Trả về lỗi 400 để frontend biết

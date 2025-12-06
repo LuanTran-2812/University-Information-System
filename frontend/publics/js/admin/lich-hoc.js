@@ -12,7 +12,6 @@ const selectedScheduleIds = new Set();
 
 // --- 1. HÀM KHỞI TẠO CHÍNH ---
 async function initSchedulePage() {
-    // Reset dữ liệu khi vào trang
     allSchedulesData = [];
     currentSemesterIdForSchedule = "";
     currentSemesterStatusForSchedule = "";
@@ -26,19 +25,16 @@ async function initSchedulePage() {
 
     await loadSemestersToCustomFilterForSchedule();
     
-    // Setup các nút và form
     setupAddScheduleButton();
     setupBatchDeleteButton();
     setupAddScheduleForm();
     initWeekOptions();
 }
 
-// --- 2. LOGIC DROPDOWN HỌC KỲ ---
 async function loadSemestersToCustomFilterForSchedule() {
     try {
         const response = await fetch('http://localhost:8000/api/semesters');
         const result = await response.json();
-
         const wrapper = document.getElementById('semester-custom-wrapper');
         const trigger = document.getElementById('semester-trigger');
         const optionsContainer = document.getElementById('semester-options-container');
@@ -47,28 +43,32 @@ async function loadSemestersToCustomFilterForSchedule() {
 
         if (result.success && optionsContainer) {
             optionsContainer.innerHTML = '';
-            // Clone để reset event listener cũ
+            
             const newTrigger = trigger.cloneNode(true);
             trigger.parentNode.replaceChild(newTrigger, trigger);
-            
             const currentTrigger = document.getElementById('semester-trigger');
             const currentTextDisplay = document.getElementById('selected-semester-text');
+            
+            currentTrigger.addEventListener('click', function(e) { wrapper.classList.toggle('open'); e.stopPropagation(); });
+            window.addEventListener('click', function(e) { if (wrapper && !wrapper.contains(e.target)) wrapper.classList.remove('open'); });
 
-            currentTrigger.addEventListener('click', function(e) {
-                wrapper.classList.toggle('open'); 
-                e.stopPropagation();
-            });
-
-            window.addEventListener('click', function(e) {
-                if (wrapper && !wrapper.contains(e.target)) wrapper.classList.remove('open');
-            });
+            let activeSemester = null;
 
             result.data.forEach(hk => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'custom-option'; 
                 optionDiv.dataset.value = hk.MaHocKy;
                 optionDiv.dataset.status = hk.TrangThai;
-                optionDiv.textContent = `${hk.MaHocKy} (${hk.NamHoc})`;
+                
+                let label = `${hk.MaHocKy} (${hk.NamHoc})`;
+                if (hk.TrangThai === 'Đang diễn ra') {
+                    label += ' -- Hiện hành --';
+                    activeSemester = {
+                        ...hk,
+                        displayLabel: label
+                    };
+                }
+                optionDiv.textContent = label;
 
                 optionDiv.addEventListener('click', function() {
                     currentTextDisplay.textContent = this.textContent; 
@@ -76,18 +76,36 @@ async function loadSemestersToCustomFilterForSchedule() {
                     wrapper.classList.remove('open');
                     document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
-
+                    
                     currentSemesterIdForSchedule = this.dataset.value;
                     currentSemesterStatusForSchedule = this.dataset.status;
+                    
                     if (hiddenInput) hiddenInput.value = currentSemesterIdForSchedule;
-
-                    // Reset checkbox và load dữ liệu mới
                     selectedScheduleIds.clear(); 
                     updateDeleteButtonState();
                     fetchAndInitScheduleTable(currentSemesterIdForSchedule);
                 });
                 optionsContainer.appendChild(optionDiv);
             });
+
+            if (activeSemester) {
+                currentTextDisplay.textContent = activeSemester.displayLabel;
+                currentTrigger.classList.add('selected');
+                
+                const allOptions = optionsContainer.querySelectorAll('.custom-option');
+                allOptions.forEach(opt => {
+                    if(opt.dataset.value === activeSemester.MaHocKy) opt.classList.add('selected');
+                });
+
+                currentSemesterIdForSchedule = activeSemester.MaHocKy;
+                currentSemesterStatusForSchedule = activeSemester.TrangThai;
+                if (hiddenInput) hiddenInput.value = activeSemester.MaHocKy;
+
+                fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+            } else {
+                const tbody = document.getElementById('schedule-table-body');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px;">Vui lòng chọn Học kỳ trên thanh công cụ để xem lịch học.</td></tr>';
+            }
         }
     } catch (err) { console.error("Lỗi tải học kỳ:", err); }
 }
@@ -113,7 +131,7 @@ async function fetchAndInitScheduleTable(maHK) {
         if (result.success) {
             allSchedulesData = result.data;
             currentSchedulePage = 1;
-            selectedScheduleIds.clear(); // Reset selection khi reload data
+            selectedScheduleIds.clear(); 
             renderScheduleTable(currentSchedulePage);
         }
     } catch (err) { console.error(err); }
@@ -125,8 +143,6 @@ function renderScheduleTable(page) {
     const tbody = document.getElementById('schedule-table-body');
     if (!tbody) return;
     tbody.innerHTML = '';
-    
-    // Cập nhật trạng thái nút xóa ngay khi render
     updateDeleteButtonState();
 
     if (allSchedulesData.length === 0) {
@@ -147,8 +163,7 @@ function renderScheduleTable(page) {
     pageData.forEach(s => {
         const dataString = JSON.stringify(s).replace(/"/g, '&quot;');
 
-        // Tạo ID duy nhất từ nhiều trường (Composite Key)
-        const uniqueId = `${s.MaLopHoc}|${s.MaHocKy}|${s.MaMon}|${s.Thu}|${s.Tiet}|${s.PhongHoc}`;
+        const uniqueId = `${s.MaLopHoc}|${s.MaHocKy}|${s.MaMon}|${s.Thu}|${s.TietBatDau}|${s.TietKetThuc}|${s.PhongHoc}`;
         const isChecked = selectedScheduleIds.has(uniqueId) ? 'checked' : '';
 
         const row = `
@@ -161,7 +176,7 @@ function renderScheduleTable(page) {
                 <td>${s.TenGiangVien || '-'}</td>
                 <td style="text-align:center; font-weight:bold; color:#2563eb;">${s.PhongHoc}</td>
                 <td style="text-align:center;">${s.Thu}</td>
-                <td style="text-align:center;">${s.Tiet}</td>
+                <td style="text-align:center;">${s.TietBatDau} - ${s.TietKetThuc}</td>
                 <td style="text-align:center;">${s.TuanBatDau} - ${s.TuanKetThuc}</td>
                 <td style="text-align: center;">
                     <button class="action-btn edit-schedule-btn" data-info="${dataString}" 
@@ -191,7 +206,6 @@ function renderScheduleTable(page) {
     }
 }
 
-// --- 5. QUẢN LÝ CHECKBOX & XÓA BATCH ---
 function updateSelectedScheduleIds(id, isChecked) {
     if (isChecked) selectedScheduleIds.add(id);
     else selectedScheduleIds.delete(id);
@@ -200,12 +214,9 @@ function updateSelectedScheduleIds(id, isChecked) {
 function setupScheduleCheckboxes() {
     const selectAll = document.getElementById('selectAllCheckbox');
     const checkboxes = document.querySelectorAll('.schedule-checkbox');
-
     if (!selectAll) return;
-
     const allOnPageChecked = Array.from(checkboxes).length > 0 && Array.from(checkboxes).every(c => c.checked);
     selectAll.checked = allOnPageChecked;
-
     selectAll.onchange = function () {
         checkboxes.forEach(cb => {
             cb.checked = selectAll.checked;
@@ -213,7 +224,6 @@ function setupScheduleCheckboxes() {
         });
         updateDeleteButtonState();
     };
-
     checkboxes.forEach(cb => {
         cb.onchange = function () {
             updateSelectedScheduleIds(this.value, this.checked);
@@ -226,7 +236,6 @@ function setupScheduleCheckboxes() {
         };
     });
 }
-
 function updateDeleteButtonState() {
     const deleteBtn = document.querySelector('.btn-icon-delete-schedule'); 
     if (deleteBtn) {
@@ -240,14 +249,13 @@ function updateDeleteButtonState() {
     }
 }
 
+// --- 5. XỬ LÝ XÓA BATCH ---
 async function handleMultipleDeleteSchedule(e) {
     e.preventDefault();
-
     if (currentSemesterStatusForSchedule === "Đã đóng") {
         alert("Học kỳ đã đóng. Không thể xóa lịch học.");
         return;
     }
-
     const selectedIds = Array.from(selectedScheduleIds);
     if (selectedIds.length === 0) {
         alert('Vui lòng chọn ít nhất một lịch học để xóa.');
@@ -256,15 +264,15 @@ async function handleMultipleDeleteSchedule(e) {
 
     if (confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} lịch học đã chọn?`)) {
         try {
-            // Tách chuỗi ID thành object (Bao gồm cả MaHK)
             const listToDelete = selectedIds.map(idStr => {
-                const [maLop, maHK, maMon, thu, tiet, phong] = idStr.split('|');
+                const [maLop, maHK, maMon, thu, tietBD, tietKT, phong] = idStr.split('|');
                 return {
                     MaLopHoc: maLop,
                     MaHocKy: maHK, 
                     MaMon: maMon,
                     Thu: thu,
-                    Tiet: tiet,
+                    TietBatDau: tietBD,
+                    TietKetThuc: tietKT,
                     PhongHoc: phong
                 };
             });
@@ -276,22 +284,16 @@ async function handleMultipleDeleteSchedule(e) {
             });
 
             const result = await response.json();
-
             if (result.success) {
                 alert(`Đã xóa thành công ${selectedIds.length} lịch học!`);
                 selectedScheduleIds.clear();
-                
                 const selectAll = document.getElementById('selectAllCheckbox');
                 if (selectAll) selectAll.checked = false;
-
                 fetchAndInitScheduleTable(currentSemesterIdForSchedule);
             } else {
                 alert('Lỗi server: ' + result.message);
             }
-        } catch (err) { 
-            console.error(err);
-            alert('Lỗi kết nối hoặc server!'); 
-        }
+        } catch (err) { console.error(err); alert('Lỗi kết nối hoặc server!'); }
     }
 }
 
@@ -317,17 +319,13 @@ function attachScheduleActionEvents() {
             }
 
             const rawId = e.currentTarget.dataset.id;
-            const [maLop, maHK, maMon, thu, tiet, phong] = rawId.split('|');
+            const [maLop, maHK, maMon, thu, tietBD, tietKT, phong] = rawId.split('|');
 
-            if (confirm(`Xóa lịch lớp ${maLop} (Thứ ${thu}, Tiết ${tiet})?`)) {
+            if (confirm(`Xóa lịch lớp ${maLop} (Thứ ${thu}, Tiết ${tietBD}-${tietKT})?`)) {
                 try {
                     const params = new URLSearchParams({
-                        maLop: maLop,
-                        maHK: maHK,
-                        maMon: maMon,
-                        thu: thu,
-                        tiet: tiet,
-                        phong: phong
+                        maLop: maLop, maHK: maHK, maMon: maMon, thu: thu,
+                        tietBD: tietBD, tietKT: tietKT, phong: phong
                     });
 
                     const response = await fetch(`http://localhost:8000/api/schedules/delete?${params.toString()}`, {
@@ -335,22 +333,14 @@ function attachScheduleActionEvents() {
                     });
 
                     const result = await response.json();
-
                     if (result.success) {
                         alert('Đã xóa lịch học!');
-                        
-                        if(selectedScheduleIds.has(rawId)) {
-                            selectedScheduleIds.delete(rawId);
-                        }
-
+                        if(selectedScheduleIds.has(rawId)) selectedScheduleIds.delete(rawId);
                         fetchAndInitScheduleTable(currentSemesterIdForSchedule);
                     } else {
                         alert('Lỗi xóa: ' + (result.message || 'Không rõ'));
                     }
-                } catch (err) {
-                    console.error(err);
-                    alert('Lỗi kết nối server!');
-                }
+                } catch (err) { console.error(err); alert('Lỗi kết nối server!'); }
             }
         });
     });
@@ -394,7 +384,7 @@ function setupAddScheduleButton() {
     }
 }
 
-// --- 7. MODAL LOGIC ---
+// --- 7. MODAL LOGIC  ---
 async function openScheduleEditModal(data) {
     isScheduleEditMode = true;
     currentScheduleOldData = data;
@@ -406,7 +396,10 @@ async function openScheduleEditModal(data) {
     document.getElementById('scheduleGVName').value = data.TenGiangVien;
     document.getElementById('schedulePhong').value = data.PhongHoc;
     document.getElementById('scheduleThu').value = data.Thu;
-    document.getElementById('scheduleTiet').value = data.Tiet;
+    
+    if(document.getElementById('scheduleTietBD')) document.getElementById('scheduleTietBD').value = data.TietBatDau;
+    if(document.getElementById('scheduleTietKT')) document.getElementById('scheduleTietKT').value = data.TietKetThuc;
+
     document.getElementById('scheduleTuanBD').value = data.TuanBatDau;
     document.getElementById('scheduleTuanKT').value = data.TuanKetThuc;
     document.querySelector('#schedule-modal h3').innerText = 'Cập nhật lịch học';
@@ -446,9 +439,17 @@ function setupAddScheduleForm() {
         const [maLop, maMon] = document.getElementById('scheduleClassSelect').value.split('|');
         const valPhong = document.getElementById('schedulePhong').value;
         const valThu = document.getElementById('scheduleThu').value;
-        const valTiet = document.getElementById('scheduleTiet').value;
+        
+        const valTietBD = document.getElementById('scheduleTietBD') ? document.getElementById('scheduleTietBD').value : null;
+        const valTietKT = document.getElementById('scheduleTietKT') ? document.getElementById('scheduleTietKT').value : null;
+
         const valTuanBD = document.getElementById('scheduleTuanBD').value;
         const valTuanKT = document.getElementById('scheduleTuanKT').value;
+
+        if(parseInt(valTietBD) >= parseInt(valTietKT)) {
+            alert("Tiết bắt đầu phải nhỏ hơn tiết kết thúc!");
+            return;
+        }
 
         const payload = {
             maLop: maLop,
@@ -456,17 +457,21 @@ function setupAddScheduleForm() {
             maHK: currentSemesterIdForSchedule,
             phong: valPhong,
             thu: valThu,
-            tiet: valTiet,
+            tietBD: valTietBD,
+            tietKT: valTietKT,
             tuanBD: valTuanBD,
             tuanKT: valTuanKT,
+            
             newPhong: valPhong,
             newThu: valThu,
-            newTiet: valTiet,
+            newTietBD: valTietBD,
+            newTietKT: valTietKT,
             newTuanBD: valTuanBD,
             newTuanKT: valTuanKT,
             oldPhong: isScheduleEditMode ? currentScheduleOldData.PhongHoc : null,
             oldThu: isScheduleEditMode ? currentScheduleOldData.Thu : null,
-            oldTiet: isScheduleEditMode ? currentScheduleOldData.Tiet : null
+            oldTietBD: isScheduleEditMode ? currentScheduleOldData.TietBatDau : null,
+            oldTietKT: isScheduleEditMode ? currentScheduleOldData.TietKetThuc : null
         };
 
         let url = 'http://localhost:8000/api/schedules/create';
@@ -498,23 +503,19 @@ window.closeScheduleModal = function() {
     document.getElementById('schedule-modal').classList.remove('active'); 
 };
 
-// --- 8. KÍCH HOẠT (MAIN EXECUTION) ---
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('schedule-table-body')) {
         initSchedulePage();
     }
 });
 
-// --- 9. EXPORTS ---
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'currentSemesterIdForSchedule', { get: () => currentSemesterIdForSchedule });
     Object.defineProperty(window, 'currentSemesterStatusForSchedule', { get: () => currentSemesterStatusForSchedule });
     Object.defineProperty(window, 'isScheduleEditMode', { get: () => isScheduleEditMode });
     Object.defineProperty(window, 'currentScheduleOldData', { get: () => currentScheduleOldData });
-    
     window.allSchedulesData = allSchedulesData; 
     Object.defineProperty(window, 'currentSchedulePage', { get: () => currentSchedulePage });
-    
     window.classListForSchedule = classListForSchedule;
     window.initSchedulePage = initSchedulePage;
     window.fetchAndInitScheduleTable = fetchAndInitScheduleTable;
@@ -524,7 +525,6 @@ if (typeof window !== 'undefined') {
     window.setupAddScheduleForm = setupAddScheduleForm;
     window.loadClassesForScheduleModal = loadClassesForScheduleModal;
     window.closeScheduleModal = window.closeScheduleModal;
-    
     window.updateSelectedScheduleIds = updateSelectedScheduleIds;
     window.selectedScheduleIds = selectedScheduleIds;
 }

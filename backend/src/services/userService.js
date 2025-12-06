@@ -5,9 +5,9 @@ const getAllStudents = async () => {
   try {
     const pool = await getPool();
     const query = `
-      SELECT HoTen, Email, MSSV, ChuyenNganh, N'Sinh viên' as VaiTro FROM SinhVien
+      SELECT HoTen, Email, MSSV, Khoa, N'Sinh viên' as VaiTro FROM SinhVien
       UNION ALL
-      SELECT HoTen, Email, MSCB, ChuyenNganh, N'Giảng viên' as VaiTro FROM GiangVien
+      SELECT HoTen, Email, MSCB, Khoa, N'Giảng viên' as VaiTro FROM GiangVien
     `;
     const result = await pool.request().query(query);
     return result.recordset;
@@ -27,66 +27,70 @@ const getAllFaculties = async () => {
   }
 };
 
-// Hàm thêm người dùng mới 
+// Hàm thêm người dùng mới - Sử dụng Stored Procedure
 const createUser = async (userData) => {
   try {
     const pool = await getPool();
-    // Lấy thêm biến 'khoa' từ dữ liệu gửi lên
-    const { hoTen, email, matKhau, vaiTro, khoa } = userData; 
+    const { hoTen, password, phone, address, role, faculty } = userData;
 
-   
-    const checkUser = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('SELECT * FROM TaiKhoan WHERE Email = @email');
-    if (checkUser.recordset.length > 0) throw new Error('Email này đã được sử dụng!');
+    // Gọi stored procedure proc_ThemNguoiDung
+    const result = await pool.request()
+      .input('HoTen', sql.NVarChar(100), hoTen)
+      .input('MatKhau', sql.VarChar(100), password)
+      .input('SDT', sql.VarChar(15), phone || null)
+      .input('DiaChi', sql.NVarChar(200), address || null)
+      .input('VaiTro', sql.NVarChar(20), role)
+      .input('Khoa', sql.NVarChar(100), faculty)
+      .execute('proc_ThemNguoiDung');
 
-   
-    await pool.request()
-      .input('email', sql.NVarChar, email)
-      .input('matKhau', sql.VarChar, matKhau)
-      .input('vaiTro', sql.NVarChar, vaiTro)
-      .query('INSERT INTO TaiKhoan (Email, MatKhau, VaiTro) VALUES (@email, @matKhau, @vaiTro)');
-
-    // Tạo ID ngẫu nhiên
-    const randomId = Math.floor(Math.random() * 100000);
+    // Kiểm tra kết quả từ procedure
+    const resultData = result.recordset[0];
     
-    // Insert vào bảng chi tiết với KHOA ĐỘNG
-    if (vaiTro === 'Sinh viên') {
-      const mssv = 'SV' + randomId;
-      await pool.request()
-        .input('khoa', sql.NVarChar, khoa) 
-        .query(`INSERT INTO SinhVien (MSSV, Email, HoTen, ChuyenNganh, Khoa, GPA) 
-                VALUES ('${mssv}', '${email}', N'${hoTen}', N'Chưa phân ngành', @khoa, 0)`);
-    } else {
-      const mscb = 'GV' + randomId;
-      await pool.request()
-        .input('khoa', sql.NVarChar, khoa) 
-        .query(`INSERT INTO GiangVien (MSCB, Email, HoTen, ChuyenNganh, Khoa) 
-                VALUES ('${mscb}', '${email}', N'${hoTen}', N'Chưa phân ngành', @khoa)`);
-    }
+    // Lấy giá trị an toàn (case-insensitive)
+    const isSuccess = resultData.Success === 1 || resultData.success === 1 || resultData.Success === true;
+    const message = resultData.Message || resultData.message;
+    const newCode = resultData.NewCode || resultData.newCode;
+    const newEmail = resultData.NewEmail || resultData.newEmail;
 
-    return { success: true, message: 'Tạo người dùng thành công' };
+    if (isSuccess) {
+      return { 
+        success: true, 
+        message: message,
+        newCode: newCode,
+        newEmail: newEmail
+      };
+    } else {
+      throw new Error(message);
+    }
   } catch (err) {
     throw err;
   }
 };
 
-module.exports = { getAllStudents, createUser, getAllFaculties };
-
 const getUserDetail = async (email) => {
   try {
     const pool = await getPool();
     
-    // 1. Tìm trong bảng SinhVien
+    // 1. Tìm trong bảng SinhVien và JOIN với TaiKhoan để lấy mật khẩu
     let result = await pool.request()
       .input('email', sql.NVarChar, email)
-      .query('SELECT *, N\'Sinh viên\' as VaiTro FROM SinhVien WHERE Email = @email');
+      .query(`
+        SELECT sv.*, tk.MatKhau, N'Sinh viên' as VaiTro 
+        FROM SinhVien sv
+        INNER JOIN TaiKhoan tk ON sv.Email = tk.Email
+        WHERE sv.Email = @email
+      `);
     
     // 2. Nếu không thấy, tìm trong bảng GiangVien
     if (result.recordset.length === 0) {
       result = await pool.request()
         .input('email', sql.NVarChar, email)
-        .query('SELECT *, N\'Giảng viên\' as VaiTro FROM GiangVien WHERE Email = @email');
+        .query(`
+          SELECT gv.*, tk.MatKhau, N'Giảng viên' as VaiTro 
+          FROM GiangVien gv
+          INNER JOIN TaiKhoan tk ON gv.Email = tk.Email
+          WHERE gv.Email = @email
+        `);
     }
 
     return result.recordset[0]; // Trả về 1 đối tượng user duy nhất

@@ -60,6 +60,8 @@ app.get('/', (req, res) => {
 const adminRoutes = [
     '/admin/dashboard',
     '/admin/nguoi-dung',
+    '/admin/nguoi-dung/them-nguoi-dung',
+    '/admin/nguoi-dung/chi-tiet',
     '/admin/mon-hoc',
     '/admin/lop-hoc',
     '/admin/lich-hoc',
