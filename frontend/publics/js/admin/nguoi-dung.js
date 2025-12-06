@@ -60,7 +60,7 @@ function renderUserTable(page) {
                 <td style="${roleClass}">${user.VaiTro}</td>
                 <td style="color: #4B5563;">${user.MSSV || user.MSCB}</td>
                 <td style="color: #4B5563;">${user.Email}</td>
-                <td style="color: #4B5563;">${user.ChuyenNganh}</td>
+                <td style="color: #4B5563;">${user.Khoa}</td>
                 
                 <td style="text-align: center;">
                     <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
@@ -189,16 +189,20 @@ function attachUserActionEvents() {
     document.querySelectorAll('.btn-detail').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const email = e.currentTarget.dataset.email;
-            sessionStorage.setItem('selectedUserEmail', email);
+            const email = e.currentTarget.dataset.email; 
+            
             try {
+                // 1. Tạo URL chứa Query Param
+                const targetUrl = `/admin/nguoi-dung/chi-tiet?email=${encodeURIComponent(email)}`;
+                
+                // 2. Push URL này lên browser
+                history.pushState(null, '', targetUrl);
+
+                // 3. Gọi hàm loadPage
                 if (typeof loadPage === 'function') {
-                    loadPage('pages/chi-tiet-nguoi-dung.html', 'partials/search-bar.html', 'Chi tiết người dùng');
-                } else {
-                    const link = document.querySelector('.nav-link[data-page="pages/chi-tiet-nguoi-dung.html"]');
-                    if (link) link.click();
+                    loadPage('/admin/pages/chi-tiet-nguoi-dung.html', '/admin/partials/search-bar.html', 'Chi tiết người dùng');
                 }
-            } catch (err) { console.warn('Không thể điều hướng loadPage:', err); }
+            } catch (err) { console.warn('Lỗi điều hướng:', err); }
         });
     });
 
@@ -232,17 +236,23 @@ function attachUserActionEvents() {
 
 function setupUserButtons() {
     // 1. Nút Thêm
-    const btnAdd = document.querySelector('.btn-add, .btn-blue');
+    const btnAdd = document.querySelector('.btn-add-user');
     if (btnAdd && btnAdd.innerText.includes('Thêm')) {
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         newBtn.addEventListener('click', () => {
             try {
+                // 1. Định nghĩa URL ảo muốn hiển thị
+                const targetUrl = '/admin/nguoi-dung/them-nguoi-dung';
+                
+                // 2. Thay đổi URL trên thanh địa chỉ (không reload)
+                history.pushState(null, '', targetUrl);
+
+                // 3. Gọi hàm loadPage để tải nội dung
                 if (typeof loadPage === 'function') {
-                    loadPage('pages/them-nguoi-dung.html', 'partials/search-bar.html', 'Thêm người dùng');
+                    loadPage('/admin/pages/them-nguoi-dung.html', '/admin/partials/search-bar.html', 'Thêm người dùng');
                 } else {
-                    const link = document.querySelector('.nav-link[data-page="pages/them-nguoi-dung.html"]');
-                    if (link) link.click();
+                    console.error("Hàm loadPage chưa được khởi tạo!");
                 }
             } catch (err) { console.warn('Không thể điều hướng loadPage:', err); }
         });
@@ -273,14 +283,27 @@ function setupAddUserForm() {
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Lấy vai trò từ radio button
+        const roleRadios = document.getElementsByName('role');
+        let selectedRole = 'Sinh viên'; // Mặc định
+        roleRadios.forEach(radio => {
+            if (radio.checked) selectedRole = radio.value;
+        });
+        
         const data = {
-            email: document.getElementById('email').value,
+            hoTen: document.getElementById('fullname').value,
             password: document.getElementById('password').value,
-            hoTen: document.getElementById('hoTen').value,
-            sdt: document.getElementById('sdt').value,
-            vaiTro: document.getElementById('vaiTro').value,
-            khoa: document.getElementById('khoa').value
+            phone: document.getElementById('phone').value || null,
+            address: document.getElementById('address').value || null,
+            role: selectedRole,
+            faculty: document.getElementById('faculty-select').value
         };
+
+        // Validate
+        if (!data.faculty) {
+            alert('Vui lòng chọn Khoa / Viện!');
+            return;
+        }
 
         try {
             const response = await fetch('http://localhost:8000/api/users/create', {
@@ -292,7 +315,11 @@ function setupAddUserForm() {
             const result = await response.json();
             
             if (result.success) {
-                alert('Thêm người dùng thành công!');
+                // Backend trả về NewCode (chữ hoa từ SQL), không phải newCode
+                const newCode = result.NewCode || 'N/A';
+                const newEmail = result.NewEmail || result.newEmail || 'N/A';
+                
+                alert(`Thêm người dùng thành công!\n- Mã số: ${newCode}\n- Email: ${newEmail}`);
                 newForm.reset();
                 const userLink = document.querySelector('.nav-link[data-page="pages/nguoi-dung.html"]');
                 if (userLink) userLink.click();
@@ -308,10 +335,10 @@ function setupAddUserForm() {
 
 async function loadFacultiesToDropdown() {
     try {
-        const response = await fetch('http://localhost:8000/api/faculties');
+        const response = await fetch('http://localhost:8000/api/users/faculties');
         const result = await response.json();
         
-        const khoaSelect = document.getElementById('khoa');
+        const khoaSelect = document.getElementById('faculty-select');
         if (!khoaSelect) return;
         
         khoaSelect.innerHTML = '<option value="">-- Chọn Khoa --</option>';
@@ -319,7 +346,7 @@ async function loadFacultiesToDropdown() {
         if (result.success && result.data) {
             result.data.forEach(khoa => {
                 const option = document.createElement('option');
-                option.value = khoa.MaKhoa;
+                option.value = khoa.TenKhoa; // Dùng TenKhoa làm value vì bảng Khoa dùng TenKhoa là PRIMARY KEY
                 option.textContent = khoa.TenKhoa;
                 khoaSelect.appendChild(option);
             });
@@ -330,25 +357,116 @@ async function loadFacultiesToDropdown() {
 }
 
 async function loadUserDetail() {
-    const email = sessionStorage.getItem('selectedUserEmail');
-    if (!email) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    let email = urlParams.get('email');
+
+    if (!email) {
+        email = sessionStorage.getItem('selectedUserEmail');
+    }
+
+    if (!email) {
+        alert("Không tìm thấy thông tin người dùng!");
+        return;
+    }
     
     try {
-        const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(email)}`);
+        // 1. Tải danh sách khoa trước
+        await loadFacultiesToDropdownForDetail(); 
+
+        // 2. Gọi API lấy dữ liệu chi tiết người dùng
+        const response = await fetch(`http://localhost:8000/api/users/detail?email=${encodeURIComponent(email)}`);
         const result = await response.json();
         
         if (result.success && result.data) {
             const user = result.data;
-            document.getElementById('detail-email').innerText = user.Email;
-            document.getElementById('detail-hoTen').innerText = user.HoTen || 'N/A';
-            document.getElementById('detail-vaiTro').innerText = user.VaiTro;
-            document.getElementById('detail-khoa').innerText = user.Khoa || 'N/A';
-            document.getElementById('detail-sdt').innerText = user.SDT || 'N/A';
-            document.getElementById('detail-ngayTao').innerText = user.NgayTao ? new Date(user.NgayTao).toLocaleDateString('vi-VN') : 'N/A';
+
+            // 3. Đổ dữ liệu vào form dựa trên cấu trúc HTML hiện có
+            // Từ Database: SinhVien/GiangVien có các cột: MSSV/MSCB, Email, HoTen, Khoa, DiaChi, SDT, (GPA), VaiTro
+            
+            document.getElementById('detail-fullname').value = user.HoTen || 'N/A';
+            document.getElementById('detail-email').value = user.Email || 'N/A';
+            document.getElementById('detail-id').value = user.MSSV || user.MSCB || 'N/A';
+            document.getElementById('detail-password').value = user.MatKhau || 'N/A';
+            document.getElementById('detail-phone').value = user.SDT || 'Chưa cập nhật';
+            document.getElementById('detail-address').value = user.DiaChi || 'Chưa cập nhật';
+            
+            // 4. Xử lý Select Khoa (API trả về TenKhoa)
+            const facultySelect = document.getElementById('detail-faculty');
+            if (facultySelect && user.Khoa) {
+                // Tìm option có text khớp với TenKhoa
+                const options = facultySelect.options;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].textContent === user.Khoa) {
+                        facultySelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // 5. Xử lý Radio Button (Role) - VaiTro: "Sinh viên" hoặc "Giảng viên"
+            const roleRadios = document.getElementsByName('role');
+            roleRadios.forEach(radio => {
+                if (radio.value === user.VaiTro) {
+                    radio.checked = true;
+                }
+            });
+        } else {
+            alert('Không tìm thấy thông tin người dùng!');
+        }
+
+        const btnBack = document.getElementById('btn-back-user-list');
+        if (btnBack) {
+            btnBack.addEventListener('click', () => {
+                // 1. Đổi URL về trang danh sách
+                const targetUrl = '/admin/nguoi-dung';
+                history.pushState(null, '', targetUrl);
+
+                // 2. Load lại trang danh sách người dùng
+                if (typeof loadPage === 'function') {
+                    loadPage('/admin/pages/nguoi-dung.html', '/admin/partials/search-bar.html', 'Người dùng');
+                }
+                
+                // 3. Highlight lại Sidebar (để chắc chắn menu vẫn sáng đúng chỗ)
+                const parentLink = document.querySelector(`.main-nav .nav-link[href="/admin/nguoi-dung"]`);
+                if (parentLink) {
+                    document.querySelectorAll(".main-nav .nav-link").forEach(item => item.classList.remove("active"));
+                    parentLink.classList.add("active");
+                }
+            });
         }
     } catch (error) {
         console.error('Lỗi tải chi tiết:', error);
+        alert('Lỗi khi tải thông tin người dùng!');
     }
+}
+
+// Hàm phụ: Load danh sách khoa vào select box của trang chi tiết
+async function loadFacultiesToDropdownForDetail() {
+    try {
+        const response = await fetch('http://localhost:8000/api/users/faculties');
+        const result = await response.json();
+        
+        const khoaSelect = document.getElementById('detail-faculty');
+        if (!khoaSelect) return;
+        
+        khoaSelect.innerHTML = '<option value="">-- Khoa / Viện --</option>';
+        
+        if (result.success && result.data) {
+            result.data.forEach(khoa => {
+                const option = document.createElement('option');
+                option.value = khoa.TenKhoa; // Dùng TenKhoa làm value vì DB lưu TenKhoa
+                option.textContent = khoa.TenKhoa;
+                khoaSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Lỗi tải danh sách khoa:', error);
+    }
+}
+
+// Export hàm để main.js gọi được
+if (typeof window !== 'undefined') {
+    window.loadUserDetail = loadUserDetail;
 }
 
 // --- F. Main Execution ---

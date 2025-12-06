@@ -383,3 +383,91 @@ BEGIN
     END
 END;
 GO
+
+-- Procedure thêm người dùng mới với mã số tự động
+CREATE OR ALTER PROCEDURE proc_ThemNguoiDung
+    @HoTen NVARCHAR(100),
+    @MatKhau VARCHAR(100),
+    @SDT VARCHAR(15) = NULL,
+    @DiaChi NVARCHAR(200) = NULL,
+    @VaiTro NVARCHAR(20), -- 'Sinh viên' hoặc 'Giảng viên'
+    @Khoa NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- 1. Xác định tiền tố và tìm mã số lớn nhất (Logic giữ nguyên)
+        DECLARE @Prefix VARCHAR(10);
+        DECLARE @LastID VARCHAR(20);
+        DECLARE @NewID VARCHAR(20);
+        
+        IF @VaiTro = N'Giảng viên'
+        BEGIN
+            SET @Prefix = 'GV';
+            SELECT TOP 1 @LastID = MSCB FROM GiangVien 
+            WHERE MSCB LIKE @Prefix + '%' AND ISNUMERIC(SUBSTRING(MSCB, LEN(@Prefix) + 1, LEN(MSCB))) = 1
+            ORDER BY CAST(SUBSTRING(MSCB, LEN(@Prefix) + 1, LEN(MSCB)) AS INT) DESC;
+        END
+        ELSE
+        BEGIN
+            SET @Prefix = 'SV';
+            SELECT TOP 1 @LastID = MSSV FROM SinhVien 
+            WHERE MSSV LIKE @Prefix + '%' AND ISNUMERIC(SUBSTRING(MSSV, LEN(@Prefix) + 1, LEN(MSSV))) = 1
+            ORDER BY CAST(SUBSTRING(MSSV, LEN(@Prefix) + 1, LEN(MSSV)) AS INT) DESC;
+        END
+
+        -- 2. Tính toán mã mới (Logic giữ nguyên)
+        DECLARE @NumberPart INT;
+        IF @LastID IS NULL SET @NumberPart = 1;
+        ELSE SET @NumberPart = CAST(SUBSTRING(@LastID, LEN(@Prefix) + 1, LEN(@LastID)) AS INT) + 1;
+        
+        DECLARE @NumberLength INT = CASE WHEN @NumberPart >= 10000 THEN LEN(CAST(@NumberPart AS VARCHAR(10))) ELSE 4 END;
+        SET @NewID = @Prefix + RIGHT(REPLICATE('0', @NumberLength) + CAST(@NumberPart AS VARCHAR(10)), @NumberLength);
+
+        -- 3. TỰ ĐỘNG SINH EMAIL
+        DECLARE @GeneratedEmail VARCHAR(100);
+        SET @GeneratedEmail = @NewID + '@uis.edu.vn';
+
+        -- Kiểm tra an toàn: Nếu email này vô tình đã tồn tại (dù mã số mới)
+        IF EXISTS (SELECT 1 FROM TaiKhoan WHERE Email = @GeneratedEmail)
+        BEGIN
+            SELECT 0 AS Success, N'Lỗi hệ thống: Email tự sinh đã tồn tại!' AS Message, NULL AS NewCode, NULL AS NewEmail;
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- 4. Thêm vào bảng TaiKhoan
+        INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
+        VALUES (@GeneratedEmail, @MatKhau, @VaiTro); -- Dùng @GeneratedEmail
+
+        -- 5. Thêm vào bảng SinhVien hoặc GiangVien
+        IF @VaiTro = N'Giảng viên'
+        BEGIN
+            INSERT INTO GiangVien (MSCB, Email, HoTen, Khoa, DiaChi, SDT)
+            VALUES (@NewID, @GeneratedEmail, @HoTen, @Khoa, @DiaChi, @SDT);
+        END
+        ELSE
+        BEGIN
+            INSERT INTO SinhVien (MSSV, Email, HoTen, Khoa, DiaChi, SDT, GPA)
+            VALUES (@NewID, @GeneratedEmail, @HoTen, @Khoa, @DiaChi, @SDT, 0);
+        END
+
+        COMMIT TRANSACTION;
+
+        -- 6. Trả về kết quả kèm Email
+        SELECT 
+            1 AS Success, 
+            N'Thêm người dùng thành công!' AS Message, 
+            @NewID AS NewCode,
+            @GeneratedEmail AS NewEmail; -- Trả về email để hiển thị
+        
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;  
+        SELECT 0 AS Success, ERROR_MESSAGE() AS Message, NULL AS NewCode, NULL AS NewEmail;
+    END CATCH
+END;
+GO

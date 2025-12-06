@@ -182,7 +182,7 @@ INSERT INTO HocKy (MaHocKy, NamHoc, NgayBatDau, NgayKetThuc, MoDangKy, DongDangK
 GO
 
 ----------------------------------------------------------------
--- KHỐI 2: TÀI KHOẢN (Cho 8 khoa - 80 GV, 8000 SV, 5 Admin)
+-- KHỐI 2: TÀI KHOẢN (Cho 5 Admin)
 ----------------------------------------------------------------
 PRINT N'Đang thêm 5 tài khoản Admin mới...';
 INSERT INTO TaiKhoan (Email, MatKhau, VaiTro) VALUES
@@ -193,59 +193,41 @@ INSERT INTO TaiKhoan (Email, MatKhau, VaiTro) VALUES
 ('admin5@uis.edu.vn', 'pass123', N'Admin');
 GO
 
-PRINT N'Đang thêm Tài khoản (8000 SV) cho 8 khoa...';
-DECLARE @i INT = 0001;
-WHILE @i <= 8000
-BEGIN
-    INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
-    VALUES ('Sv' + CAST(@i AS VARCHAR(10)) + '@uis.edu.vn', 'pass123', N'Sinh viên');
-    SET @i = @i + 1;
-END;
-GO
-
-PRINT N'Đang thêm Tài khoản (80 GV) cho 8 khoa...';
-DECLARE @i INT = 1;
-WHILE @i <= 80
-BEGIN
-    INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
-    VALUES ('Gv' + CAST(@i AS VARCHAR(10)) + '@uis.edu.vn', 'pass123', N'Giảng viên');
-    SET @i = @i + 1;
-END;
-GO
-
 ----------------------------------------------------------------
 -- KHỐI 3: GIẢNG VIÊN (GV) VÀ SINH VIÊN (SV)
 ----------------------------------------------------------------
 
-PRINT N'Đang thêm 8000 Sinh viên (SV0001 - SV8000) với TÊN NGẪU NHIÊN';
+PRINT N'Bắt đầu quá trình tạo dữ liệu mẫu...';
 
--- KHỐI LỆNH TẠO TÊN NGẪU NHIÊN 
+-- 1. CHUẨN BỊ DỮ LIỆU TÊN (Dùng chung cho cả SV và GV)
 DECLARE @Ho_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ho NVARCHAR(50));
 DECLARE @Lot_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Lot NVARCHAR(50));
 DECLARE @Ten_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ten NVARCHAR(50));
 
+INSERT INTO @Ho_Pool (Ho) VALUES (N'Nguyễn'), (N'Trần'), (N'Lê'), (N'Phạm'), (N'Hoàng'), (N'Vũ'), (N'Đặng'), (N'Bùi'), (N'Đỗ'), (N'Hồ'), (N'Ngô'), (N'Lý'),(N'Võ'),(N'Tạ'),(N'Đinh');
+INSERT INTO @Lot_Pool (Lot) VALUES (N'Văn'), (N'Thị'), (N'Minh'), (N'Đức'), (N'Bảo'), (N'Gia'), (N'Thùy'),(N'Thảo'),(N'Quốc'), (N'Tuấn'), (N'Ngọc'), (N'Quang'), (N'Thanh'), (N'Mỹ'), (N'Anh');
+INSERT INTO @Ten_Pool (Ten) VALUES (N'Anh'), (N'Bình'), (N'Cường'), (N'Dũng'), (N'Hương'), (N'Nguyên'), (N'Liên'), (N'Linh'), (N'Minh'), (N'Nam'), (N'Phúc'), (N'Quân'), (N'Tâm'), (N'Trang');
 
-INSERT INTO @Ho_Pool (Ho) VALUES
-(N'Nguyễn'), (N'Trần'), (N'Lê'), (N'Phạm'), (N'Hoàng'), (N'Vũ'), (N'Đặng'), (N'Bùi'), 
-(N'Đỗ'), (N'Hồ'), (N'Ngô'), (N'Lý'),(N'Võ'),(N'Tạ'),(N'Đinh');
-INSERT INTO @Lot_Pool (Lot) VALUES
-(N'Văn'), (N'Thị'), (N'Minh'), (N'Đức'), (N'Bảo'), (N'Gia'), (N'Thùy'),(N'Thảo'),(N'Quốc'),
-(N'Tuấn'), (N'Ngọc'), (N'Quang'), (N'Thanh'), (N'Mỹ'), (N'Anh');
-INSERT INTO @Ten_Pool (Ten) VALUES
-(N'Anh'), (N'Bình'), (N'Cường'), (N'Dũng'), (N'Hương'), (N'Nguyên'), (N'Liên'),
-(N'Linh'), (N'Minh'), (N'Nam'), (N'Phúc'), (N'Quân'), (N'Tâm'), (N'Trang');
-
+----------------------------------------------------------------
+-- PHẦN 1: TẠO 8000 SINH VIÊN (SV0001 -> SV8000)
+----------------------------------------------------------------
+PRINT N'Đang tạo 8000 Sinh viên...';
 
 DECLARE @j INT = 1;
 DECLARE @TenKhoa NVARCHAR(100);
 DECLARE @HoTen_Moi NVARCHAR(150);
 DECLARE @Email_Moi VARCHAR(100);
+DECLARE @MSSV_Moi VARCHAR(20); -- Biến chứa mã số chuẩn
 DECLARE @SDT_Random VARCHAR(10);
 DECLARE @DiaChi_Random NVARCHAR(100);
 
 WHILE @j <= 8000
 BEGIN
-    -- A. Phân khoa
+    -- A. Tạo MSSV chuẩn (Thêm số 0 vào trước)
+    SET @MSSV_Moi = 'SV' + RIGHT('0000' + CAST(@j AS VARCHAR(10)), 4);
+    SET @Email_Moi = @MSSV_Moi + '@uis.edu.vn';
+
+    -- B. Phân khoa
     SET @TenKhoa = CASE
         WHEN @j % 8 = 1 THEN N'ĐIỆN - ĐIỆN TỬ'
         WHEN @j % 8 = 2 THEN N'KỸ THUẬT XÂY DỰNG'
@@ -257,78 +239,62 @@ BEGIN
         ELSE N'KỸ THUẬT GIAO THÔNG'
     END;
 
-    -- B. Tạo Tên Ngẫu Nhiên
-
-    DECLARE @Ho_Rand INT = (ABS(CHECKSUM(NEWID())) % 15) + 1;
-    DECLARE @Lot_Rand INT = (ABS(CHECKSUM(NEWID())) % 15) + 1;
-    DECLARE @Ten_Rand INT = (ABS(CHECKSUM(NEWID())) % 14) + 1;
-
+    -- C. Tạo Tên Ngẫu Nhiên
     SELECT @HoTen_Moi = (H.Ho + N' ' + L.Lot + N' ' + T.Ten) 
     FROM @Ho_Pool H, @Lot_Pool L, @Ten_Pool T 
-    WHERE H.id = @Ho_Rand AND L.id = @Lot_Rand AND T.id = @Ten_Rand;
+    WHERE H.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND L.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND T.id = ((ABS(CHECKSUM(NEWID())) % 14) + 1);
 
-    -- C. Tạo Email và SDT
-
-    SET @Email_Moi = 'Sv' + CAST(@j AS VARCHAR(10)) + '@uis.edu.vn';
-    
-    -- Tạo SDT: Bắt đầu bằng 0, theo sau là 9 chữ số ngẫu nhiên
+    -- D. Tạo SDT & Địa chỉ
     SET @SDT_Random = '0' + RIGHT('000000000' + CAST(ABS(CHECKSUM(NEWID())) AS VARCHAR(20)), 9);
-    
-    -- Tạo địa chỉ ngẫu nhiên
     SET @DiaChi_Random = N'Đường số ' + CAST((ABS(CHECKSUM(NEWID())) % 100) AS NVARCHAR(5)) + N', TP.HCM';
 
-    
+    -- E. Insert vào TAI KHOAN trước
     IF NOT EXISTS (SELECT 1 FROM TaiKhoan WHERE Email = @Email_Moi)
     BEGIN
         INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
-        VALUES (@Email_Moi, '123456', N'Sinh Viên'); 
+        VALUES (@Email_Moi, '123456', N'Sinh viên'); 
     END
 
-    -- E. Insert Sinh Viên 
-    INSERT INTO SinhVien (MSSV, Email, HoTen, GPA, Khoa, DiaChi, SDT)
-    VALUES (
-        'SV' + CAST(@j AS VARCHAR(10)), 
-        @Email_Moi,
-        @HoTen_Moi,
-        ROUND(RAND(CHECKSUM(NEWID())) * 1.5 + 2.5, 2), 
-        @TenKhoa,
-        @DiaChi_Random, 
-        @SDT_Random     
-    );
+    -- F. Insert vào SINH VIEN
+    IF NOT EXISTS (SELECT 1 FROM SinhVien WHERE MSSV = @MSSV_Moi)
+    BEGIN
+        INSERT INTO SinhVien (MSSV, Email, HoTen, GPA, Khoa, DiaChi, SDT)
+        VALUES (
+            @MSSV_Moi,
+            @Email_Moi,
+            @HoTen_Moi,
+            ROUND(RAND(CHECKSUM(NEWID())) * 1.5 + 2.5, 2), -- GPA random từ 2.5 -> 4.0
+            @TenKhoa,
+            @DiaChi_Random, 
+            @SDT_Random     
+        );
+    END
 
     SET @j = @j + 1;
 END;
-GO
 
+----------------------------------------------------------------
+-- PHẦN 2: TẠO 80 GIẢNG VIÊN (GV0001 -> GV0080)
+----------------------------------------------------------------
+PRINT N'Đang tạo 80 Giảng viên...';
 
-DECLARE @Ho_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ho NVARCHAR(50));
-DECLARE @Lot_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Lot NVARCHAR(50));
-DECLARE @Ten_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ten NVARCHAR(50));
-
-INSERT INTO @Ho_Pool (Ho) VALUES
-(N'Nguyễn'), (N'Trần'), (N'Lê'), (N'Phạm'), (N'Hoàng'), (N'Vũ'), (N'Đặng'), (N'Bùi'), 
-(N'Đỗ'), (N'Hồ'), (N'Ngô'), (N'Lý'),(N'Võ'),(N'Tạ'),(N'Đinh');
-
-INSERT INTO @Lot_Pool (Lot) VALUES
-(N'Văn'), (N'Thị'), (N'Minh'), (N'Đức'), (N'Bảo'), (N'Gia'), (N'Thùy'),(N'Thảo'),(N'Quốc'),
-(N'Tuấn'), (N'Ngọc'), (N'Quang'), (N'Thanh'), (N'Mỹ'), (N'Anh');
-
-INSERT INTO @Ten_Pool (Ten) VALUES
-(N'Anh'), (N'Bình'), (N'Cường'), (N'Dũng'), (N'Hương'), (N'Nguyên'), (N'Liên'),
-(N'Linh'), (N'Minh'), (N'Nam'), (N'Phúc'), (N'Quân'), (N'Tâm'), (N'Trang');
-
---  Bắt đầu vòng lặp tạo 80 Giảng Viên
 DECLARE @k INT = 1;
 DECLARE @TenKhoaGV NVARCHAR(100);
 DECLARE @HoTenGV_Moi NVARCHAR(150);
 DECLARE @EmailGV_Moi VARCHAR(100);
+DECLARE @MSCB_Moi VARCHAR(20); -- Biến chứa mã số chuẩn
 DECLARE @SDTGV_Random VARCHAR(10);
 DECLARE @DiaChiGV_Random NVARCHAR(100);
-DECLARE @MSCB_Moi VARCHAR(10);
 
 WHILE @k <= 80
 BEGIN
-    -- A. Phân khoa (Chia đều cho 8 khoa)
+    -- A. Tạo MSCB chuẩn (GV0001)
+    SET @MSCB_Moi = 'GV' + RIGHT('0000' + CAST(@k AS VARCHAR(10)), 4);
+    SET @EmailGV_Moi = @MSCB_Moi + '@uis.edu.vn';
+
+    -- B. Phân khoa
     SET @TenKhoaGV = CASE 
         WHEN @k % 8 = 1 THEN N'ĐIỆN - ĐIỆN TỬ'
         WHEN @k % 8 = 2 THEN N'KỸ THUẬT XÂY DỰNG'
@@ -340,42 +306,37 @@ BEGIN
         ELSE N'KỸ THUẬT GIAO THÔNG' 
     END;
 
-    -- B. Tạo Tên Ngẫu Nhiên
-    DECLARE @Ho_R INT = (ABS(CHECKSUM(NEWID())) % 15) + 1;
-    DECLARE @Lot_R INT = (ABS(CHECKSUM(NEWID())) % 15) + 1;
-    DECLARE @Ten_R INT = (ABS(CHECKSUM(NEWID())) % 14) + 1;
-
+    -- C. Tạo Tên
     SELECT @HoTenGV_Moi = (H.Ho + N' ' + L.Lot + N' ' + T.Ten) 
     FROM @Ho_Pool H, @Lot_Pool L, @Ten_Pool T 
-    WHERE H.id = @Ho_R AND L.id = @Lot_R AND T.id = @Ten_R;
+    WHERE H.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND L.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND T.id = ((ABS(CHECKSUM(NEWID())) % 14) + 1);
 
-    -- C. Tạo MSCB và Email
-    SET @MSCB_Moi = 'GV' + CAST(@k AS VARCHAR(10));
-    SET @EmailGV_Moi = 'gv' + CAST(@k AS VARCHAR(10)) + '@uis.edu.vn';
-    
-    -- D. Tạo SDT chuẩn (Bắt đầu bằng 0 + 9 số ngẫu nhiên)
+    -- D. Tạo thông tin phụ
     SET @SDTGV_Random = '0' + RIGHT('000000000' + CAST(ABS(CHECKSUM(NEWID())) AS VARCHAR(20)), 9);
-    
-    -- E. Tạo địa chỉ
     SET @DiaChiGV_Random = N'Quận ' + CAST((ABS(CHECKSUM(NEWID())) % 12) + 1 AS NVARCHAR(5)) + N', TP.HCM';
 
-    -- F. TẠO TÀI KHOẢN 
+    -- E. Insert TAI KHOAN
     IF NOT EXISTS (SELECT 1 FROM TaiKhoan WHERE Email = @EmailGV_Moi)
     BEGIN
         INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
-        VALUES (@EmailGV_Moi, 'password123', N'Giảng Viên'); 
+        VALUES (@EmailGV_Moi, 'password123', N'Giảng viên'); 
     END
 
-    -- G. Insert Giảng Viên
-    INSERT INTO GiangVien (MSCB, Email, HoTen, Khoa, DiaChi, SDT)
-    VALUES (
-        @MSCB_Moi,
-        @EmailGV_Moi,
-        @HoTenGV_Moi,
-        @TenKhoaGV,
-        @DiaChiGV_Random,
-        @SDTGV_Random
-    );
+    -- F. Insert GIANG VIEN
+    IF NOT EXISTS (SELECT 1 FROM GiangVien WHERE MSCB = @MSCB_Moi)
+    BEGIN
+        INSERT INTO GiangVien (MSCB, Email, HoTen, Khoa, DiaChi, SDT)
+        VALUES (
+            @MSCB_Moi,
+            @EmailGV_Moi,
+            @HoTenGV_Moi,
+            @TenKhoaGV,
+            @DiaChiGV_Random,
+            @SDTGV_Random
+        );
+    END
 
     SET @k = @k + 1;
 END;

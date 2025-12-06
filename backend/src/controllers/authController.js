@@ -19,6 +19,7 @@ const login = async (req, res, next) => {
     res.cookie('jwt_token', token, {
         httpOnly: true, // Quan trọng: JS frontend không đọc được cookie này, chống XSS
         secure: false,  // Đặt true nếu chạy https
+        path: '/',      // Đảm bảo cookie áp dụng cho toàn bộ domain
         maxAge: 8 * 60 * 60 * 1000 // 8 tiếng
     });
 
@@ -46,8 +47,12 @@ const login = async (req, res, next) => {
 };
 
 const logout = (req, res) => {
-    res.clearCookie('jwt_token'); 
-    res.json({ message: 'Đăng xuất thành công' });
+    res.clearCookie('jwt_token', {
+        httpOnly: true,
+        secure: false,
+        path: '/'
+    }); 
+    res.json({ success: true, message: 'Đăng xuất thành công' });
 };
 
 module.exports = { login, logout };
