@@ -137,10 +137,12 @@ CREATE TABLE LopHoc (
 );
 
 CREATE TABLE CauTrucDiem (
-    MaThanhPhan VARCHAR(20) PRIMARY KEY,
+    MaCauTruc INT IDENTITY(1,1) PRIMARY KEY,
+    MaThanhPhan VARCHAR(20),
     ThanhPhanDiem NVARCHAR(50),
     TyTrong INT CHECK (TyTrong BETWEEN 0 AND 100),
     MaMon VARCHAR(10),
+    TrangThai BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (MaMon) REFERENCES MonHoc(MaMon) ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT CK_ThanhPhanDiem CHECK (ThanhPhanDiem IN (N'Giữa kì', N'Cuối kì', N'BTL', N'Quiz', N'Thí nghiệm'))
@@ -154,11 +156,11 @@ CREATE TABLE ChiTietDiem (
     MaMon VARCHAR(10),
     MaHocKy VARCHAR(10),
 
-    MaThanhPhan VARCHAR(20),
+    MaCauTruc INT,
 
     Diem DECIMAL(4,2) CHECK (Diem BETWEEN 0 AND 10),
 
-    FOREIGN KEY (MaThanhPhan) REFERENCES CauTrucDiem(MaThanhPhan),
+    FOREIGN KEY (MaCauTruc) REFERENCES CauTrucDiem(MaCauTruc),
     FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (MSSV) REFERENCES SinhVien(MSSV)
 );

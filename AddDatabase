@@ -371,32 +371,32 @@ BEGIN
     -- KIỂU 1: 
     IF @RandomType = 0
     BEGIN
-        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
         VALUES 
-        (@MaMonCur + '_GK', N'Giữa kì', 20, @MaMonCur),
-        (@MaMonCur + '_CK', N'Cuối kì', 50, @MaMonCur),
-        (@MaMonCur + '_TN', N'Thí nghiệm', 30, @MaMonCur);
+        (@MaMonCur + '_GK', N'Giữa kì', 20, @MaMonCur, 1), -- Set TrangThai = 1
+        (@MaMonCur + '_CK', N'Cuối kì', 50, @MaMonCur, 1),
+        (@MaMonCur + '_TN', N'Thí nghiệm', 30, @MaMonCur, 1);
     END
 
     -- KIỂU 2:
     ELSE IF @RandomType = 1
     BEGIN
-        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
         VALUES 
-        (@MaMonCur + '_BTL', N'BTL', 20, @MaMonCur),
-        (@MaMonCur + '_Q', N'Quiz', 10, @MaMonCur),
-        (@MaMonCur + '_GK',  N'Giữa kì', 20, @MaMonCur),
-        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur);
+        (@MaMonCur + '_BTL', N'BTL', 20, @MaMonCur, 1),
+        (@MaMonCur + '_Q', N'Quiz', 10, @MaMonCur, 1),
+        (@MaMonCur + '_GK',  N'Giữa kì', 20, @MaMonCur, 1),
+        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur, 1);
     END
 
     -- KIỂU 3: 
     ELSE 
     BEGIN
-        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
         VALUES 
-        (@MaMonCur + '_Q',   N'Quiz', 20, @MaMonCur),
-        (@MaMonCur + '_BTL',  N'BTL', 30, @MaMonCur),
-        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur);
+        (@MaMonCur + '_Q',   N'Quiz', 20, @MaMonCur, 1),
+        (@MaMonCur + '_BTL',  N'BTL', 30, @MaMonCur, 1),
+        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur, 1);
     END
 
     -- Đọc dòng tiếp theo
@@ -680,7 +680,7 @@ GO
 PRINT N'=== HOÀN TẤT ĐĂNG KÝ ===';
 
 -- 2. Thực hiện Insert hàng loạt (Bulk Insert)
-INSERT INTO ChiTietDiem (MaDiem, MSSV, MaLopHoc, MaMon, MaHocKy, MaThanhPhan, Diem)
+INSERT INTO ChiTietDiem (MaDiem, MSSV, MaLopHoc, MaMon, MaHocKy, MaCauTruc, Diem)
 SELECT 
     -- Tạo Mã Điểm duy nhất: MSSV + Mã Thành Phần (VD: SV001_DT101_GK)
     DK.MSSV + '_' + CT.MaThanhPhan AS MaDiem,
@@ -689,14 +689,14 @@ SELECT
     DK.MaLopHoc,
     DK.MaMon,
     DK.MaHocKy,
-    CT.MaThanhPhan,
+    CT.MaCauTruc,
     
 
     CAST((ABS(CHECKSUM(NEWID())) % 81) / 10.0 + 2.0 AS DECIMAL(4,2)) AS Diem
 
 FROM DangKy DK
 -- Kết nối Đăng ký với Cấu trúc điểm thông qua Mã Môn
-JOIN CauTrucDiem CT ON DK.MaMon = CT.MaMon
+JOIN CauTrucDiem CT ON DK.MaMon = CT.MaMon AND CT.TrangThai = 1
 
 WHERE 
     DK.MaHocKy = 'HK1_2526' 

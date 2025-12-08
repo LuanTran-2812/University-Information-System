@@ -12,6 +12,19 @@ const getSubjects = async (req, res, next) => {
   }
 };
 
+const getSubjectDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const subject = await subjectService.getSubjectDetail(id);
+    if (!subject) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy môn học' });
+    }
+    res.json({ success: true, data: subject });
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 const createSubject = async (req, res, next) => {
     try {
@@ -54,4 +67,4 @@ const deleteMultipleSubjects = async (req, res) => {
   }
 };
 
-module.exports = { getSubjects, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };
+module.exports = { getSubjects, getSubjectDetail, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };

@@ -311,7 +311,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM inserted i
-        JOIN CauTrucDiem ctd ON i.MaThanhPhan = ctd.MaThanhPhan
+        JOIN CauTrucDiem ctd ON i.MaCauTruc = ctd.MaCauTruc
         WHERE i.MaMon <> ctd.MaMon -- Nếu môn của lớp khác môn của cấu trúc điểm
     )
     BEGIN
@@ -471,3 +471,97 @@ BEGIN
     END CATCH
 END;
 GO
+
+-- Procedure xử lý insert môn học kèm môn tiên quyết và cấu trúc điểm
+CREATE OR ALTER PROCEDURE proc_ThemMonHocMoi
+    -- Thông tin môn học
+    @MaMon VARCHAR(10),
+    @TenMon NVARCHAR(150),
+    @SoTinChi INT,
+    @KhoaPhuTrach NVARCHAR(100),
+    @MaMonSongHanh VARCHAR(10) = NULL,
+    
+    -- Thay đổi 1: Nhận vào chuỗi danh sách các mã môn (VD: 'CO1005,CO1007')
+    @ListMaMonTienQuyet VARCHAR(MAX) = NULL, 
+    
+    -- Cấu trúc điểm
+    @Quiz INT = 0,
+    @ThiNghiem INT = 0,
+    @BTL INT = 0,
+    @GiuaKy INT = 0,
+    @CuoiKy INT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- 1. KIỂM TRA TỔNG TỶ TRỌNG
+    DECLARE @TongTyTrong INT;
+    SET @TongTyTrong = @Quiz + @ThiNghiem + @BTL + @GiuaKy + @CuoiKy;
+
+    IF @TongTyTrong <> 100
+    BEGIN
+        THROW 50001, N'Lỗi: Tổng tỷ trọng các thành phần điểm phải bằng 100%.', 1;
+        RETURN;
+    END
+
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- 2. INSERT BẢNG MONHOC
+        INSERT INTO MonHoc (MaMon, TenMon, SoTinChi, MaMonSongHanh, KhoaPhuTrach)
+        VALUES (@MaMon, @TenMon, @SoTinChi, @MaMonSongHanh, @KhoaPhuTrach);
+
+        -- 3. XỬ LÝ MÔN TIÊN QUYẾT
+        IF @ListMaMonTienQuyet IS NOT NULL AND LTRIM(RTRIM(@ListMaMonTienQuyet)) <> ''
+        BEGIN
+            INSERT INTO MonTienQuyet (MaMon, MaMonTienQuyet)
+            SELECT DISTINCT
+                @MaMon, 
+                LTRIM(RTRIM(value))
+            FROM STRING_SPLIT(@ListMaMonTienQuyet, ',')
+            WHERE LTRIM(RTRIM(value)) <> '';
+        END
+
+        -- 4. INSERT BẢNG CAUTRUCDIEM (Thêm dấu '_')
+        
+        -- > Quiz (Mã: MaMon_Q)
+        IF @Quiz > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_Q', N'Quiz', @Quiz, @MaMon);
+        END
+
+        -- > Thí nghiệm (Mã: MaMon_TN)
+        IF @ThiNghiem > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_TN', N'Thí nghiệm', @ThiNghiem, @MaMon);
+        END
+
+        -- > BTL (Mã: MaMon_BTL)
+        IF @BTL > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_BTL', N'BTL', @BTL, @MaMon);
+        END
+
+        -- > Giữa kỳ (Mã: MaMon_GK)
+        IF @GiuaKy > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_GK', N'Giữa kì', @GiuaKy, @MaMon);
+        END
+
+        -- > Cuối kỳ (Mã: MaMon_CK)
+        IF @CuoiKy > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_CK', N'Cuối kì', @CuoiKy, @MaMon);
+        END
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
