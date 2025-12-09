@@ -36,67 +36,97 @@
 <div class="pagination"></div>
 
 <div id="schedule-modal" class="modal-overlay">
-    <div class="modal-content" style="width: 800px;">
+    <div class="modal-content" style="width: 1200px; max-width: 95vw;">
         <div class="modal-header modal-centered-title">
             <span class="modal-spacer"></span> <h3>Thêm lịch học</h3>
             <span class="material-symbols-outlined close-btn" onclick="closeScheduleModal()">close</span>
         </div>
+        
         <form id="modal-add-schedule-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Mã lớp - Mã môn <span class="required">*</span></label>
-                    <select id="scheduleClassSelect" class="full-width-select" required>
-                        <option value="">-- Chọn Lớp --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tên giảng viên</label>
-                    <input type="text" id="scheduleGVName" disabled style="background: #f0f0f0;">
+            <div class="schedule-modal-layout">
+                
+                <div class="schedule-left-panel">
+                    <div class="schedule-form-grid">
+                        <div class="form-group col-span-4">
+                            <label>Mã lớp - Mã môn <span class="required">*</span></label>
+                            <select id="scheduleClassSelect" class="full-width-select" required>
+                                <option value="">-- Chọn Lớp --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label>Tên giảng viên</label>
+                            <input type="text" id="scheduleGVName" disabled style="background: #f0f0f0;">
+                        </div>
+
+                        <div class="form-group col-span-6">
+                            <label>Tên môn</label>
+                            <input type="text" id="scheduleMonName" disabled style="background: #f0f0f0;">
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label>Thứ <span class="required">*</span></label>
+                            <select id="scheduleThu" class="full-width-select">
+                                <option value="2">Thứ 2</option>
+                                <option value="3">Thứ 3</option>
+                                <option value="4">Thứ 4</option>
+                                <option value="5">Thứ 5</option>
+                                <option value="6">Thứ 6</option>
+                                <option value="7">Thứ 7</option>
+                                <option value="8">Chủ nhật</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tiết bắt đầu <span class="required">*</span></label>
+                            <input type="text" id="scheduleTietBD" placeholder="1" required>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tiết kết thúc <span class="required">*</span></label>
+                            <input type="text" id="scheduleTietKT" placeholder="3" required>
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label>Phòng học <span class="required">*</span></label>
+                            <input type="text" id="schedulePhong" placeholder="H6-101" required>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tuần bắt đầu</label>
+                            <select id="scheduleTuanBD" class="full-width-select">
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tuần kết thúc</label>
+                            <select id="scheduleTuanKT" class="full-width-select">
+                                <option value="15" selected>15</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group full-width">
-                    <label>Tên môn</label>
-                    <input type="text" id="scheduleMonName" disabled style="background: #f0f0f0;">
-                </div>
+                <div class="schedule-right-panel" id="teacher-schedule-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600; color: #333;">Lịch dạy của Giảng viên</label>
+                    </div>
 
-                <div class="form-group">
-                    <label>Phòng học <span class="required">*</span></label>
-                    <input type="text" id="schedulePhong" placeholder="H6-101" required>
-                </div>
-                <div class="form-group">
-                    <label>Thứ <span class="required">*</span></label>
-                    <select id="scheduleThu" class="full-width-select">
-                        <option value="2">Thứ 2</option>
-                        <option value="3">Thứ 3</option>
-                        <option value="4">Thứ 4</option>
-                        <option value="5">Thứ 5</option>
-                        <option value="6">Thứ 6</option>
-                        <option value="7">Thứ 7</option>
-                        <option value="8">Chủ nhật</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tiết bắt đầu <span class="required">*</span></label>
-                    <input type="text" id="scheduleTietBD" placeholder="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Tiết kết thúc <span class="required">*</span></label>
-                    <input type="text" id="scheduleTietKT" placeholder="3" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Tuần học bắt đầu</label>
-                    <select id="scheduleTuanBD" class="full-width-select">
-                        <option value="1">1</option>
-                        </select>
-                </div>
-                <div class="form-group">
-                    <label>Tuần học kết thúc</label>
-                    <select id="scheduleTuanKT" class="full-width-select">
-                        <option value="15" selected>15</option>
-                    </select>
+                    <div class="table-wrapper" style="height: 345px; overflow-y: auto;">
+                        <table class="schedule-preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Lớp - Môn</th> 
+                                    <th>Thứ</th>
+                                    <th>Tiết</th>
+                                    <th>Tuần</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacher-schedule-tbody">
+                                <tr><td colspan="4" style="text-align:center; color: #999; padding: 20px;">Vui lòng chọn lớp để xem</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <button type="submit" class="btn-save-orange">Lưu</button>
             </div>

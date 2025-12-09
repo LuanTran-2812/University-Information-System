@@ -388,42 +388,125 @@ function setupAddScheduleButton() {
 async function openScheduleEditModal(data) {
     isScheduleEditMode = true;
     currentScheduleOldData = data;
-    await loadClassesForScheduleModal();
+    
+    await loadClassesForScheduleModal(); 
+    
     const selectVal = `${data.MaLopHoc}|${data.MaMon}`;
-    document.getElementById('scheduleClassSelect').value = selectVal;
-    document.getElementById('scheduleClassSelect').disabled = true;
+    const selectEl = document.getElementById('scheduleClassSelect');
+    selectEl.value = selectVal;
+    selectEl.disabled = true;
+
     document.getElementById('scheduleMonName').value = data.TenMon;
     document.getElementById('scheduleGVName').value = data.TenGiangVien;
+    
     document.getElementById('schedulePhong').value = data.PhongHoc;
     document.getElementById('scheduleThu').value = data.Thu;
-    
-    if(document.getElementById('scheduleTietBD')) document.getElementById('scheduleTietBD').value = data.TietBatDau;
-    if(document.getElementById('scheduleTietKT')) document.getElementById('scheduleTietKT').value = data.TietKetThuc;
-
+    document.getElementById('scheduleTietBD').value = data.TietBatDau;
+    document.getElementById('scheduleTietKT').value = data.TietKetThuc;
     document.getElementById('scheduleTuanBD').value = data.TuanBatDau;
     document.getElementById('scheduleTuanKT').value = data.TuanKetThuc;
+    
     document.querySelector('#schedule-modal h3').innerText = 'Cập nhật lịch học';
+
+    renderTeacherScheduleSidePanel(data.TenGiangVien, data.MaLopHoc);
+
     document.getElementById('schedule-modal').classList.add('active');
+}
+
+// Hàm hiển thị lịch GV bên phải (Mới)
+function renderTeacherScheduleSidePanel(teacherName, currentClassId = null) {
+    const tbody = document.getElementById('teacher-schedule-tbody');
+    const badge = document.getElementById('teacher-conflict-badge');
+    
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!teacherName || teacherName === 'Chưa phân công') {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#999;">Không có dữ liệu lịch dạy</td></tr>';
+        if(badge) { badge.textContent = '0 Lớp'; badge.className = 'schedule-badge grey'; }
+        return;
+    }
+
+    const teacherSchedules = allSchedulesData.filter(s => 
+        s.TenGiangVien === teacherName && s.MaLopHoc !== currentClassId
+    );
+
+    if (badge) {
+        badge.textContent = `${teacherSchedules.length} Lớp khác`;
+        badge.className = teacherSchedules.length > 0 ? 'schedule-badge blue' : 'schedule-badge grey';
+    }
+
+    if (teacherSchedules.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:#409261;">Giảng viên rảnh hoàn toàn</td></tr>';
+        return;
+    }
+
+    teacherSchedules.forEach(s => {
+        const row = `
+            <tr>
+                <td>
+                    <span class="schedule-cell-primary">${s.MaLopHoc}</span>
+                    <span class="schedule-cell-secondary">${s.TenMon}</span>
+                </td>
+                <td style="text-align:center;">${s.Thu}</td>
+                <td style="text-align:center;">${s.TietBatDau}-${s.TietKetThuc}</td>
+                <td style="text-align:center;">${s.TuanBatDau}-${s.TuanKetThuc}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
 }
 
 async function loadClassesForScheduleModal() {
     const select = document.getElementById('scheduleClassSelect');
     select.innerHTML = '<option>Đang tải...</option>';
+    
+    // Tạo danh sách các Mã Lớp đã có lịch để đối chiếu
+    const scheduledClassIds = new Set(allSchedulesData.map(s => `${s.MaLopHoc}|${s.MaMon}`));
+
+    // API giả định lấy tất cả lớp
     const response = await fetch(`http://localhost:8000/api/classes?maHK=${currentSemesterIdForSchedule}`);
     const result = await response.json();
+
     if(result.success) {
         classListForSchedule = result.data; 
         select.innerHTML = '<option value="">-- Chọn Lớp --</option>';
+        
         result.data.forEach(cls => {
+            // Tạo key từ dữ liệu lớp học (Lưu ý: API trả về MaMonHoc)
+            const key = `${cls.MaLopHoc}|${cls.MaMonHoc}`;
+            
+            if (!isScheduleEditMode && scheduledClassIds.has(key)) {
+                return; 
+            }
+
             const val = `${cls.MaLopHoc}|${cls.MaMonHoc}`; 
             select.innerHTML += `<option value="${val}">${cls.MaLopHoc} - ${cls.TenMon}</option>`;
         });
-        select.addEventListener('change', (e) => {
-            const [maLop, maMon] = e.target.value.split('|');
+
+        // Xử lý sự kiện khi chọn lớp -> Hiện lịch GV bên phải
+        const newSelect = select.cloneNode(true);
+        select.parentNode.replaceChild(newSelect, select);
+
+        newSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (!val) {
+                 document.getElementById('scheduleMonName').value = '';
+                 document.getElementById('scheduleGVName').value = '';
+                 renderTeacherScheduleSidePanel(null); // Xóa bảng bên phải
+                 return;
+            }
+
+            const [maLop, maMon] = val.split('|');
             const selectedClass = classListForSchedule.find(c => c.MaLopHoc === maLop && c.MaMonHoc === maMon);
+            
             if(selectedClass) {
+                const tenGV = selectedClass.TenGiangVien || 'Chưa phân công';
                 document.getElementById('scheduleMonName').value = selectedClass.TenMon;
-                document.getElementById('scheduleGVName').value = selectedClass.TenGiangVien || 'Chưa phân công';
+                document.getElementById('scheduleGVName').value = tenGV;
+                
+                // Gọi hàm hiển thị lịch bên phải
+                renderTeacherScheduleSidePanel(tenGV, null);
             }
         });
     }
