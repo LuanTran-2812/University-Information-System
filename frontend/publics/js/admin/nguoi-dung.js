@@ -2,6 +2,7 @@
 const ROWS_PER_PAGE = 7; 
 let allUsersData = [];
 let currentPage = 1;
+let filteredUsersData = [];
 
 // Set lưu trữ Email các dòng được chọn
 const selectedUserEmails = new Set();
@@ -14,6 +15,7 @@ async function fetchAndInitUserTable() {
         
         if (result.success) {
             allUsersData = result.data;
+            filteredUsersData = allUsersData.slice();
             currentPage = 1;
             selectedUserEmails.clear(); // Reset lựa chọn khi reload
             renderUserTable(currentPage);
@@ -37,7 +39,8 @@ function renderUserTable(page) {
 
     const start = (page - 1) * ROWS_PER_PAGE;
     const end = start + ROWS_PER_PAGE;
-    const pageData = allUsersData.slice(start, end);
+    const source = filteredUsersData || [];
+    const pageData = source.slice(start, end);
 
     if (pageData.length === 0 && page > 1) {
         currentPage = page - 1;
@@ -83,11 +86,29 @@ function renderUserTable(page) {
     updateUserDeleteButtonState(); // Cập nhật nút xóa hàng loạt
     
     if (typeof renderPagination === 'function') {
-        renderPagination(allUsersData.length, ROWS_PER_PAGE, page, (newPage) => {
+        renderPagination((filteredUsersData || []).length, ROWS_PER_PAGE, page, (newPage) => {
             currentPage = newPage;
             renderUserTable(newPage);
         });
     }
+}
+
+function applyUserSearch(query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
+        filteredUsersData = allUsersData.slice();
+    } else {
+        filteredUsersData = allUsersData.filter(u => {
+            return (
+                (u.HoTen || '').toLowerCase().includes(q) ||
+                (u.Email || '').toLowerCase().includes(q) ||
+                (u.MSSV || u.MSCB || '').toString().toLowerCase().includes(q) ||
+                (u.Khoa || '').toLowerCase().includes(q)
+            );
+        });
+    }
+    currentPage = 1;
+    renderUserTable(currentPage);
 }
 
 // --- C. Quản lý Checkbox & Xóa Batch (Logic mới thêm) ---
@@ -474,6 +495,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('student-table-body')) {
         fetchAndInitUserTable();
         setupUserButtons(); // Setup cả nút thêm và nút xóa hàng loạt
+        const searchInput = document.getElementById('user-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                applyUserSearch(e.target.value);
+            });
+        }
     }
 });
 

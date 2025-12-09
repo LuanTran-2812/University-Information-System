@@ -7,6 +7,15 @@ let classListForSchedule = [];
 let isScheduleEditMode = false; 
 let currentScheduleOldData = null;
 
+// them bo loc cho lich hoc 
+let filteredSchedulesData = [];
+let scheduleFilters = {
+    lecturer: '',
+    room: '',
+    day: '',
+    query: ''
+};
+
 // Set lưu trữ ID các dòng được chọn (Composite Key)
 const selectedScheduleIds = new Set(); 
 
@@ -29,6 +38,7 @@ async function initSchedulePage() {
     setupBatchDeleteButton();
     setupAddScheduleForm();
     initWeekOptions();
+    bindScheduleFilterEvents();
 }
 
 async function loadSemestersToCustomFilterForSchedule() {
@@ -132,7 +142,9 @@ async function fetchAndInitScheduleTable(maHK) {
             allSchedulesData = result.data;
             currentSchedulePage = 1;
             selectedScheduleIds.clear(); 
-            renderScheduleTable(currentSchedulePage);
+                // populate filter options based on loaded data and render
+                populateScheduleFilterOptions();
+                renderScheduleTable(currentSchedulePage);
         }
     } catch (err) { console.error(err); }
 }
@@ -145,14 +157,17 @@ function renderScheduleTable(page) {
     tbody.innerHTML = '';
     updateDeleteButtonState();
 
-    if (allSchedulesData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học trong học kỳ này.</td></tr>';
+    // apply filters/search to create the view
+    const sourceData = getFilteredSchedules();
+
+    if (sourceData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học phù hợp với bộ lọc.</td></tr>';
         return;
     }
 
     const start = (page - 1) * ROWS_PER_PAGE;
     const end = start + ROWS_PER_PAGE;
-    const pageData = allSchedulesData.slice(start, end);
+    const pageData = sourceData.slice(start, end);
 
     if (pageData.length === 0 && page > 1) {
         currentSchedulePage = page - 1;
@@ -527,4 +542,113 @@ if (typeof window !== 'undefined') {
     window.closeScheduleModal = window.closeScheduleModal;
     window.updateSelectedScheduleIds = updateSelectedScheduleIds;
     window.selectedScheduleIds = selectedScheduleIds;
+}
+
+// --- bo loc tim kiem s ---
+function getFilteredSchedules() {
+    let result = allSchedulesData.slice();
+
+    // lecturer
+    if (scheduleFilters.lecturer) {
+        result = result.filter(s => (s.TenGiangVien || '').toLowerCase().includes(scheduleFilters.lecturer.toLowerCase()));
+    }
+
+    // room
+    if (scheduleFilters.room) {
+        result = result.filter(s => (s.PhongHoc || '').toLowerCase() === scheduleFilters.room.toLowerCase());
+    }
+
+    // day
+    if (scheduleFilters.day) {
+        result = result.filter(s => String(s.Thu) === String(scheduleFilters.day));
+    }
+
+    // text search (match class, subject, lecturer, room)
+    if (scheduleFilters.query && scheduleFilters.query.trim() !== '') {
+        const q = scheduleFilters.query.trim().toLowerCase();
+        result = result.filter(s => {
+            return (
+                (s.MaLopHoc || '').toLowerCase().includes(q) ||
+                (s.TenMon || '').toLowerCase().includes(q) ||
+                (s.TenGiangVien || '').toLowerCase().includes(q) ||
+                (s.PhongHoc || '').toLowerCase().includes(q)
+            );
+        });
+    }
+
+    filteredSchedulesData = result;
+    return filteredSchedulesData;
+}
+
+function populateScheduleFilterOptions() {
+    // Build 
+    const lecturers = new Set();
+    const rooms = new Set();
+    allSchedulesData.forEach(s => {
+        if (s.TenGiangVien) lecturers.add(s.TenGiangVien);
+        if (s.PhongHoc) rooms.add(s.PhongHoc);
+    });
+
+    const lectSel = document.getElementById('filter-lecturer-select');
+    const roomSel = document.getElementById('filter-room-select');
+    if (lectSel) {
+        const prev = lectSel.value || '';
+        lectSel.innerHTML = '<option value="">-- Tất cả giảng viên --</option>';
+        Array.from(lecturers).sort().forEach(lv => {
+            lectSel.innerHTML += `<option value="${lv}">${lv}</option>`;
+        });
+        lectSel.value = prev;
+    }
+    if (roomSel) {
+        const prevR = roomSel.value || '';
+        roomSel.innerHTML = '<option value="">-- Tất cả phòng --</option>';
+        Array.from(rooms).sort().forEach(r => {
+            roomSel.innerHTML += `<option value="${r}">${r}</option>`;
+        });
+        roomSel.value = prevR;
+    }
+}
+
+function bindScheduleFilterEvents() {
+    const toggleBtn = document.getElementById('toggle-schedule-filter-btn');
+    const panel = document.getElementById('schedule-filter-panel');
+    if (toggleBtn && panel) {
+        toggleBtn.addEventListener('click', () => {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    const applyBtn = document.getElementById('apply-schedule-filters');
+    const clearBtn = document.getElementById('clear-schedule-filters');
+    const lectSel = document.getElementById('filter-lecturer-select');
+    const roomSel = document.getElementById('filter-room-select');
+    const daySel = document.getElementById('filter-day-select');
+    const searchInput = document.getElementById('schedule-search-input');
+
+    if (applyBtn) applyBtn.addEventListener('click', () => {
+        scheduleFilters.lecturer = lectSel ? lectSel.value : '';
+        scheduleFilters.room = roomSel ? roomSel.value : '';
+        scheduleFilters.day = daySel ? daySel.value : '';
+        scheduleFilters.query = searchInput ? searchInput.value : '';
+        currentSchedulePage = 1;
+        renderScheduleTable(currentSchedulePage);
+    });
+
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+        if (lectSel) lectSel.value = '';
+        if (roomSel) roomSel.value = '';
+        if (daySel) daySel.value = '';
+        if (searchInput) searchInput.value = '';
+        scheduleFilters = { lecturer: '', room: '', day: '', query: '' };
+        currentSchedulePage = 1;
+        renderScheduleTable(currentSchedulePage);
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            scheduleFilters.query = e.target.value;
+            currentSchedulePage = 1;
+            renderScheduleTable(currentSchedulePage);
+        });
+    }
 }
