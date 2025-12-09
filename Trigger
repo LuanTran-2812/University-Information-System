@@ -384,6 +384,14 @@ BEGIN
 END;
 GO
 
+----------------------------------------------------------------
+-- PROCEDURE --
+----------------------------------------------------------------
+IF OBJECT_ID('proc_ThemNguoiDung','P') IS NOT NULL DROP PROCEDURE proc_ThemNguoiDung;
+IF OBJECT_ID('proc_ThemMonHocMoi','P') IS NOT NULL DROP PROCEDURE proc_ThemMonHocMoi;
+IF OBJECT_ID('proc_ThemLopHoc','P') IS NOT NULL DROP PROCEDURE proc_ThemLopHoc;
+GO
+
 -- Procedure thêm người dùng mới với mã số tự động
 CREATE OR ALTER PROCEDURE proc_ThemNguoiDung
     @HoTen NVARCHAR(100),
@@ -565,3 +573,90 @@ BEGIN
         THROW;
     END CATCH
 END;
+GO
+
+-- Procedure thêm lớp học mới với mã số lớp tự động
+CREATE PROCEDURE proc_ThemLopHoc
+    @MaHK VARCHAR(10),
+    @MaMon VARCHAR(10),
+    @SiSoMax INT,
+    @MSCB VARCHAR(10) = NULL -- Có thể để trống nếu chưa xếp giảng viên
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Sử dụng Transaction để đảm bảo an toàn dữ liệu khi nhiều người thêm cùng lúc
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        -- 1. Validate dữ liệu đầu vào (Kiểm tra ràng buộc CHECK thủ công để báo lỗi rõ hơn)
+        IF @SiSoMax < 40 OR @SiSoMax > 80
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 0 AS Success, N'Sĩ số tối đa phải từ 40 đến 80' AS Message;
+            RETURN;
+        END
+
+        -- 2. Tính toán Mã Lớp mới (Logic tự tăng theo nhóm)
+        DECLARE @MaxID INT;
+        DECLARE @NewMaLop VARCHAR(10);
+
+        -- Lấy phần số lớn nhất hiện tại của lớp thuộc ĐÚNG Học kỳ và Môn học đó
+        -- Sử dụng khóa (UPDLOCK) để chặn người khác chèn cùng lúc
+        SELECT @MaxID = MAX(CAST(SUBSTRING(MaLopHoc, 2, LEN(MaLopHoc)) AS INT))
+        FROM LopHoc WITH (UPDLOCK, HOLDLOCK)
+        WHERE MaHocKy = @MaHK AND MaMonHoc = @MaMon;
+
+        -- Nếu chưa có lớp nào thì bắt đầu là 0
+        IF @MaxID IS NULL SET @MaxID = 0;
+
+        -- Tăng lên 1
+        SET @MaxID = @MaxID + 1;
+
+        -- Format thành L01, L02... L09, L10, L100 (Tự động thêm số 0 nếu < 10)
+        IF @MaxID < 10
+            SET @NewMaLop = 'L0' + CAST(@MaxID AS VARCHAR(5));
+        ELSE
+            SET @NewMaLop = 'L' + CAST(@MaxID AS VARCHAR(5));
+
+        -- 3. Thực hiện Insert
+        INSERT INTO LopHoc (
+            MaLopHoc, 
+            MaHocKy, 
+            MaMonHoc, 
+            SiSoToiDa, 
+            SiSoHienTai, 
+            MSCB, 
+            DaHuy
+        )
+        VALUES (
+            @NewMaLop, 
+            @MaHK, 
+            @MaMon, 
+            @SiSoMax, 
+            0, -- Mặc định sĩ số hiện tại là 0
+            @MSCB, 
+            0  -- Mặc định chưa hủy
+        );
+
+        -- 4. Commit và trả về kết quả
+        COMMIT TRANSACTION;
+        
+        SELECT 
+            1 AS Success, 
+            N'Thêm lớp học thành công' AS Message, 
+            @NewMaLop AS MaLopMoi;
+
+    END TRY
+    BEGIN CATCH
+        -- Nếu có lỗi thì rollback
+        ROLLBACK TRANSACTION;
+        
+        -- Trả về thông báo lỗi
+        SELECT 
+            0 AS Success, 
+            ERROR_MESSAGE() AS Message, 
+            NULL AS MaLopMoi;
+    END CATCH
+END;
+GO

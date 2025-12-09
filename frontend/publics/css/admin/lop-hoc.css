@@ -146,3 +146,63 @@
 
 /* Modal Dropdown */
 .full-width-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+/* Class này dùng để ép một ô trong Grid chiếm hết 2 cột (full width) */
+.grid-span-full {
+    grid-column: 1 / -1 !important;
+}
+
+/* === NEW: LAYOUT 2 CỘT TRONG MODAL === */
+.modal-body-layout {
+    display: flex;
+    gap: 24px; /* Khoảng cách giữa 2 cột */
+    align-items: flex-start; /* Căn hàng đầu bằng nhau */
+}
+
+.left-panel {
+    flex: 1; /* Chiếm phần còn lại hoặc 50% */
+    display: flex;
+    flex-direction: column;
+}
+
+.right-panel {
+    flex: 1; /* Chiếm 50% */
+    border-left: 1px solid #E5E7EB;
+    padding-left: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === NEW: BẢNG SINH VIÊN TRONG MODAL === */
+/* Override lại độ rộng cột của .class-table gốc */
+.student-table-modal th:nth-child(1) { width: 10%; text-align: center; } /* STT */
+.student-table-modal th:nth-child(2) { width: 25%; text-align: left; }   /* MSSV */
+.student-table-modal th:nth-child(3) { width: 50%; text-align: left; }   /* Họ Tên */
+.student-table-modal th:nth-child(4) { width: 15%; text-align: center; } /* Nút Xóa */
+
+.student-table-modal td:nth-child(1) { text-align: center; }
+.student-table-modal td:nth-child(2) { text-align: left; font-family: monospace; font-weight: 600; }
+.student-table-modal td:nth-child(3) { text-align: left; }
+.student-table-modal td:nth-child(4) { text-align: center; }
+
+/* Sticky Header cho bảng sinh viên */
+.student-table-modal thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #F9FAFB; /* Cần background để che nội dung khi cuộn */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Input Cấu trúc điểm nhỏ gọn */
+.form-grid-grades {
+    display: flex;
+    gap: 20px;
+}
+.five-cols {
+    flex: 1;
+}
+.five-cols input {
+    text-align: center;
+    font-weight: bold;
+}
