@@ -126,6 +126,8 @@ CREATE TABLE LopHoc (
     MaHocKy VARCHAR(10), 
     MaMonHoc VARCHAR(10),
     MSCB VARCHAR(10),
+    -- Dùng cột này để xử lý "nút hủy lớp", 1 = Admin chuyển lớp thành hủy
+    DaHuy BIT NOT NULL DEFAULT 0,
     
     PRIMARY KEY (MaLopHoc, MaHocKy, MaMonHoc),
     FOREIGN KEY (MaHocKy) REFERENCES HocKy(MaHocKy) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -137,10 +139,12 @@ CREATE TABLE LopHoc (
 );
 
 CREATE TABLE CauTrucDiem (
-    MaThanhPhan VARCHAR(20) PRIMARY KEY,
+    MaCauTruc INT IDENTITY(1,1) PRIMARY KEY,
+    MaThanhPhan VARCHAR(20),
     ThanhPhanDiem NVARCHAR(50),
     TyTrong INT CHECK (TyTrong BETWEEN 0 AND 100),
     MaMon VARCHAR(10),
+    TrangThai BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (MaMon) REFERENCES MonHoc(MaMon) ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT CK_ThanhPhanDiem CHECK (ThanhPhanDiem IN (N'Giữa kì', N'Cuối kì', N'BTL', N'Quiz', N'Thí nghiệm'))
@@ -154,11 +158,11 @@ CREATE TABLE ChiTietDiem (
     MaMon VARCHAR(10),
     MaHocKy VARCHAR(10),
 
-    MaThanhPhan VARCHAR(20),
+    MaCauTruc INT,
 
     Diem DECIMAL(4,2) CHECK (Diem BETWEEN 0 AND 10),
 
-    FOREIGN KEY (MaThanhPhan) REFERENCES CauTrucDiem(MaThanhPhan),
+    FOREIGN KEY (MaCauTruc) REFERENCES CauTrucDiem(MaCauTruc),
     FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (MSSV) REFERENCES SinhVien(MSSV)
 );
@@ -190,7 +194,7 @@ CREATE TABLE LichHoc (
 
 CREATE TABLE TaiLieu (
     MaTaiLieu VARCHAR(10) NOT NULL PRIMARY KEY,
-    MSCB VARCHAR(10) NOT NULL,
+    MSCB VARCHAR(10),
     TenFile NVARCHAR(200) NOT NULL,
     DuongDan VARCHAR(255) NOT NULL,
     NgayTaiLen DATE NOT NULL,
@@ -198,7 +202,7 @@ CREATE TABLE TaiLieu (
     MaMon VARCHAR(10) NOT NULL,
     MaHocKy VARCHAR(10) NOT NULL,
 
-    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB),
+    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB) ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT fk_tai_lieu FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -280,30 +284,34 @@ SELECT
     L.SiSoHienTai,
     L.SiSoToiDa,
     L.MSCB,
+    L.DaHuy,
     
     -- Cột trạng thái dẫn xuất
     (
         CASE
-			-- 1. Ưu tiên cao nhất: CHƯA XẾP LỊCH HỌC
-			WHEN LH.TuanBatDau IS NULL THEN N'Chưa xếp lịch học'
+            -- 1. Ưu tiên cao nhất: Admin đã khóa (nút đóng)
+            WHEN L.DaHuy = 1 THEN N'Đã hủy lớp'
 
-            -- 2. Ưu tiên 2: ĐANG ĐĂNG KÝ
+			-- 2. Ưu tiên 2: CHƯA XẾP LỊCH HỌC
+			WHEN LH.TuanBatDau IS NULL THEN N'Chưa xếp lịch'
+
+            -- 3. Ưu tiên 3: ĐANG ĐĂNG KÝ
             WHEN GETDATE() BETWEEN HK.MoDangKy AND HK.DongDangKy
                 THEN N'Đang đăng ký'
 
-            -- 3. Ưu tiên 3: ĐÃ KẾT THÚC (Học xong)
+            -- 4. Ưu tiên 4: ĐÃ KẾT THÚC (Học xong)
             WHEN LH.TuanKetThuc IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) > LH.TuanKetThuc
                 THEN N'Đã kết thúc'
 
-            -- 4. Ưu tiên 4: ĐANG HỌC
+            -- 5. Ưu tiên 5: ĐANG HỌC
             WHEN LH.TuanBatDau IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) BETWEEN LH.TuanBatDau AND LH.TuanKetThuc
                 THEN N'Đang học'
 
-            -- 4. Ưu tiên 5: KẾT THÚC ĐĂNG KÝ
+            -- 6. Ưu tiên 6: KẾT THÚC ĐĂNG KÝ
             WHEN GETDATE() > HK.DongDangKy AND (LH.TuanBatDau IS NULL OR (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) < LH.TuanBatDau)
                 THEN N'Kết thúc đăng ký'
 
-            -- 6. Mặc định: ĐÃ XẾP LỊCH HỌC
+            -- 7. Mặc định: ĐÃ XẾP LỊCH HỌC
             ELSE N'Đã xếp lịch'
         END
     ) AS TrangThai

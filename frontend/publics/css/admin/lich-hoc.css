@@ -132,10 +132,136 @@
 .modal-header.modal-centered-title .close-btn {
     flex-shrink: 0;
 }
-.form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-grid-schedule { 
+    padding: 20px; 
+    display: grid; 
+    /* Chia thành 6 cột để dễ chia tỉ lệ 1/2 và 1/3 */
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 20px; 
+}
+
+/* Chiếm 1/3 hàng (Dùng cho Thứ, Tiết, Phòng, Tuần) */
+.col-span-2 {
+    grid-column: span 2;
+}
+
+/* Chiếm 1/2 hàng (dùng cho Mã lớp, Tên GV) */
+.col-span-3 {
+    grid-column: span 3;
+}
+
+.col-span-4 {
+    grid-column: span 4;
+}
+
+/* Chiếm toàn bộ hàng (dùng cho Tên môn) */
+.col-span-6 { 
+    grid-column: span 6; 
+}
 
 .full-width { grid-column: span 2; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #333; }
 .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
 .modal-footer { padding: 0 20px 20px; display: flex; justify-content: center; }
 .btn-save-orange { background-color: #FF5722; color: white; border: none; padding: 10px 50px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }
+
+/* =========================================
+   NEW: LAYOUT MODAL (RENAMED TO AVOID CONFLICT)
+   ========================================= */
+.schedule-modal-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 0 20px 20px;
+}
+
+/* Panel Trái (Form) */
+.schedule-left-panel {
+    flex: 1; /* Tỷ lệ 6:4 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Grid Layout cho Form (Renamed) */
+.schedule-form-grid { 
+    padding-top: 20px; /* Chỉ padding top để tách khỏi header */
+    display: grid; 
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 20px; 
+}
+
+/* Panel Phải (Bảng xem trước) */
+.schedule-right-panel {
+    flex: 1;
+    border-left: 1px solid #E5E7EB;
+    padding-left: 24px;
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================
+   NEW: BẢNG PREVIEW (COPY STYLE TỪ LOP-HOC)
+   ========================================= */
+.schedule-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Quan trọng để cột không bị nhảy */
+}
+
+/* Style chung cho hàng (Giống hệt .class-table của lop-hoc) */
+.schedule-preview-table th, .schedule-preview-table td {
+    padding: 12px 8px; /* Padding vừa vặn */
+    border-bottom: 1px solid #E5E7EB;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+}
+
+.schedule-preview-table th {
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    position: sticky; /* Giữ tiêu đề khi cuộn */
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.schedule-preview-table td {
+    color: #111;
+}
+
+/* === CẤU HÌNH ĐỘ RỘNG CỘT CHO BẢNG PREVIEW === */
+/* Cột 1: Lớp/Môn (Chứa 2 dòng) */
+.schedule-preview-table th:nth-child(1) { width: 45%; text-align: left; padding-left: 12px; }
+.schedule-preview-table td:nth-child(1) { text-align: left; padding-left: 12px; }
+
+/* Các cột còn lại */
+.schedule-preview-table th:nth-child(2) { width: 15%; text-align: center; } /* Thứ */
+.schedule-preview-table th:nth-child(3) { width: 20%; text-align: center; } /* Tiết */
+.schedule-preview-table th:nth-child(4) { width: 20%; text-align: center; } /* Tuần */
+
+.schedule-preview-table td:nth-child(2),
+.schedule-preview-table td:nth-child(3),
+.schedule-preview-table td:nth-child(4) { text-align: center; }
+
+/* === STYLE CHO CELL 2 DÒNG (LỚP - MÔN) === */
+.schedule-cell-primary {
+    font-weight: 700;
+    font-size: 13px;
+    color: #4F46E5;
+    display: block;
+    line-height: 1.2;
+}
+.schedule-cell-secondary {
+    font-size: 11px;
+    color: #6B7280;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+}

@@ -37,37 +37,87 @@
 <div class="pagination"></div>
 
 <div id="class-modal" class="modal-overlay">
-    <div class="modal-content" style="width: 700px;">
-        <div class="modal-header">
-            <h3>Thêm lớp học</h3>
+    <div class="modal-content" style="width: 1100px; max-width: 95vw;">
+        <div class="modal-header modal-centered-title">
+            <span class="modal-spacer"></span><h3>Thêm lớp học</h3>
             <span class="material-symbols-outlined close-btn" onclick="closeClassModal()">close</span>
         </div>
+        
         <form id="modal-add-class-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Mã lớp <span class="required">*</span></label>
-                    <input type="text" id="maLop" placeholder="L01" required>
+            <div class="modal-body-layout">
+                
+                <div class="left-panel">
+                    <div class="form-grid">
+                        <div class="form-group" id="group-ma-lop">
+                            <label>Mã lớp <span class="required">*</span></label>
+                            <input type="text" id="maLop" placeholder="Tự động" disabled>
+                        </div>
+                        
+                        <div class="form-group" id="group-si-so">
+                            <label>Số sinh viên tối đa</label>
+                            <input type="number" id="siSoMax" value="50">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label>Tên môn <span class="required">*</span></label>
+                            <select id="classMonHocSelect" class="full-width-select" required>
+                                <option value="">-- Chọn Môn --</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Giảng viên phụ trách</label>
+                            <select id="classGiangVienSelect" class="full-width-select">
+                                <option value="">-- Chọn Giảng viên --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title" style="margin-top: 15px;">
+                        <label>Cấu trúc điểm % (Tự động theo môn)</label>
+                    </div>
+
+                    <div class="form-grid-grades">
+                        <div class="form-group five-cols"><label>Quiz</label><input type="text" id="classQuiz" disabled></div>
+                        <div class="form-group five-cols"><label>TN</label><input type="text" id="classThiNghiem" disabled></div>
+                        <div class="form-group five-cols"><label>BTL</label><input type="text" id="classBTL" disabled></div>
+                        <div class="form-group five-cols"><label>GK</label><input type="text" id="classGiuaKy" disabled></div>
+                        <div class="form-group five-cols"><label>CK</label><input type="text" id="classCuoiKy" disabled></div>
+                    </div>
+
+                    <div id="cancel-class-wrapper" style="margin-top: 3px; display: none; padding-top: 10px; padding: 20px; border-top: 1px dashed #ccc;">
+                        <label style="display: flex; align-items: center; gap: 8px; color: #ef4444; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" id="chkHuyLop">
+                            Hủy lớp học này (Sinh viên sẽ bị hủy đăng ký)
+                        </label>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Số sinh viên tối đa</label>
-                    <input type="number" id="siSoMax" value="50">
-                </div>
-                <div class="form-group full-width">
-                    <label>Tên môn <span class="required">*</span></label>
-                    <select id="classMonHocSelect" class="full-width-select" required>
-                        <option value="">-- Chọn Môn --</option>
-                    </select>
-                </div>
-                <div class="form-group full-width">
-                    <label>Giảng viên phụ trách</label>
-                    <select id="classGiangVienSelect" class="full-width-select">
-                        <option value="">-- Chọn Giảng viên --</option>
-                    </select>
+
+                <div class="right-panel" id="student-list-panel" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600;">Danh sách sinh viên</label>
+                        <span id="student-count-badge" class="badge blue">0 SV</span>
+                    </div>
+
+                    <div class="table-wrapper" style="height: 435px; overflow-y: auto;">
+                        <table class="class-table student-table-modal">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>MSSV</th>
+                                    <th>Họ Tên</th>
+                                    <th>Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-list-tbody">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <input type="hidden" id="editing-class-id"> 
-                <button type="submit" class="btn-save-orange" id="btn-save-class">Save</button>
+                <button type="submit" class="btn-save-orange" id="btn-save-class">Lưu</button>
             </div>
         </form>
     </div>

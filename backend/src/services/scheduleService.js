@@ -71,6 +71,41 @@ const createSchedule = async (data) => {
 const deleteSchedule = async (maLop, maHK, maMon, thu, tietBD, tietKT, phong) => {
     try {
         const pool = await getPool();
+
+        // 1. Kiểm tra trạng thái lớp học từ View
+        const checkStatus = await pool.request()
+            .input('maLop', sql.VarChar, maLop)
+            .input('maHK', sql.VarChar, maHK)
+            .input('maMon', sql.VarChar, maMon)
+            .query(`
+                SELECT v.TrangThai, mh.TenMon 
+                FROM v_ThongTinLopHoc v
+                JOIN MonHoc mh ON v.MaMonHoc = mh.MaMon
+                WHERE v.MaLopHoc = @maLop AND v.MaHocKy = @maHK AND v.MaMonHoc = @maMon
+            `);
+
+        if (checkStatus.recordset.length === 0) {
+            throw new Error('Không tìm thấy thông tin lớp học!');
+        }
+
+        const { TrangThai, TenMon } = checkStatus.recordset[0];
+        const allowDelete = (TrangThai === 'Đã xếp lịch' || TrangThai === 'Đã hủy lớp');
+
+        if (!allowDelete) {
+            let errorMsg = `Không thể xóa lịch của lớp ${maLop} - ${TenMon} (Trạng thái: ${TrangThai}). `;
+            
+            if (TrangThai === 'Đang đăng ký' || TrangThai === 'Kết thúc đăng ký') {
+                errorMsg += 'Sinh viên đang đăng ký hoặc chờ xét duyệt, việc xóa lịch sẽ làm mất thông tin thời khóa biểu!';
+            } else if (TrangThai === 'Đang học') {
+                errorMsg += 'Lớp đang diễn ra, không được xóa lịch sử giảng dạy!';
+            } else if (TrangThai === 'Đã kết thúc') {
+                errorMsg += 'Lớp đã kết thúc, cần lưu trữ lịch sử!';
+            }
+
+            throw new Error(errorMsg);
+        }
+
+        // 3. Thực hiện XÓA
         await pool.request()
             .input('maLop', sql.VarChar, maLop)
             .input('maHK', sql.VarChar, maHK)
@@ -84,6 +119,7 @@ const deleteSchedule = async (maLop, maHK, maMon, thu, tietBD, tietKT, phong) =>
                 WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
                 AND Thu=@thu AND TietBatDau=@tietBD AND TietKetThuc=@tietKT AND PhongHoc=@phong
             `);
+
         return { success: true };
     } catch (err) { throw err; }
 };
@@ -153,33 +189,67 @@ const updateSchedule = async (data) => {
 const deleteMultipleSchedules = async (schedules) => {
     try {
         const pool = await getPool();
-        let deletedCount = 0;
+        const transaction = new sql.Transaction(pool);
+        
+        // Bắt đầu Transaction để đảm bảo an toàn dữ liệu
+        await transaction.begin();
 
-        for (const schedule of schedules) {
-            const { MaLopHoc, MaHocKy, MaMon, Thu, TietBatDau, TietKetThuc, PhongHoc } = schedule;
-            
-            if (!MaLopHoc || !MaHocKy || !MaMon || !Thu || !TietBatDau || !TietKetThuc || !PhongHoc) {
-                continue;
+        try {
+            let deletedCount = 0;
+
+            for (const s of schedules) {
+                const { MaLopHoc, MaHocKy, MaMon, Thu, TietBatDau, TietKetThuc, PhongHoc } = s;
+                
+                if (!MaLopHoc || !MaHocKy || !MaMon) continue;
+
+                // 1. Kiểm tra trạng thái từng lớp trong danh sách
+                const reqCheck = new sql.Request(transaction);
+                const resCheck = await reqCheck
+                    .input('maLop', sql.VarChar, MaLopHoc)
+                    .input('maHK', sql.VarChar, MaHocKy)
+                    .input('maMon', sql.VarChar, MaMon)
+                    .query(`
+                        SELECT v.TrangThai, mh.TenMon 
+                        FROM v_ThongTinLopHoc v
+                        JOIN MonHoc mh ON v.MaMonHoc = mh.MaMon
+                        WHERE v.MaLopHoc = @maLop AND v.MaHocKy = @maHK AND v.MaMonHoc = @maMon
+                    `);
+
+                if (resCheck.recordset.length > 0) {
+                    const { TrangThai, TenMon } = resCheck.recordset[0];
+                    const allowDelete = (TrangThai === 'Đã xếp lịch' || TrangThai === 'Đã hủy lớp');
+
+                    if (!allowDelete) {
+                        throw new Error(`Không thể xóa lịch của lớp ${MaLopHoc} - ${TenMon}. Trạng thái hiện tại là "${TrangThai}" (Chỉ được xóa khi lớp ở trạng thái "Đã xếp lịch" hoặc "Đã hủy")!`);
+                    }
+                }
+
+                // 2. Thực hiện xóa
+                const reqDel = new sql.Request(transaction);
+                const result = await reqDel
+                    .input('maLop', sql.VarChar, MaLopHoc)
+                    .input('maHK', sql.VarChar, MaHocKy)
+                    .input('maMon', sql.VarChar, MaMon)
+                    .input('thu', sql.Int, Thu)
+                    .input('tietBD', sql.Int, TietBatDau)
+                    .input('tietKT', sql.Int, TietKetThuc)
+                    .input('phong', sql.VarChar, PhongHoc)
+                    .query(`
+                        DELETE FROM LichHoc 
+                        WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
+                          AND Thu=@thu AND TietBatDau=@tietBD AND TietKetThuc=@tietKT AND PhongHoc=@phong
+                    `);
+                
+                deletedCount += result.rowsAffected[0];
             }
 
-            const result = await pool.request()
-                .input('maLop', sql.VarChar, MaLopHoc)
-                .input('maHK', sql.VarChar, MaHocKy)
-                .input('maMon', sql.VarChar, MaMon)
-                .input('thu', sql.Int, Thu)
-                .input('tietBD', sql.Int, TietBatDau)
-                .input('tietKT', sql.Int, TietKetThuc)
-                .input('phong', sql.VarChar, PhongHoc)
-                .query(`
-                    DELETE FROM LichHoc 
-                    WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
-                      AND Thu=@thu AND TietBatDau=@tietBD AND TietKetThuc=@tietKT AND PhongHoc=@phong
-                `);
-            
-            deletedCount += result.rowsAffected[0];
-        }
+            await transaction.commit();
+            return deletedCount;
 
-        return deletedCount;
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
     } catch (err) { 
         throw err; 
     }

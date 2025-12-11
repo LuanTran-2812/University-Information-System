@@ -143,6 +143,16 @@
 .modal-header h3 { margin: 0; font-size: 18px; font-weight: 500; }
 .close-btn { cursor: pointer; font-size: 24px; }
 .form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-grid-grades {
+    padding: 10px 20px 20px 20px; 
+    display: flex;
+    gap: 20px; /* Khoảng cách giữa các cột */
+    margin-bottom: 0; /* Margin do form-group lo */
+}
+.form-grid-grades .form-group {
+    flex: 1; 
+    min-width: 0; 
+}
 .full-width { grid-column: span 2; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #333; }
 .required { color: red; }
@@ -198,3 +208,63 @@
 
 .constraint-text:last-child { margin-bottom: 0; }
 .constraint-label { font-weight: 600; color: #374151; margin-right: 4px; }
+
+/* =========================================
+   5. FORM SECTION TITLE (CHO CẤU TRÚC ĐIỂM)
+   ========================================= */
+.form-section-title {
+    padding: 0 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.form-section-title label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #4472C4;
+    border-bottom: 2px solid #eee;
+    display: block;
+    padding-bottom: 5px;
+}
+
+/* --- Cập nhật lại class .ts-control --- */
+.ts-control {
+    border: 1px solid #ddd !important;
+    border-radius: 6px !important;
+    padding: 10px !important;
+    font-size: 14px;
+    
+    /* THÊM: Màu chữ chính cho khung (khớp với thẻ select thường) */
+    color: #000000 !important; 
+    
+    /* THÊM: Canh giữa nội dung theo chiều dọc để khớp với select bên cạnh */
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* --- THÊM MỚI: Chỉnh màu Placeholder (dòng chữ mờ) --- */
+/* Mục đích: Làm cho chữ "Chọn môn..." đậm như chữ "(Không có)" của select bên cạnh */
+.ts-control input::placeholder {
+    color: #000000 !important; /* Đổi thành màu đen/xám đậm thay vì màu xám nhạt mặc định */
+    opacity: 1 !important;  /* Bắt buộc hiển thị rõ 100% */
+}
+
+/* --- THÊM MỚI: Chỉnh màu chữ khi người dùng nhập liệu --- */
+.ts-control input {
+    color: #000000 !important;
+    font-family: inherit !important; /* Giữ font chữ đồng bộ */
+}
+
+/* Style cũ giữ nguyên: Hiệu ứng khi focus */
+.ts-control:focus {
+    box-shadow: none !important;
+    border-color: #4F46E5 !important;
+}
+
+/* Style cũ giữ nguyên: Thẻ tags đã chọn */
+.ts-control .item {
+    background-color: #EFF6FF !important;
+    color: #1D4ED8 !important;
+    border-radius: 4px !important;
+}
+

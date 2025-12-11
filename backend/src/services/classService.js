@@ -26,37 +26,30 @@ const getClassesBySemester = async (maHocKy) => {
 const createClass = async (data) => {
   try {
     const pool = await getPool();
-    const { maLop, maHK, maMon, siSoMax, mscb } = data;
+    const { maHK, maMon, siSoMax, mscb } = data;
 
-    // Kiểm tra trùng (1 môn chỉ có 1 mã lớp trong 1 học kỳ)
-    const check = await pool.request()
-        .input('maLop', sql.VarChar, maLop)
-        .input('maHK', sql.VarChar, maHK)
-        .input('maMon', sql.VarChar, maMon)
-        .query('SELECT * FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+    const result = await pool.request()
+        .input('MaHK', sql.VarChar(10), maHK)
+        .input('MaMon', sql.VarChar(10), maMon)
+        .input('SiSoMax', sql.Int, siSoMax)
+        .input('MSCB', sql.VarChar(10), mscb || null)
+        .execute('proc_ThemLopHoc');
     
-    if (check.recordset.length > 0) throw new Error('Lớp học này đã tồn tại!');
+    const row = result.recordset[0];
+    if (row.Success === 0) {
+        throw new Error(row.Message);
+    }
 
-    await pool.request()
-        .input('maLop', sql.VarChar, maLop)
-        .input('maHK', sql.VarChar, maHK)
-        .input('maMon', sql.VarChar, maMon)
-        .input('siSoMax', sql.Int, siSoMax)
-        .input('mscb', sql.VarChar, mscb)
-        .query(`
-            INSERT INTO LopHoc (MaLopHoc, MaHocKy, MaMonHoc, SiSoToiDa, MSCB)
-            VALUES (@maLop, @maHK, @maMon, @siSoMax, @mscb)
-        `);
-    return { success: true };
+    return { success: true, message: row.Message, maLop: row.MaLopMoi };
   } catch (err) { throw err; }
 };
 
-// Sửa lớp học (Chỉ sửa sĩ số, giảng viên)
+// Sửa lớp học (Chỉ sửa sĩ số, giảng viên, trạng thái hủy)
 const updateClass = async (id, data) => {
    
     try {
         const pool = await getPool();
-        const { maHK, maMon, siSoMax, mscb } = data; // id = maLop
+        const { maHK, maMon, siSoMax, mscb, huyLop } = data; // id = maLop
 
         await pool.request()
             .input('maLop', sql.VarChar, id)
@@ -64,9 +57,10 @@ const updateClass = async (id, data) => {
             .input('maMon', sql.VarChar, maMon)
             .input('siSoMax', sql.Int, siSoMax)
             .input('mscb', sql.VarChar, mscb)
+            .input('daHuy', sql.Bit, huyLop ? 1 : 0)
             .query(`
                 UPDATE LopHoc 
-                SET SiSoToiDa = @siSoMax, MSCB = @mscb
+                SET SiSoToiDa = @siSoMax, MSCB = @mscb, DaHuy = @daHuy
                 WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon
             `);
         return { success: true };
@@ -77,12 +71,44 @@ const updateClass = async (id, data) => {
 const deleteClass = async (maLop, maHK, maMon) => {
     try {
         const pool = await getPool();
-        await pool.request()
+
+        // 1. Lấy trạng thái từ View
+        const checkStatus = await pool.request()
             .input('maLop', sql.VarChar, maLop)
             .input('maHK', sql.VarChar, maHK)
             .input('maMon', sql.VarChar, maMon)
-            .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
-        return { success: true };
+            .query(`
+                SELECT TrangThai 
+                FROM v_ThongTinLopHoc 
+                WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon
+            `);
+
+        if (checkStatus.recordset.length === 0) {
+            throw new Error('Lớp học không tồn tại!');
+        }
+
+        const trangThai = checkStatus.recordset[0].TrangThai;
+
+        // 2. XỬ LÝ LOGIC THEO TỪNG TRẠNG THÁI
+        if (trangThai === 'Chưa xếp lịch') {
+            await pool.request()
+                .input('maLop', sql.VarChar, maLop)
+                .input('maHK', sql.VarChar, maHK)
+                .input('maMon', sql.VarChar, maMon)
+                .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+            
+            return { success: true };
+
+        } else if (trangThai === 'Đã xếp lịch') {
+            throw new Error('Lớp học đang có Lịch học. Vui lòng sang trang "Quản lý lịch học" để xóa lịch trước khi xóa lớp!');
+
+        } else if (trangThai === 'Kết thúc đăng ký') {
+            throw new Error(`Lớp đang ở trạng thái "${trangThai}". Vui lòng sử dụng chức năng "Hủy lớp" thay vì xóa!`);
+
+        } else {
+            throw new Error(`Không thể xóa lớp học đang ở trạng thái "${trangThai}"!`);
+        }
+
     } catch (err) { throw err; }
 };
 
@@ -90,8 +116,43 @@ const deleteClass = async (maLop, maHK, maMon) => {
 const getAllLecturers = async () => {
     try {
         const pool = await getPool();
-        const result = await pool.request().query("SELECT MSCB, HoTen FROM GiangVien");
+        const result = await pool.request().query("SELECT MSCB, HoTen, Khoa FROM GiangVien");
         return result.recordset;
+    } catch (err) { throw err; }
+};
+
+// Lấy danh sách sinh viên trong lớp
+const getStudentsByClass = async (maLop, maHK, maMon) => {
+    try {
+        const pool = await getPool();
+        const result = await pool.request()
+            .input('maLop', sql.VarChar, maLop)
+            .input('maHK', sql.VarChar, maHK)
+            .input('maMon', sql.VarChar, maMon)
+            .query(`
+                SELECT sv.MSSV, sv.HoTen
+                FROM DangKy dk
+                JOIN SinhVien sv ON dk.MSSV = sv.MSSV
+                WHERE dk.MaLopHoc = @maLop AND dk.MaHocKy = @maHK AND dk.MaMon = @maMon
+            `);
+        return result.recordset;
+    } catch (err) { throw err; }
+};
+
+// Xóa sinh viên khỏi lớp
+const removeStudentFromClass = async (maLop, maHK, maMon, mssv) => {
+    try {
+        const pool = await getPool();
+        await pool.request()
+            .input('maLop', sql.VarChar, maLop)
+            .input('maHK', sql.VarChar, maHK)
+            .input('maMon', sql.VarChar, maMon)
+            .input('mssv', sql.VarChar, mssv)
+            .query(`
+                DELETE FROM DangKy 
+                WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMon = @maMon AND MSSV = @mssv
+            `);
+        return { success: true };
     } catch (err) { throw err; }
 };
 
@@ -99,29 +160,113 @@ const getAllLecturers = async () => {
 const deleteMultipleClasses = async (classes) => {
     try {
         const pool = await getPool();
-        let deletedCount = 0;
+        const transaction = new sql.Transaction(pool);
+        
+        await transaction.begin();
 
-        for (const cls of classes) {
-            const { maLop, maHK, maMon } = cls;
-            
-            if (!maLop || !maHK || !maMon) {
-                console.warn('Thiếu thông tin lớp học:', cls);
-                continue;
+        try {
+            let deletedCount = 0;
+
+            for (const cls of classes) {
+                const { maLop, maHK, maMon } = cls;
+
+                // 1. Kiểm tra Trạng thái và lấy Tên Môn
+                const checkReq = new sql.Request(transaction);
+                const checkRes = await checkReq
+                    .input('maLop', sql.VarChar, maLop)
+                    .input('maHK', sql.VarChar, maHK)
+                    .input('maMon', sql.VarChar, maMon)
+                    .query(`
+                        SELECT V.TrangThai, M.TenMon 
+                        FROM v_ThongTinLopHoc V
+                        JOIN MonHoc M ON V.MaMonHoc = M.MaMon
+                        WHERE V.MaLopHoc = @maLop AND V.MaHocKy = @maHK AND V.MaMonHoc = @maMon
+                    `);
+
+                // Nếu không tìm thấy lớp (có thể đã bị xóa trước đó), bỏ qua
+                if (checkRes.recordset.length === 0) continue;
+
+                const { TrangThai, TenMon } = checkRes.recordset[0];
+
+                // 2. Validate Trạng thái
+                if (TrangThai !== 'Chưa xếp lịch') {
+                    let errorMsg = `Không thể xóa lớp ${maLop} - môn ${TenMon} (Trạng thái: ${TrangThai}). `;
+
+                    if (TrangThai === 'Đã xếp lịch') {
+                        errorMsg += 'Vui lòng xóa lịch học trước!';
+                    } else if (TrangThai === 'Kết thúc đăng ký') {
+                        errorMsg += 'Vui lòng dùng chức năng Hủy lớp!';
+                    } else if (TrangThai === 'Đang đăng ký' || TrangThai === 'Đang học') {
+                        errorMsg += 'Lớp đang hoạt động!';
+                    }
+
+                    throw new Error(errorMsg);
+                }
+
+                // 3. Xóa lớp hợp lệ
+                const delReq = new sql.Request(transaction);
+                const result = await delReq
+                    .input('maLop', sql.VarChar, maLop)
+                    .input('maHK', sql.VarChar, maHK)
+                    .input('maMon', sql.VarChar, maMon)
+                    .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+
+                deletedCount += result.rowsAffected[0];
             }
 
-            const result = await pool.request()
-                .input('maLop', sql.VarChar, maLop)
-                .input('maHK', sql.VarChar, maHK)
-                .input('maMon', sql.VarChar, maMon)
-                .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
-            
-            deletedCount += result.rowsAffected[0];
-        }
+            await transaction.commit(); // Xác nhận xóa tất cả nếu không có lỗi
+            return deletedCount;
 
-        return deletedCount;
+        } catch (err) {
+            await transaction.rollback(); // Hoàn tác nếu có bất kỳ lỗi nào
+            throw err;
+        }
     } catch (err) { 
         throw err; 
     }
 };
 
-module.exports = { getClassesBySemester, createClass, updateClass, deleteClass, getAllLecturers, deleteMultipleClasses };
+// Lấy cấu trúc điểm của lớp học (Lịch sử hoặc Hiện tại)
+const getClassGradeStructure = async (maLop, maHK, maMon) => {
+    try {
+        const pool = await getPool();
+        
+        // 1. TRƯỜNG HỢP A: CÓ RỒI (Lớp đang học - Đã có điểm trong ChiTietDiem)
+        // Lấy cấu trúc điểm từ lịch sử ChiTietDiem
+        const historyQuery = `
+            SELECT DISTINCT c.ThanhPhanDiem, c.TyTrong
+            FROM ChiTietDiem ctd
+            JOIN CauTrucDiem c ON ctd.MaCauTruc = c.MaCauTruc
+            WHERE ctd.MaLopHoc = @maLop AND ctd.MaHocKy = @maHK AND ctd.MaMon = @maMon
+        `;
+        const historyResult = await pool.request()
+            .input('maLop', sql.VarChar, maLop)
+            .input('maHK', sql.VarChar, maHK)
+            .input('maMon', sql.VarChar, maMon)
+            .query(historyQuery);
+
+        if (historyResult.recordset.length > 0) {
+            const grades = {};
+            historyResult.recordset.forEach(g => grades[g.ThanhPhanDiem] = g.TyTrong);
+            return { source: 'history', grades };
+        }
+
+        // 2. TRƯỜNG HỢP B: CHƯA CÓ (Lớp mới - Chưa có điểm)
+        // Lấy cấu trúc điểm HIỆN TẠI của môn học (TrangThai = 1)
+        const activeQuery = `
+            SELECT ThanhPhanDiem, TyTrong
+            FROM CauTrucDiem
+            WHERE MaMon = @maMon AND TrangThai = 1
+        `;
+        const activeResult = await pool.request()
+            .input('maMon', sql.VarChar, maMon)
+            .query(activeQuery);
+
+        const grades = {};
+        activeResult.recordset.forEach(g => grades[g.ThanhPhanDiem] = g.TyTrong);
+        return { source: 'active', grades };
+
+    } catch (err) { throw err; }
+};
+
+module.exports = { getClassesBySemester, createClass, updateClass, deleteClass, getAllLecturers, deleteMultipleClasses, getStudentsByClass, removeStudentFromClass, getClassGradeStructure };

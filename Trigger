@@ -1,14 +1,6 @@
 USE test111;
 GO
 
-IF OBJECT_ID('trg_CheckGiangVienDungKhoa', 'TR') IS NOT NULL
-    DROP TRIGGER trg_CheckGiangVienDungKhoa;
-GO
-
-IF OBJECT_ID('trg_CheckMonTienQuyetCungKhoa', 'TR') IS NOT NULL
-    DROP TRIGGER trg_CheckMonTienQuyetCungKhoa;
-GO
-
 IF OBJECT_ID('trg_KiemTraSiSoLop', 'TR') IS NOT NULL 
     DROP TRIGGER trg_KiemTraSiSoLop;
 GO
@@ -25,10 +17,6 @@ IF OBJECT_ID('trg_CheckTrungPhongHoc', 'TR') IS NOT NULL
     DROP TRIGGER trg_CheckTrungPhongHoc;
 GO
 
-IF OBJECT_ID('trg_CheckPhongDungToa', 'TR') IS NOT NULL 
-    DROP TRIGGER trg_CheckPhongDungToa;
-GO
-
 IF OBJECT_ID('trg_ChanTrungMonHoc', 'TR') IS NOT NULL 
     DROP TRIGGER trg_ChanTrungMonHoc;
 GO
@@ -39,48 +27,6 @@ GO
 
 IF OBJECT_ID('trg_CheckTrungLichGiangVien', 'TR') IS NOT NULL 
     DROP TRIGGER trg_CheckTrungLichGiangVien;
-GO
-
-CREATE TRIGGER trg_CheckGiangVienDungKhoa
-ON LopHoc
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    -- Điều kiện lỗi: GV có Khoa KHÁC với KhoaPhuTrach của Môn đó
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN GiangVien gv ON i.MSCB = gv.MSCB
-        JOIN MonHoc mh ON i.MaMonHoc = mh.MaMon
-        WHERE gv.Khoa <> mh.KhoaPhuTrach -- So sánh tên khoa
-    )
-    BEGIN
-        -- Nếu tìm thấy lỗi 
-        RAISERROR (N'Lỗi: Giảng viên phải thuộc Khoa phụ trách môn học này mới được đứng lớp!', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
-
-CREATE TRIGGER trg_CheckMonTienQuyetCungKhoa
-ON MonTienQuyet
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    -- Điều kiện lỗi: Khoa của môn chính KHÁC Khoa của môn tiên quyết
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN MonHoc MH_Chinh ON i.MaMon = MH_Chinh.MaMon
-        JOIN MonHoc MH_TienQuyet ON i.MaMonTienQuyet = MH_TienQuyet.MaMon
-        WHERE MH_Chinh.KhoaPhuTrach <> MH_TienQuyet.KhoaPhuTrach
-    )
-    BEGIN
-        -- Báo lỗi và hoàn tác
-        RAISERROR (N'Lỗi: Môn tiên quyết phải thuộc cùng Khoa với môn học!', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
 GO
 
 CREATE TRIGGER trg_KiemTraSiSoLop
@@ -232,45 +178,6 @@ BEGIN
 END;
 GO
 
-CREATE TRIGGER trg_CheckPhongDungToa
-ON LichHoc
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    -- Kiểm tra logic: Phòng học (LichHoc) phải khớp với Địa chỉ (Khoa)
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        -- Join sang Môn học để biết môn đó của Khoa nào
-        JOIN MonHoc mh ON i.MaMon = mh.MaMon
-        -- Join sang Khoa để lấy Địa chỉ tòa nhà (Ví dụ: B1, B5, C1...)
-        JOIN Khoa k ON mh.KhoaPhuTrach = k.TenKhoa
-        
-        WHERE 
-            -- Logic so sánh chuỗi:
-            i.PhongHoc NOT LIKE (k.DiaChi + '%')
-    )
-    BEGIN
-        -- Lấy thông tin chi tiết để báo lỗi
-        DECLARE @Phong VARCHAR(10);
-        DECLARE @Khoa NVARCHAR(100);
-        DECLARE @ToaNha NVARCHAR(200);
-
-        SELECT TOP 1 
-            @Phong = i.PhongHoc, 
-            @Khoa = k.TenKhoa,
-            @ToaNha = k.DiaChi
-        FROM inserted i
-        JOIN MonHoc mh ON i.MaMon = mh.MaMon
-        JOIN Khoa k ON mh.KhoaPhuTrach = k.TenKhoa
-        WHERE i.PhongHoc NOT LIKE (k.DiaChi + '%');
-
-        RAISERROR (N'Lỗi: Phòng %s không thuộc tòa nhà %s của khoa %s!', 16, 1, @Phong, @ToaNha, @Khoa);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
-
 CREATE TRIGGER trg_ChanTrungMonHoc
 ON DangKy
 AFTER INSERT, UPDATE
@@ -311,7 +218,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM inserted i
-        JOIN CauTrucDiem ctd ON i.MaThanhPhan = ctd.MaThanhPhan
+        JOIN CauTrucDiem ctd ON i.MaCauTruc = ctd.MaCauTruc
         WHERE i.MaMon <> ctd.MaMon -- Nếu môn của lớp khác môn của cấu trúc điểm
     )
     BEGIN
@@ -382,6 +289,14 @@ BEGIN
 		;THROW 51000, @Msg, 1;
     END
 END;
+GO
+
+----------------------------------------------------------------
+-- PROCEDURE --
+----------------------------------------------------------------
+IF OBJECT_ID('proc_ThemNguoiDung','P') IS NOT NULL DROP PROCEDURE proc_ThemNguoiDung;
+IF OBJECT_ID('proc_ThemMonHocMoi','P') IS NOT NULL DROP PROCEDURE proc_ThemMonHocMoi;
+IF OBJECT_ID('proc_ThemLopHoc','P') IS NOT NULL DROP PROCEDURE proc_ThemLopHoc;
 GO
 
 -- Procedure thêm người dùng mới với mã số tự động
@@ -468,6 +383,187 @@ BEGIN
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;  
         SELECT 0 AS Success, ERROR_MESSAGE() AS Message, NULL AS NewCode, NULL AS NewEmail;
+    END CATCH
+END;
+GO
+
+-- Procedure xử lý insert môn học kèm môn tiên quyết và cấu trúc điểm
+CREATE OR ALTER PROCEDURE proc_ThemMonHocMoi
+    -- Thông tin môn học
+    @MaMon VARCHAR(10),
+    @TenMon NVARCHAR(150),
+    @SoTinChi INT,
+    @KhoaPhuTrach NVARCHAR(100),
+    @MaMonSongHanh VARCHAR(10) = NULL,
+    
+    -- Thay đổi 1: Nhận vào chuỗi danh sách các mã môn (VD: 'CO1005,CO1007')
+    @ListMaMonTienQuyet VARCHAR(MAX) = NULL, 
+    
+    -- Cấu trúc điểm
+    @Quiz INT = 0,
+    @ThiNghiem INT = 0,
+    @BTL INT = 0,
+    @GiuaKy INT = 0,
+    @CuoiKy INT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- 1. KIỂM TRA TỔNG TỶ TRỌNG
+    DECLARE @TongTyTrong INT;
+    SET @TongTyTrong = @Quiz + @ThiNghiem + @BTL + @GiuaKy + @CuoiKy;
+
+    IF @TongTyTrong <> 100
+    BEGIN
+        THROW 50001, N'Lỗi: Tổng tỷ trọng các thành phần điểm phải bằng 100%.', 1;
+        RETURN;
+    END
+
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- 2. INSERT BẢNG MONHOC
+        INSERT INTO MonHoc (MaMon, TenMon, SoTinChi, MaMonSongHanh, KhoaPhuTrach)
+        VALUES (@MaMon, @TenMon, @SoTinChi, @MaMonSongHanh, @KhoaPhuTrach);
+
+        -- 3. XỬ LÝ MÔN TIÊN QUYẾT
+        IF @ListMaMonTienQuyet IS NOT NULL AND LTRIM(RTRIM(@ListMaMonTienQuyet)) <> ''
+        BEGIN
+            INSERT INTO MonTienQuyet (MaMon, MaMonTienQuyet)
+            SELECT DISTINCT
+                @MaMon, 
+                LTRIM(RTRIM(value))
+            FROM STRING_SPLIT(@ListMaMonTienQuyet, ',')
+            WHERE LTRIM(RTRIM(value)) <> '';
+        END
+
+        -- 4. INSERT BẢNG CAUTRUCDIEM (Thêm dấu '_')
+        
+        -- > Quiz (Mã: MaMon_Q)
+        IF @Quiz > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_Q', N'Quiz', @Quiz, @MaMon);
+        END
+
+        -- > Thí nghiệm (Mã: MaMon_TN)
+        IF @ThiNghiem > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_TN', N'Thí nghiệm', @ThiNghiem, @MaMon);
+        END
+
+        -- > BTL (Mã: MaMon_BTL)
+        IF @BTL > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_BTL', N'BTL', @BTL, @MaMon);
+        END
+
+        -- > Giữa kỳ (Mã: MaMon_GK)
+        IF @GiuaKy > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_GK', N'Giữa kì', @GiuaKy, @MaMon);
+        END
+
+        -- > Cuối kỳ (Mã: MaMon_CK)
+        IF @CuoiKy > 0
+        BEGIN
+            INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon)
+            VALUES (@MaMon + '_CK', N'Cuối kì', @CuoiKy, @MaMon);
+        END
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+-- Procedure thêm lớp học mới với mã số lớp tự động
+CREATE PROCEDURE proc_ThemLopHoc
+    @MaHK VARCHAR(10),
+    @MaMon VARCHAR(10),
+    @SiSoMax INT,
+    @MSCB VARCHAR(10) = NULL -- Có thể để trống nếu chưa xếp giảng viên
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Sử dụng Transaction để đảm bảo an toàn dữ liệu khi nhiều người thêm cùng lúc
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        -- 1. Validate dữ liệu đầu vào (Kiểm tra ràng buộc CHECK thủ công để báo lỗi rõ hơn)
+        IF @SiSoMax < 40 OR @SiSoMax > 80
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 0 AS Success, N'Sĩ số tối đa phải từ 40 đến 80' AS Message;
+            RETURN;
+        END
+
+        -- 2. Tính toán Mã Lớp mới (Logic tự tăng theo nhóm)
+        DECLARE @MaxID INT;
+        DECLARE @NewMaLop VARCHAR(10);
+
+        -- Lấy phần số lớn nhất hiện tại của lớp thuộc ĐÚNG Học kỳ và Môn học đó
+        -- Sử dụng khóa (UPDLOCK) để chặn người khác chèn cùng lúc
+        SELECT @MaxID = MAX(CAST(SUBSTRING(MaLopHoc, 2, LEN(MaLopHoc)) AS INT))
+        FROM LopHoc WITH (UPDLOCK, HOLDLOCK)
+        WHERE MaHocKy = @MaHK AND MaMonHoc = @MaMon;
+
+        -- Nếu chưa có lớp nào thì bắt đầu là 0
+        IF @MaxID IS NULL SET @MaxID = 0;
+
+        -- Tăng lên 1
+        SET @MaxID = @MaxID + 1;
+
+        -- Format thành L01, L02... L09, L10, L100 (Tự động thêm số 0 nếu < 10)
+        IF @MaxID < 10
+            SET @NewMaLop = 'L0' + CAST(@MaxID AS VARCHAR(5));
+        ELSE
+            SET @NewMaLop = 'L' + CAST(@MaxID AS VARCHAR(5));
+
+        -- 3. Thực hiện Insert
+        INSERT INTO LopHoc (
+            MaLopHoc, 
+            MaHocKy, 
+            MaMonHoc, 
+            SiSoToiDa, 
+            SiSoHienTai, 
+            MSCB, 
+            DaHuy
+        )
+        VALUES (
+            @NewMaLop, 
+            @MaHK, 
+            @MaMon, 
+            @SiSoMax, 
+            0, -- Mặc định sĩ số hiện tại là 0
+            @MSCB, 
+            0  -- Mặc định chưa hủy
+        );
+
+        -- 4. Commit và trả về kết quả
+        COMMIT TRANSACTION;
+        
+        SELECT 
+            1 AS Success, 
+            N'Thêm lớp học thành công' AS Message, 
+            @NewMaLop AS MaLopMoi;
+
+    END TRY
+    BEGIN CATCH
+        -- Nếu có lỗi thì rollback
+        ROLLBACK TRANSACTION;
+        
+        -- Trả về thông báo lỗi
+        SELECT 
+            0 AS Success, 
+            ERROR_MESSAGE() AS Message, 
+            NULL AS MaLopMoi;
     END CATCH
 END;
 GO

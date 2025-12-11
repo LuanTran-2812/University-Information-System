@@ -234,6 +234,9 @@ function attachSubjectActionEvents() {
     });
 }
 
+let allSubjectsForModal = []; // Biến lưu danh sách môn học để lọc
+let tqTomSelect = null; // Biến toàn cục lưu instance Tom Select
+
 /**
  * Mở modal sửa môn học với dữ liệu đã cho.
  */
@@ -242,16 +245,48 @@ async function openSubjectEditModal(data) {
 
     await loadDataForSubjectModal(); // Tải danh sách khoa và môn học
 
-    document.getElementById('maMon').value = data.MaMon;
-    document.getElementById('maMon').disabled = true; // Không cho sửa Mã môn khi cập nhật
-    document.getElementById('tenMon').value = data.TenMon;
-    document.getElementById('soTinChi').value = data.SoTinChi;
+    // Fetch chi tiết môn học (bao gồm cấu trúc điểm)
+    try {
+        const res = await fetch(`http://localhost:8000/api/subjects/${currentSubjectId}`);
+        const result = await res.json();
+        
+        if (!result.success) {
+            alert('Không thể tải thông tin chi tiết môn học');
+            return;
+        }
+        
+        const detail = result.data;
 
-    document.getElementById('khoaSelect').value = data.KhoaPhuTrach;
-    document.getElementById('songHanhSelect').value = data.MaMonSongHanh || "";
-    // Lấy mã môn tiên quyết
-    const tq = data.MonTienQuyet ? data.MonTienQuyet.split(', ')[0] : "";
-    document.getElementById('tienQuyetSelect').value = tq;
+        document.getElementById('maMon').value = detail.MaMon;
+        document.getElementById('maMon').disabled = true; // Không cho sửa Mã môn khi cập nhật
+        document.getElementById('tenMon').value = detail.TenMon;
+        document.getElementById('soTinChi').value = detail.SoTinChi;
+
+        // Trigger change event để update options môn học theo khoa
+        const khoaSelect = document.getElementById('khoaSelect');
+        khoaSelect.value = detail.KhoaPhuTrach;
+        // Cập nhật options cho Tom Select và Song Hành dựa trên khoa
+        updateSubjectOptions(detail.KhoaPhuTrach);
+
+        document.getElementById('songHanhSelect').value = detail.MaMonSongHanh || "";
+        
+        // Set giá trị cho Tom Select (Tiên quyết)
+        const tqValues = detail.MonTienQuyet ? detail.MonTienQuyet.split(',').map(s => s.trim()) : [];
+        if (tqTomSelect) {
+            tqTomSelect.setValue(tqValues);
+        }
+
+        // Set cấu trúc điểm
+        const grades = detail.grades || {};
+        document.getElementById('Quiz').value = grades['Quiz'] || 0;
+        document.getElementById('ThiNghiem').value = grades['Thí nghiệm'] || 0;
+        document.getElementById('BTL').value = grades['BTL'] || 0;
+        document.getElementById('GiuaKy').value = grades['Giữa kì'] || 0;
+        document.getElementById('CuoiKy').value = grades['Cuối kì'] || 0;
+
+    } catch (err) {
+        console.error('Lỗi tải chi tiết môn học:', err);
+    }
 
     document.querySelector('#subject-modal h3').innerText = 'Cập nhật môn học';
     const btnSave = document.getElementById('btn-save-subject');
@@ -269,26 +304,93 @@ async function loadDataForSubjectModal() {
         const resKhoa = await fetch('http://localhost:8000/api/users/faculties');
         const dataKhoa = await resKhoa.json();
         const khoaSelect = document.getElementById('khoaSelect');
-        if (khoaSelect) {
-            khoaSelect.innerHTML = '<option value="">-- Chọn Khoa --</option>';
+        
+        // Xóa sự kiện cũ để tránh duplicate
+        const newKhoaSelect = khoaSelect.cloneNode(true);
+        khoaSelect.parentNode.replaceChild(newKhoaSelect, khoaSelect);
+        
+        if (newKhoaSelect) {
+            newKhoaSelect.innerHTML = '<option value="">-- Chọn Khoa --</option>';
             dataKhoa.data.forEach(k => {
-                // Dùng TenKhoa làm value
-                khoaSelect.innerHTML += `<option value="${k.TenKhoa}">${k.TenKhoa}</option>`;
+                newKhoaSelect.innerHTML += `<option value="${k.TenKhoa}">${k.TenKhoa}</option>`;
+            });
+            
+            // Lắng nghe sự kiện change
+            newKhoaSelect.addEventListener('change', function() {
+                updateSubjectOptions(this.value);
             });
         }
 
         // Tải danh sách Môn học (cho Tiên Quyết & Song Hành)
         const resMon = await fetch('http://localhost:8000/api/subjects');
         const dataMon = await resMon.json();
-        const options = '<option value="">(Không có)</option>' +
-            dataMon.data.map(m => `<option value="${m.MaMon}">${m.MaMon} - ${m.TenMon}</option>`).join('');
+        allSubjectsForModal = dataMon.data || [];
+        
+        // Khởi tạo Tom Select nếu chưa có và thư viện đã load
+        if (!tqTomSelect && document.getElementById('tienQuyetSelect') && typeof TomSelect !== 'undefined') {
+            tqTomSelect = new TomSelect("#tienQuyetSelect", {
+                plugins: ['remove_button'],
+                create: false,
+                placeholder: "Chọn môn tiên quyết...",
+                maxItems: null,
+                valueField: 'value',
+                labelField: 'text',
+                searchField: 'text',
+                options: [], // Sẽ được populate bởi updateSubjectOptions
+                render: {
+                    option: function(data, escape) {
+                        return '<div>' + escape(data.text) + '</div>';
+                    },
+                    item: function(data, escape) {
+                        return '<div>' + escape(data.text) + '</div>';
+                    }
+                }
+            });
+        } else if (!tqTomSelect && typeof TomSelect === 'undefined') {
+            console.warn('TomSelect library not loaded yet.');
+        }
 
-        const tqSelect = document.getElementById('tienQuyetSelect');
-        const shSelect = document.getElementById('songHanhSelect');
-        if (tqSelect) tqSelect.innerHTML = options;
-        if (shSelect) shSelect.innerHTML = options;
+        // Khởi tạo options ban đầu (hiển thị tất cả hoặc rỗng tùy logic, ở đây hiển thị tất cả trước khi chọn khoa)
+        updateSubjectOptions(""); 
 
     } catch (err) { console.error('Lỗi tải dữ liệu modal:', err); }
+}
+
+/**
+ * Cập nhật options cho Tiên Quyết và Song Hành dựa trên Khoa được chọn.
+ */
+function updateSubjectOptions(selectedKhoa) {
+    const shSelect = document.getElementById('songHanhSelect');
+    
+    // Lọc môn học theo khoa (nếu có chọn khoa), nếu không chọn khoa thì hiển thị hết (hoặc rỗng tùy ý)
+    let filteredSubjects = allSubjectsForModal;
+    if (selectedKhoa) {
+        filteredSubjects = allSubjectsForModal.filter(s => s.KhoaPhuTrach === selectedKhoa);
+    }
+
+    // Loại bỏ môn học hiện tại khỏi danh sách (để tránh chọn chính nó làm tiên quyết/song hành)
+    if (currentSubjectId) {
+        filteredSubjects = filteredSubjects.filter(s => s.MaMon !== currentSubjectId);
+    }
+
+    // Cập nhật Song Hành (Select thường)
+    const optionsHTML = '<option value="">Chọn môn song hành...</option>' +
+        filteredSubjects.map(m => `<option value="${m.MaMon}">${m.MaMon} - ${m.TenMon}</option>`).join('');
+    if (shSelect) shSelect.innerHTML = optionsHTML;
+
+    // Cập nhật Tiên Quyết (Tom Select)
+    if (tqTomSelect) {
+        tqTomSelect.clear(); // Xóa giá trị đang chọn
+        tqTomSelect.clearOptions(); // Xóa options cũ
+        
+        // Thêm options mới
+        const newOptions = filteredSubjects.map(m => ({
+            value: m.MaMon,
+            text: `${m.MaMon} - ${m.TenMon}`
+        }));
+        tqTomSelect.addOption(newOptions);
+        tqTomSelect.refreshOptions(false);
+    }
 }
 
 // --- HÀM THIẾT LẬP SỰ KIỆN NÚT VÀ FORM ---
@@ -305,6 +407,8 @@ function setupAddSubjectButton() {
             currentSubjectId = null; // SET MODE THÊM MỚI
 
             document.getElementById('modal-add-subject-form').reset();
+            if (tqTomSelect) tqTomSelect.clear(); // Reset Tom Select
+
             document.getElementById('maMon').disabled = false;
             document.querySelector('#subject-modal h3').innerText = 'Thêm môn học';
             const btnSave = document.getElementById('btn-save-subject');
@@ -339,13 +443,31 @@ function setupAddSubjectForm() {
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Lấy giá trị multiple select từ Tom Select
+        let maMonTienQuyet = "";
+        if (tqTomSelect) {
+            maMonTienQuyet = tqTomSelect.getValue().join(',');
+        } else {
+            // Fallback nếu Tom Select lỗi (không nên xảy ra)
+            const tqSelect = document.getElementById('tienQuyetSelect');
+            const selectedTQ = Array.from(tqSelect.selectedOptions).map(opt => opt.value).filter(v => v !== "");
+            maMonTienQuyet = selectedTQ.join(',');
+        }
+
         const data = {
             maMon: document.getElementById('maMon').value,
             tenMon: document.getElementById('tenMon').value,
             soTinChi: document.getElementById('soTinChi').value,
             khoa: document.getElementById('khoaSelect').value,
-            maMonTienQuyet: document.getElementById('tienQuyetSelect').value,
-            maMonSongHanh: document.getElementById('songHanhSelect').value
+            maMonTienQuyet: maMonTienQuyet,
+            maMonSongHanh: document.getElementById('songHanhSelect').value,
+            grades: {
+                Quiz: parseInt(document.getElementById('Quiz').value) || 0,
+                ThiNghiem: parseInt(document.getElementById('ThiNghiem').value) || 0,
+                BTL: parseInt(document.getElementById('BTL').value) || 0,
+                GiuaKy: parseInt(document.getElementById('GiuaKy').value) || 0,
+                CuoiKy: parseInt(document.getElementById('CuoiKy').value) || 0
+            }
         };
 
         let url = 'http://localhost:8000/api/subjects/create';
@@ -369,7 +491,7 @@ function setupAddSubjectForm() {
                 closeSubjectModal();
                 fetchAndInitSubjectTable();
             } else {
-                alert('❌ Lỗi: ' + result.message);
+                alert('Lỗi: ' + result.message);
             }
         } catch (error) { console.error(error); alert('Lỗi kết nối server'); }
     });

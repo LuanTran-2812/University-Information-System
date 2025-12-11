@@ -10,8 +10,12 @@ const getClasses = async (req, res, next) => {
 
 const createClass = async (req, res, next) => {
   try {
-    await classService.createClass(req.body);
-    res.json({ success: true, message: 'Thêm lớp thành công!' });
+    const result = await classService.createClass(req.body);
+    res.json({ 
+        success: true, 
+        message: `${result.message} (Mã lớp: ${result.maLop})`,
+        data: result 
+    });
   } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
@@ -28,7 +32,7 @@ const deleteClass = async (req, res, next) => {
         const { maLop, maHK, maMon } = req.query; // Lấy 3 khóa chính từ query param
         await classService.deleteClass(maLop, maHK, maMon);
         res.json({ success: true, message: 'Xóa thành công!' });
-    } catch (err) { res.status(400).json({ success: false, message: 'Không thể xóa!' }); }
+    } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
 const getLecturers = async (req, res, next) => {
@@ -57,4 +61,29 @@ const deleteMultipleClasses = async (req, res, next) => {
     }
 };
 
-module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers, deleteMultipleClasses };
+const getStudents = async (req, res, next) => {
+    try {
+        const { maLop, maHK, maMon } = req.query;
+        const students = await classService.getStudentsByClass(maLop, maHK, maMon);
+        res.json({ success: true, data: students });
+    } catch (err) { next(err); }
+};
+
+const removeStudent = async (req, res, next) => {
+    try {
+        const { mssv } = req.params;
+        const { maLop, maHK, maMon } = req.query;
+        await classService.removeStudentFromClass(maLop, maHK, maMon, mssv);
+        res.json({ success: true, message: 'Đã xóa sinh viên khỏi lớp!' });
+    } catch (err) { res.status(400).json({ success: false, message: err.message }); }
+};
+
+const getClassGradeStructure = async (req, res, next) => {
+    try {
+        const { maLop, maHK, maMon } = req.query;
+        const result = await classService.getClassGradeStructure(maLop, maHK, maMon);
+        res.json({ success: true, data: result });
+    } catch (err) { next(err); }
+};
+
+module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers, deleteMultipleClasses, getStudents, removeStudent, getClassGradeStructure };
