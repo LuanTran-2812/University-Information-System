@@ -491,7 +491,7 @@ function setupAddSubjectForm() {
                 closeSubjectModal();
                 fetchAndInitSubjectTable();
             } else {
-                alert('❌ Lỗi: ' + result.message);
+                alert('Lỗi: ' + result.message);
             }
         } catch (error) { console.error(error); alert('Lỗi kết nối server'); }
     });

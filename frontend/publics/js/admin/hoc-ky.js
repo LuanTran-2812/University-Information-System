@@ -204,7 +204,7 @@ function setupAddSemesterForm() {
                 alert(isSemesterEditMode ? 'Cập nhật thành công!' : 'Thêm thành công!');
                 closeSemesterModal();
                 loadSemesterList();
-            } else { alert('❌ ' + result.message); }
+            } else { alert('Lỗi: ' + result.message); }
         } catch (error) { console.error(error); }
     });
 }

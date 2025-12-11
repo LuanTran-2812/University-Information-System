@@ -71,12 +71,44 @@ const updateClass = async (id, data) => {
 const deleteClass = async (maLop, maHK, maMon) => {
     try {
         const pool = await getPool();
-        await pool.request()
+
+        // 1. Lấy trạng thái từ View
+        const checkStatus = await pool.request()
             .input('maLop', sql.VarChar, maLop)
             .input('maHK', sql.VarChar, maHK)
             .input('maMon', sql.VarChar, maMon)
-            .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
-        return { success: true };
+            .query(`
+                SELECT TrangThai 
+                FROM v_ThongTinLopHoc 
+                WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon
+            `);
+
+        if (checkStatus.recordset.length === 0) {
+            throw new Error('Lớp học không tồn tại!');
+        }
+
+        const trangThai = checkStatus.recordset[0].TrangThai;
+
+        // 2. XỬ LÝ LOGIC THEO TỪNG TRẠNG THÁI
+        if (trangThai === 'Chưa xếp lịch') {
+            await pool.request()
+                .input('maLop', sql.VarChar, maLop)
+                .input('maHK', sql.VarChar, maHK)
+                .input('maMon', sql.VarChar, maMon)
+                .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+            
+            return { success: true };
+
+        } else if (trangThai === 'Đã xếp lịch') {
+            throw new Error('Lớp học đang có Lịch học. Vui lòng sang trang "Quản lý lịch học" để xóa lịch trước khi xóa lớp!');
+
+        } else if (trangThai === 'Kết thúc đăng ký') {
+            throw new Error(`Lớp đang ở trạng thái "${trangThai}". Vui lòng sử dụng chức năng "Hủy lớp" thay vì xóa!`);
+
+        } else {
+            throw new Error(`Không thể xóa lớp học đang ở trạng thái "${trangThai}"!`);
+        }
+
     } catch (err) { throw err; }
 };
 
@@ -128,26 +160,67 @@ const removeStudentFromClass = async (maLop, maHK, maMon, mssv) => {
 const deleteMultipleClasses = async (classes) => {
     try {
         const pool = await getPool();
-        let deletedCount = 0;
+        const transaction = new sql.Transaction(pool);
+        
+        await transaction.begin();
 
-        for (const cls of classes) {
-            const { maLop, maHK, maMon } = cls;
-            
-            if (!maLop || !maHK || !maMon) {
-                console.warn('Thiếu thông tin lớp học:', cls);
-                continue;
+        try {
+            let deletedCount = 0;
+
+            for (const cls of classes) {
+                const { maLop, maHK, maMon } = cls;
+
+                // 1. Kiểm tra Trạng thái và lấy Tên Môn
+                const checkReq = new sql.Request(transaction);
+                const checkRes = await checkReq
+                    .input('maLop', sql.VarChar, maLop)
+                    .input('maHK', sql.VarChar, maHK)
+                    .input('maMon', sql.VarChar, maMon)
+                    .query(`
+                        SELECT V.TrangThai, M.TenMon 
+                        FROM v_ThongTinLopHoc V
+                        JOIN MonHoc M ON V.MaMonHoc = M.MaMon
+                        WHERE V.MaLopHoc = @maLop AND V.MaHocKy = @maHK AND V.MaMonHoc = @maMon
+                    `);
+
+                // Nếu không tìm thấy lớp (có thể đã bị xóa trước đó), bỏ qua
+                if (checkRes.recordset.length === 0) continue;
+
+                const { TrangThai, TenMon } = checkRes.recordset[0];
+
+                // 2. Validate Trạng thái
+                if (TrangThai !== 'Chưa xếp lịch') {
+                    let errorMsg = `Không thể xóa lớp ${maLop} - môn ${TenMon} (Trạng thái: ${TrangThai}). `;
+
+                    if (TrangThai === 'Đã xếp lịch') {
+                        errorMsg += 'Vui lòng xóa lịch học trước!';
+                    } else if (TrangThai === 'Kết thúc đăng ký') {
+                        errorMsg += 'Vui lòng dùng chức năng Hủy lớp!';
+                    } else if (TrangThai === 'Đang đăng ký' || TrangThai === 'Đang học') {
+                        errorMsg += 'Lớp đang hoạt động!';
+                    }
+
+                    throw new Error(errorMsg);
+                }
+
+                // 3. Xóa lớp hợp lệ
+                const delReq = new sql.Request(transaction);
+                const result = await delReq
+                    .input('maLop', sql.VarChar, maLop)
+                    .input('maHK', sql.VarChar, maHK)
+                    .input('maMon', sql.VarChar, maMon)
+                    .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
+
+                deletedCount += result.rowsAffected[0];
             }
 
-            const result = await pool.request()
-                .input('maLop', sql.VarChar, maLop)
-                .input('maHK', sql.VarChar, maHK)
-                .input('maMon', sql.VarChar, maMon)
-                .query('DELETE FROM LopHoc WHERE MaLopHoc = @maLop AND MaHocKy = @maHK AND MaMonHoc = @maMon');
-            
-            deletedCount += result.rowsAffected[0];
-        }
+            await transaction.commit(); // Xác nhận xóa tất cả nếu không có lỗi
+            return deletedCount;
 
-        return deletedCount;
+        } catch (err) {
+            await transaction.rollback(); // Hoàn tác nếu có bất kỳ lỗi nào
+            throw err;
+        }
     } catch (err) { 
         throw err; 
     }

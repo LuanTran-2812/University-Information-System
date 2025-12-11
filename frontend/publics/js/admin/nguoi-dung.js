@@ -48,13 +48,13 @@ function renderUserTable(page) {
     pageData.forEach(user => {
         const roleClass = user.VaiTro === 'Giảng viên' ? 'font-weight: bold; color: #2563eb;' : 'font-weight: bold; color: #FAAD14;';
         
-        // Kiểm tra xem user này có đang được chọn không
-        const isChecked = selectedUserEmails.has(user.MSSV || user.MSCB) ? 'checked' : '';
+        // Kiểm tra xem user này có đang được chọn không (Sử dụng Email làm key)
+        const isChecked = selectedUserEmails.has(user.Email) ? 'checked' : '';
 
         const row = `
             <tr>
                 <td style="text-align: center;">
-                    <input type="checkbox" class="user-checkbox" value="${user.MSSV || user.MSCB}" ${isChecked}>
+                    <input type="checkbox" class="user-checkbox" value="${user.Email}" ${isChecked}>
                 </td>
                 <td>${user.HoTen || 'N/A'}</td>
                 <td style="${roleClass}">${user.VaiTro}</td>
@@ -213,9 +213,17 @@ function attachUserActionEvents() {
             if (!confirm(`Bạn có chắc muốn xóa người dùng "${email}"?`)) return;
 
             try {
-                const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(email)}`, {
+                // Cập nhật đúng route: /api/users/delete/:email
+                const response = await fetch(`http://localhost:8000/api/users/delete/${encodeURIComponent(email)}`, {
                     method: 'DELETE'
                 });
+                
+                // Kiểm tra nếu response không ok (ví dụ 404, 500) nhưng không trả về JSON
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Server trả về phản hồi không hợp lệ (không phải JSON)");
+                }
+
                 const result = await response.json();
                 
                 if (result.success) {
@@ -228,7 +236,7 @@ function attachUserActionEvents() {
                 }
             } catch (error) {
                 console.error(error);
-                alert('Lỗi khi xóa người dùng');
+                alert('Lỗi khi xóa người dùng: ' + error.message);
             }
         });
     });

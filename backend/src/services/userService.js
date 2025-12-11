@@ -99,45 +99,128 @@ const getUserDetail = async (email) => {
   }
 };
 
+// Helper function: Kiểm tra điều kiện xóa (Dùng chung cho Xóa đơn và Xóa nhiều)
+const checkUserDeletionRules = async (transaction, email) => {
+    // 1. Xác định User là Sinh viên hay Giảng viên
+    const userCheck = await new sql.Request(transaction)
+        .input('email', sql.VarChar, email)
+        .query(`
+            SELECT MSSV as ID, 'SV' as Type FROM SinhVien WHERE Email = @email
+            UNION
+            SELECT MSCB as ID, 'GV' as Type FROM GiangVien WHERE Email = @email
+        `);
 
+    // Nếu không tìm thấy trong cả 2 bảng (có thể là Admin hoặc rác trong TaiKhoan), cho phép xóa
+    if (userCheck.recordset.length === 0) return null;
+
+    const { ID, Type } = userCheck.recordset[0];
+
+    // 2. Logic Kiểm tra Sinh Viên
+    if (Type === 'SV') {
+        // A. Kiểm tra Điểm số (Lịch sử không được xóa)
+        const checkGrades = await new sql.Request(transaction)
+            .input('mssv', sql.VarChar, ID)
+            .query('SELECT TOP 1 1 FROM ChiTietDiem WHERE MSSV = @mssv');
+
+        if (checkGrades.recordset.length > 0) {
+            throw new Error(`Sinh viên ${ID} đã có bảng điểm. Không thể xóa dữ liệu học tập!`);
+        }
+
+        // B. Kiểm tra Đang học (Trách nhiệm hiện tại)
+        const checkActive = await new sql.Request(transaction)
+            .input('mssv', sql.VarChar, ID)
+            .query(`
+                SELECT TOP 1 mh.TenMon, lh.MaLopHoc
+                FROM DangKy dk
+                JOIN LopHoc lh ON dk.MaLopHoc = lh.MaLopHoc AND dk.MaHocKy = lh.MaHocKy AND dk.MaMon = lh.MaMonHoc
+                JOIN MonHoc mh ON dk.MaMon = mh.MaMon
+                WHERE dk.MSSV = @mssv
+                  AND dk.TrangThai = N'Đã đăng ký'
+            `);
+
+        if (checkActive.recordset.length > 0) {
+            const { TenMon, MaLopHoc } = checkActive.recordset[0];
+            throw new Error(`Sinh viên ${ID} đang đứng tên trong lớp ${MaLopHoc} (${TenMon}). Vui lòng hủy môn trước khi xóa!`);
+        }
+    } 
+    // 3. Logic Kiểm tra Giảng Viên
+    else if (Type === 'GV') {
+        const checkClasses = await new sql.Request(transaction)
+            .input('mscb', sql.VarChar, ID)
+            .query(`
+                SELECT TOP 1 v.TrangThai, m.TenMon
+                FROM LopHoc l
+                JOIN v_ThongTinLopHoc v ON l.MaLopHoc = v.MaLopHoc AND l.MaHocKy = v.MaHocKy AND l.MaMonHoc = v.MaMonHoc
+                JOIN MonHoc m ON l.MaMonHoc = m.MaMon
+                WHERE l.MSCB = @mscb
+                  AND v.TrangThai NOT IN (N'Đã kết thúc', N'Đã hủy lớp')
+            `);
+
+        if (checkClasses.recordset.length > 0) {
+            const { TrangThai, TenMon } = checkClasses.recordset[0];
+            throw new Error(`Giảng viên ${ID} đang phụ trách môn ${TenMon} (Trạng thái: ${TrangThai}). Vui lòng gỡ phân công trước!`);
+        }
+    }
+    return null;
+};
 
 const deleteUser = async (email) => {
   try {
     const pool = await getPool();
-    // Xóa trong bảng TaiKhoan -> Tự động xóa bên SinhVien/GiangVien nhờ cơ chế Cascade
-    await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('DELETE FROM TaiKhoan WHERE Email = @email');
-    
-    return { success: true };
-  } catch (err) {
-    throw err;
-  }
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
+
+    try {
+        // 1. Kiểm tra logic
+        await checkUserDeletionRules(transaction, email);
+
+        // 2. Thực hiện xóa Tài Khoan (Cascade sẽ tự xóa SinhVien/GiangVien)
+        await new sql.Request(transaction)
+            .input('email', sql.VarChar, email)
+            .query('DELETE FROM TaiKhoan WHERE Email = @email');
+
+        await transaction.commit();
+        return { success: true };
+
+    } catch (err) {
+        await transaction.rollback();
+        throw err;
+    }
+  } catch (err) { throw err; }
 };
 
 // Xóa nhiều người dùng
 const deleteMultipleUsers = async (emails) => {
   try {
     const pool = await getPool();
-    let deletedCount = 0;
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
 
-    for (const email of emails) {
-      if (!email) {
-        console.warn('Email không hợp lệ:', email);
-        continue;
+    try {
+      let deletedCount = 0;
+
+      for (const email of emails) {
+        if (!email) continue;
+
+        // 1. Kiểm tra logic từng người
+        await checkUserDeletionRules(transaction, email);
+
+        // 2. Xóa Parent table (Cascade sẽ tự xóa Child)
+        const result = await new sql.Request(transaction)
+          .input('email', sql.VarChar, email)
+          .query('DELETE FROM TaiKhoan WHERE Email = @email');
+        
+        deletedCount += result.rowsAffected[0];
       }
 
-      const result = await pool.request()
-        .input('email', sql.NVarChar, email)
-        .query('DELETE FROM TaiKhoan WHERE Email = @email');
-      
-      deletedCount += result.rowsAffected[0];
-    }
+      await transaction.commit();
+      return deletedCount;
 
-    return deletedCount;
-  } catch (err) {
-    throw err;
-  }
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  } catch (err) { throw err; }
 };
 
 // Nhớ export thêm hàm deleteUser và deleteMultipleUsers

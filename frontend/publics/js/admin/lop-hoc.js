@@ -266,6 +266,8 @@ function attachClassActionEvents() {
                         const uniqueId = `${maLop}|${currentSemesterId}|${maMon}`;
                         if(selectedClassIds.has(uniqueId)) selectedClassIds.delete(uniqueId);
                         fetchAndInitClassTable(currentSemesterId);
+                    } else {
+                        alert('Lỗi: ' + result.message);
                     }
                 } catch(err) { alert('Lỗi kết nối!'); }
             }
@@ -586,7 +588,7 @@ function setupAddClassForm() {
                 alert(result.message);
                 closeClassModal();
                 fetchAndInitClassTable(currentSemesterId);
-            } else { alert('❌ Lỗi: ' + result.message); }
+            } else { alert('Lỗi: ' + result.message); }
         } catch (error) { console.error(error); alert('Lỗi kết nối server'); }
     });
 }

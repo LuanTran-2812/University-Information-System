@@ -32,7 +32,7 @@ const deleteClass = async (req, res, next) => {
         const { maLop, maHK, maMon } = req.query; // Lấy 3 khóa chính từ query param
         await classService.deleteClass(maLop, maHK, maMon);
         res.json({ success: true, message: 'Xóa thành công!' });
-    } catch (err) { res.status(400).json({ success: false, message: 'Không thể xóa!' }); }
+    } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
 const getLecturers = async (req, res, next) => {
