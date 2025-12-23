@@ -1,4 +1,4 @@
-USE test111;
+USE themdulieu
 GO
 
 -- Làm sạch theo thứ tự con-cha
@@ -193,19 +193,33 @@ CREATE TABLE LichHoc (
 );
 
 CREATE TABLE TaiLieu (
-    MaTaiLieu VARCHAR(10) NOT NULL PRIMARY KEY,
-    MSCB VARCHAR(10),
-    TenFile NVARCHAR(200) NOT NULL,
-    DuongDan VARCHAR(255) NOT NULL,
-    NgayTaiLen DATE NOT NULL,
-    MaLopHoc VARCHAR(10) NOT NULL,
-    MaMon VARCHAR(10) NOT NULL,
-    MaHocKy VARCHAR(10) NOT NULL,
+    MaTaiLieu VARCHAR(10) NOT NULL PRIMARY KEY,
+    MSCB VARCHAR(10),
+    TenFile NVARCHAR(200) NOT NULL,
+    
 
-    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT fk_tai_lieu FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    DuLieuFile VARBINARY(MAX), 
+    
+
+    LoaiFile NVARCHAR(10), 
+
+    NgayTaiLen DATE NOT NULL,
+    MaLopHoc VARCHAR(10) NOT NULL,
+    MaMon VARCHAR(10) NOT NULL,
+    MaHocKy VARCHAR(10) NOT NULL,
+
+
+    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB),
+
+
+    CONSTRAINT fk_tai_lieu FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) 
+        REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+
+    CONSTRAINT CK_LoaiFile CHECK (LoaiFile IN ('.pdf', '.doc', '.docx'))
 );
+GO
 
 CREATE TABLE DangKy (
     MSSV VARCHAR(10),
@@ -332,5 +346,3 @@ LEFT JOIN
     AND L.MaHocKy = LH.MaHocKy
     AND L.MaMonHoc = LH.MaMon
 ;
-
-
