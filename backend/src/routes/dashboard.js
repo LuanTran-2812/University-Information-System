@@ -7,4 +7,6 @@ router.get('/stats', dashboardController.getStats);
 
 router.get('/lecturer-stats', dashboardController.getLecturerStats);
 
+router.get('/student-stats', dashboardController.getStudentStats);
+
 module.exports = router;

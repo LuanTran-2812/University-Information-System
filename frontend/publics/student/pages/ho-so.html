@@ -1,0 +1,57 @@
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>Hồ sơ cá nhân</h2>
+    </div>
+
+    <form id="profile-update-form" class="profile-form">
+        <div class="form-section">
+            <h3 class="section-title">
+                <span class="material-symbols-outlined">person</span> 
+                Thông tin cơ bản
+            </h3>
+            
+            <div class="form-group">
+                <label>Họ và Tên</label>
+                <input type="text" id="profile-name" disabled class="input-readonly">
+            </div>
+
+            <div class="form-group">
+                <label>Mã số (MSSV)</label>
+                <input type="text" id="profile-id" disabled class="input-readonly">
+            </div>
+
+            <div class="form-group">
+                <label>Khoa / Ngành</label>
+                <input type="text" id="profile-dept" disabled class="input-readonly">
+            </div>
+
+            <div class="form-group">
+                <label>Email nhà trường</label>
+                <input type="text" id="profile-email" disabled class="input-readonly">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title">
+                <span class="material-symbols-outlined">contact_phone</span>
+                Thông tin liên hệ
+            </h3>
+
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="text" id="profile-phone" placeholder="Nhập số điện thoại...">
+            </div>
+
+            <div class="form-group">
+                <label>Địa chỉ</label>
+                <input type="text" id="profile-address" placeholder="Nhập địa chỉ liên hệ...">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save">
+                <span class="material-symbols-outlined">save</span> Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>

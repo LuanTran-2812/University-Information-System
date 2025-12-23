@@ -7,5 +7,6 @@ router.post('/create', scheduleController.createSchedule);
 router.delete('/delete', scheduleController.deleteSchedule);
 router.put('/update', scheduleController.updateSchedule);
 router.get('/lecturer', scheduleController.getLecturerSchedule);
+router.get('/student', scheduleController.getStudentSchedule);
 
 module.exports = router;

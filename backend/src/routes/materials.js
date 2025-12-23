@@ -11,5 +11,6 @@ router.get('/download/:id', materialController.downloadMaterial);
 router.put('/update', upload.single('file'), materialController.updateMaterial);
 router.post('/create', upload.single('file'), materialController.createMaterial);
 router.delete('/delete/:id', materialController.deleteMaterial);
+router.get('/student', materialController.getStudentMaterials);
 
 module.exports = router;

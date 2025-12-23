@@ -9,5 +9,6 @@ router.delete('/delete', classController.deleteClass); // Dùng query param ?maL
 router.get('/lecturers', classController.getLecturers); // API lấy giảng viên
 router.get('/my-courses', classController.getLecturerCourses);
 router.get('/my-classes-separate', classController.getClassesForGradeManagement);
+router.get('/student-courses', classController.getStudentCourses);
 
 module.exports = router;

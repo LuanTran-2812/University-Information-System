@@ -101,10 +101,19 @@ const deleteMaterial = async (req, res, next) => {
     } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 };
 
+const getStudentMaterials = async (req, res, next) => {
+    try {
+        const { maMon, maHK, maLop } = req.query;
+        const data = await materialService.getMaterialsForStudent(maMon, maHK, maLop);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
 module.exports = { 
     getMaterials, 
     downloadMaterial,
     updateMaterial,
     createMaterial,
-    deleteMaterial
+    deleteMaterial,
+    getStudentMaterials
  };

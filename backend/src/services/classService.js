@@ -172,6 +172,65 @@ const getClassesForGradeManagement = async (email, maHK) => {
     } catch (err) { throw err; }
 };
 
+const getStudentCoursesWithGrades = async (email, maHK) => {
+    try {
+        const pool = await getPool();
+
+        // 1. Lấy MSSV
+        const svRes = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT MSSV FROM SinhVien WHERE Email = @email");
+        
+        const mssv = svRes.recordset[0]?.MSSV;
+        if (!mssv) return [];
+
+        // 2. Truy vấn dữ liệu môn học + Pivot điểm
+        const query = `
+            SELECT 
+                DK.MaLopHoc,
+                DK.MaMon,
+                MH.TenMon,
+                MH.SoTinChi,
+                GV.HoTen AS TenGV,
+                GV.Email AS EmailGV,
+                
+                -- PIVOT ĐIỂM (Chuyển dòng thành cột)
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Giữa kì' THEN CD.Diem END) AS GK,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Cuối kì' THEN CD.Diem END) AS CK,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'BTL' THEN CD.Diem END) AS BTL,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Quiz' THEN CD.Diem END) AS Quiz,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Thí nghiệm' THEN CD.Diem END) AS TN
+
+            FROM DangKy DK
+            JOIN LopHoc LH ON DK.MaLopHoc = LH.MaLopHoc AND DK.MaHocKy = LH.MaHocKy AND DK.MaMon = LH.MaMonHoc
+            JOIN MonHoc MH ON DK.MaMon = MH.MaMon
+            JOIN GiangVien GV ON LH.MSCB = GV.MSCB
+            
+            -- Join bảng điểm (Left join để lấy cả môn chưa có điểm)
+            LEFT JOIN ChiTietDiem CD ON DK.MSSV = CD.MSSV 
+                                     AND DK.MaLopHoc = CD.MaLopHoc 
+                                     AND DK.MaHocKy = CD.MaHocKy
+            
+            -- Join cấu trúc điểm để biết loại điểm (GK, CK...)
+            LEFT JOIN CauTrucDiem CT ON CD.MaCauTruc = CT.MaCauTruc
+
+            WHERE DK.MSSV = @mssv 
+              AND DK.MaHocKy = @maHK
+              AND DK.TrangThai = N'Đã đăng ký'
+
+            GROUP BY DK.MaLopHoc, DK.MaMon, MH.TenMon, MH.SoTinChi, GV.HoTen, GV.Email
+        `;
+
+        const res = await pool.request()
+            .input('mssv', sql.VarChar, mssv)
+            .input('maHK', sql.VarChar, maHK)
+            .query(query);
+
+        return res.recordset;
+
+    } catch (err) { throw err; }
+};
+
 module.exports = { 
     getClassesBySemester, 
     createClass, 
@@ -179,5 +238,6 @@ module.exports = {
     deleteClass, 
     getAllLecturers,
     getLecturerCourses,
-    getClassesForGradeManagement
+    getClassesForGradeManagement,
+    getStudentCoursesWithGrades
 };

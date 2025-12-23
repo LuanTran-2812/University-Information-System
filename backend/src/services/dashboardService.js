@@ -101,4 +101,98 @@ const getLecturerStats = async (email) => {
     } catch (err) { throw err; }
 };
 
-module.exports = { getStats, getLecturerStats };
+
+// backend/src/services/dashboardService.js
+
+const getStudentStats = async (email) => {
+    try {
+        const pool = await getPool();
+
+        // 1. Lấy MSSV từ Email
+        const svRes = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT MSSV FROM SinhVien WHERE Email = @email");
+        
+        const mssv = svRes.recordset[0]?.MSSV;
+        if (!mssv) return null; // Hoặc ném lỗi nếu không tìm thấy SV
+
+        // 2. Xác định Học kỳ (Logic thông minh hơn)
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Cách 1: Tìm học kỳ đang diễn ra đúng ngày hôm nay
+        let hkRes = await pool.request()
+            .input('today', sql.Date, today)
+            .query("SELECT MaHocKy FROM HocKy WHERE @today BETWEEN NgayBatDau AND NgayKetThuc");
+        
+        let maHK = hkRes.recordset[0]?.MaHocKy;
+
+        // Cách 2 (Dự phòng): Nếu hôm nay đang nghỉ hè/tết (không thuộc HK nào), 
+        // thì lấy Học kỳ MỚI NHẤT trong hệ thống để hiển thị cho đẹp.
+        if (!maHK) {
+             const latestHkRes = await pool.request()
+                .query("SELECT TOP 1 MaHocKy FROM HocKy ORDER BY NgayBatDau DESC");
+             maHK = latestHkRes.recordset[0]?.MaHocKy;
+        }
+
+        // 3. Tính toán số liệu
+        
+        let weeklySchedule = [0, 0, 0, 0, 0, 0, 0];
+
+        if (maHK) {
+            // A. Số tiết trong tuần (Cộng tổng số tiết của các môn đang học)
+            const periodRes = await pool.request()
+                .input('mssv', sql.VarChar, mssv)
+                .input('maHK', sql.VarChar, maHK)
+                .query(`
+                    SELECT SUM(LH.TietKetThuc - LH.TietBatDau + 1) as TongTiet
+                    FROM LichHoc LH
+                    JOIN DangKy DK ON LH.MaLopHoc = DK.MaLopHoc AND LH.MaMon = DK.MaMon AND LH.MaHocKy = DK.MaHocKy
+                    WHERE DK.MSSV = @mssv AND DK.MaHocKy = @maHK AND DK.TrangThai = N'Đã đăng ký'
+                `);
+            weeklyPeriods = periodRes.recordset[0].TongTiet || 0;
+
+            // B. Số Khóa học (Số môn học trong HK này)
+            const courseRes = await pool.request()
+                .input('mssv', sql.VarChar, mssv)
+                .input('maHK', sql.VarChar, maHK)
+                .query("SELECT COUNT(DISTINCT MaMon) as SoLuong FROM DangKy WHERE MSSV = @mssv AND MaHocKy = @maHK AND TrangThai = N'Đã đăng ký'");
+            coursesCount = courseRes.recordset[0].SoLuong;
+
+            // D. Biểu đồ lịch học tuần
+            const scheduleRes = await pool.request()
+                .input('mssv', sql.VarChar, mssv)
+                .input('maHK', sql.VarChar, maHK)
+                .query(`
+                    SELECT LH.Thu, COUNT(*) as SoBuoi
+                    FROM LichHoc LH
+                    JOIN DangKy DK ON LH.MaLopHoc = DK.MaLopHoc AND LH.MaMon = DK.MaMon AND LH.MaHocKy = DK.MaHocKy
+                    WHERE DK.MSSV = @mssv AND DK.MaHocKy = @maHK AND DK.TrangThai = N'Đã đăng ký'
+                    GROUP BY LH.Thu
+                `);
+            
+            scheduleRes.recordset.forEach(row => {
+                const index = row.Thu - 2; // Map thứ 2->0, 3->1...
+                if (index >= 0 && index <= 6) weeklySchedule[index] = row.SoBuoi;
+            });
+        }
+
+        // C. Tổng lớp học (Lịch sử học tập - Đếm tất cả các lớp từng tham gia)
+        const totalClassesRes = await pool.request()
+            .input('mssv', sql.VarChar, mssv)
+            .query("SELECT COUNT(*) as SoLuong FROM DangKy WHERE MSSV = @mssv AND TrangThai = N'Đã đăng ký'");
+        totalClasses = totalClassesRes.recordset[0].SoLuong;
+
+        return {
+      weeklyPeriods: weeklyPeriods, // Correct
+      courses: coursesCount,        // Correct
+      totalClasses: totalClasses,   // Correct
+      weeklySchedule: weeklySchedule
+  };
+
+    } catch (err) { throw err; }
+};
+
+module.exports = { 
+  getStats, 
+  getLecturerStats,
+  getStudentStats };

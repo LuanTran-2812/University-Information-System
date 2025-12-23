@@ -188,6 +188,49 @@ const getLecturerSchedule = async (email) => {
     } catch (err) { throw err; }
 };
 
+const getStudentSchedule = async (email) => {
+    try {
+        const pool = await getPool();
+
+        // 1. Lấy MSSV
+        const svRes = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT MSSV FROM SinhVien WHERE Email = @email");
+        
+        const mssv = svRes.recordset[0]?.MSSV;
+        if (!mssv) return [];
+
+        // 2. Lấy lịch học dựa trên các môn đã đăng ký
+        // Logic: Tìm tất cả lịch học của các Mã Lớp mà sinh viên này có trong bảng DangKy
+        const res = await pool.request()
+            .input('mssv', sql.VarChar, mssv)
+            .query(`
+                SELECT 
+                    LH.MaLopHoc,
+                    LH.MaMon,
+                    MH.TenMon,
+                    LH.Thu,           -- Thứ (2, 3, ... 8)
+                    LH.TietBatDau,
+                    LH.TietKetThuc,
+                    LH.PhongHoc,
+                    LH.TuanBatDau,
+                    LH.TuanKetThuc,
+                    HK.NgayBatDau     -- Để tính ngày cụ thể
+                FROM LichHoc LH
+                JOIN DangKy DK ON LH.MaLopHoc = DK.MaLopHoc 
+                               AND LH.MaMon = DK.MaMon 
+                               AND LH.MaHocKy = DK.MaHocKy
+                JOIN MonHoc MH ON LH.MaMon = MH.MaMon
+                JOIN HocKy HK ON LH.MaHocKy = HK.MaHocKy
+                WHERE DK.MSSV = @mssv 
+                  AND DK.TrangThai = N'Đã đăng ký'
+            `);
+        
+        return res.recordset;
+
+    } catch (err) { throw err; }
+};
+
 module.exports = { getSchedulesBySemester, createSchedule, deleteSchedule, updateSchedule, 
-                    getLecturerSchedule
+                    getLecturerSchedule, getStudentSchedule
 };

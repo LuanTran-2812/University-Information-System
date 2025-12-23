@@ -54,6 +54,14 @@ const getClassesForGradeManagement = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+const getStudentCourses = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getStudentCoursesWithGrades(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
 module.exports = { 
   getClasses, 
   createClass, 
@@ -61,5 +69,6 @@ module.exports = {
   deleteClass, 
   getLecturers,
   getLecturerCourses,
-  getClassesForGradeManagement
+  getClassesForGradeManagement,
+  getStudentCourses
  };

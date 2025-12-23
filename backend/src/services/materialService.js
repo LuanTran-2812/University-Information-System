@@ -180,10 +180,45 @@ const deleteMaterial = async (id) => {
     } catch (err) { throw err; }
 };
 
+const getMaterialsForStudent = async (maMon, maHK, maLop) => {
+    try {
+        const pool = await getPool();
+        
+        // Kiểm tra dữ liệu đầu vào
+        if (!maMon || !maHK || !maLop) {
+            console.log("Thiếu tham số API:", { maMon, maHK, maLop });
+            return [];
+        }
+
+        // CÂU SQL CHUẨN THEO BẢNG CỦA BẠN:
+        // Sử dụng cột MaLopHoc và so sánh bằng (=)
+        const query = `
+            SELECT * FROM TaiLieu 
+            WHERE MaMon = @maMon 
+              AND MaHocKy = @maHK 
+              AND MaLopHoc = @maLop
+            ORDER BY NgayTaiLen DESC
+        `;
+
+        const res = await pool.request()
+            .input('maMon', sql.VarChar, maMon)
+            .input('maHK', sql.VarChar, maHK)
+            .input('maLop', sql.VarChar, maLop) 
+            .query(query);
+            
+        return res.recordset;
+
+    } catch (err) { 
+        console.error("Lỗi SQL getMaterialsForStudent:", err); 
+        throw err; 
+    }
+};
+
 module.exports = { 
     getMaterialsByCourse, 
     getMaterialFile,
     updateMaterial,
     createMaterial,
-    deleteMaterial
+    deleteMaterial,
+    getMaterialsForStudent
 };

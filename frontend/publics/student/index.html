@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - UIS</title>
+    
+    <link rel="stylesheet" href="../css/admin/index.css">
+    <link rel="stylesheet" href="../css/admin/trang-chu.css">
+    <link rel="stylesheet" href="../css/lecturer/ho-so.css"> 
+    <link rel="stylesheet" href="../css/lecturer/lich-hoc.css"> 
+    <link rel="stylesheet" href="../css/student/khoa-hoc.css">
+    <link rel="stylesheet" href="../css/student/bai-giang.css">
+    <link rel="stylesheet" href="../css/student/dang-ky.css">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700&display=swap" />
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="../img/Group.svg" alt="Logo">
+            <h2><span>U</span>niversity<br>Information<br>System</h2>
+        </div>
+
+        <nav class="main-nav">
+            <ul>
+                <li>
+                    <a href="#" class="nav-link active" data-page="pages/trang-chu.html" data-title="Trang chủ"> 
+                       <span class="material-symbols-outlined">grid_view</span> <span>Trang chủ</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/lich-hoc.html" data-title="Lịch học"> 
+                       <span class="material-symbols-outlined">calendar_month</span> <span>Lịch học</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/khoa-hoc.html" data-title="Khóa học"> 
+                       <span class="material-symbols-outlined">class</span> <span>Khóa học </span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/dang-ki.html" data-title="Đăng kí môn học"> 
+                       <span class="material-symbols-outlined">people</span> <span>Đăng kí môn học</span>
+                    </a>
+                </li>
+                
+            </ul>
+        </nav>
+        
+        <div class="bottom-nav">
+            <ul>
+                
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/ho-so.html" data-title="Hồ sơ cá nhân">
+                        <span class="material-symbols-outlined">settings</span><span>Setting</span>
+                    </a>
+                </li>
+                <li><a href="#" class="nav-link logout-btn"><span class="material-symbols-outlined">logout</span><span>Log out</span></a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <h1 id="page-title">Trang chủ</h1>
+                
+            </div>
+            
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="avatar-circle">SV</div> 
+                    <div class="user-info">
+                        <span class="user-name">Iosif V. Stalin</span>
+                        <span class="user-role">Sinh viên</span>
+                    </div>
+                    
+                </div>
+            </div>
+        </header>
+
+        <section class="content-area"></section>
+    </main>
+
+    <script src="../js/student/main.js"></script>
+</body>
+</html>
