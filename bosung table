@@ -1,0 +1,36 @@
+USE themdulieu;
+GO
+
+PRINT N'--- BẮT ĐẦU QUY TRÌNH SỬA LỖI SĨ SỐ ---';
+
+ALTER TABLE LopHoc NOCHECK CONSTRAINT CK_SiSoToiDa;
+ALTER TABLE LopHoc NOCHECK CONSTRAINT CK_SiSo;
+
+PRINT N'--- Đã tạm tắt các ràng buộc kiểm tra ---';
+
+UPDATE LopHoc
+SET SiSoHienTai = (
+    SELECT COUNT(*)
+    FROM DangKy
+    WHERE DangKy.MaLopHoc = LopHoc.MaLopHoc
+      AND DangKy.MaHocKy = LopHoc.MaHocKy
+      AND DangKy.MaMon = LopHoc.MaMonHoc
+      AND DangKy.TrangThai = N'Đã đăng ký'
+);
+
+PRINT N'--- Đã cập nhật Sĩ số hiện tại (SiSoHienTai) ---';
+
+UPDATE LopHoc
+SET SiSoToiDa = SiSoHienTai
+WHERE SiSoHienTai > SiSoToiDa;
+
+PRINT N'--- Đã điều chỉnh Sĩ số tối đa cho các lớp bị tràn ---';
+
+
+ALTER TABLE LopHoc DROP CONSTRAINT CK_SiSoToiDa;
+ALTER TABLE LopHoc ADD CONSTRAINT CK_SiSoToiDa CHECK (SiSoToiDa BETWEEN 10 AND 200); 
+
+ALTER TABLE LopHoc CHECK CONSTRAINT CK_SiSo;
+
+PRINT N'--- HOÀN TẤT! HỆ THỐNG ĐÃ ĐỒNG BỘ DỮ LIỆU ---';
+GO
