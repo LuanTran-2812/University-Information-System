@@ -1,14 +1,6 @@
 /* =========================================
    1. CONTAINER & HEADER
    ========================================= */
-   .class-page-container {
-    background-color: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    min-height: 85vh;
-}
-
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -37,12 +29,44 @@
    2. BUTTONS & SEARCH
    ========================================= */
 .header-actions { display: flex; gap: 12px; }
-.search-box { display: flex; align-items: center; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box { display: flex; align-items: center; background: #FFFAFA; border: 1px solid #E4E4E4; border-radius: 8px; padding: 8px 12px; width: 240px; }
 .search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
-.btn-white { background: #fff; border: 1px solid #E5E7EB; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-.btn-blue { background: #4F46E5; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-.btn-icon-only { background: #fff; border: 1px solid #E5E7EB; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.search-box input::placeholder {
+    color: #959595;
+    opacity: 1; /* Một số trình duyệt tự làm mờ placeholder, nên set opacity 1 */
+}
 
+.btn-white { background: #FFFAFA; border: 1px solid #E4E4E4; padding: 8px 16px; border-radius: 8px; cursor: pointer; color: #959595;}
+.btn-white .icon-filter {
+    font-size: 18px;
+    color: #959595;
+}
+
+.btn-blue {
+    background: #4F46E5;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.btn-blue .icon-btn {
+    color: white;
+    font-size: 18px;
+}
+
+.btn-icon-delete-class { background: #FFFAFA; border: 1px solid #E4E4E4; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #959595;}
+
+/* Vô hiệu hóa nút Xóa khi không có checkbox nào được chọn */
+.btn-icon-delete-class:disabled {
+    cursor: not-allowed;
+    opacity: 0.5; 
+}
 /* =========================================
    3. BẢNG DỮ LIỆU (CĂN CHỈNH % CHUẨN)
    ========================================= */
@@ -51,6 +75,7 @@
     border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    height: 800px;
 }
 
 .class-table {
@@ -60,7 +85,7 @@
 }
 
 /* Định nghĩa chiều rộng cho từng cột (Tổng = 100%) */
-.class-table th:nth-child(1) { width: 5%; }  /* Checkbox */
+.class-table th:nth-child(1) { width: 5%; }   /* Checkbox */
 .class-table th:nth-child(2) { width: 10%; } /* Mã lớp */
 .class-table th:nth-child(3) { width: 25%; } /* Tên môn (Dài nhất) */
 .class-table th:nth-child(4) { width: 20%; } /* Tên giảng viên */
@@ -97,15 +122,22 @@
 .class-table th:nth-child(6), .class-table td:nth-child(6) { text-align: center; }
 .class-table th:nth-child(7), .class-table td:nth-child(7) { text-align: center; }
 
-/* Badge */
+/* === BADGE TRẠNG THÁI === */
 .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
-    color: white;
+    text-align: center;
+    width: 110px;
 }
+.badge.blue { background-color: #E6F7FF; color: #1890FF; }
+.badge.green { background-color: #E9FFEF; color: #409261; }
+.badge.red { background-color: #FFF1F0; color: #FF4D4F; }
+.badge.orange { background-color: #FFF2DD; color: #D98634; }
+.badge.grey { background-color: #E4E4E4; color: #3F3748; }
+.badge.yellow { background-color: #FFFBE6; color: #FAAD14; }
 
 /* Pagination */
 .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
@@ -114,3 +146,167 @@
 
 /* Modal Dropdown */
 .full-width-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+/* Class này dùng để ép một ô trong Grid chiếm hết 2 cột (full width) */
+.grid-span-full {
+    grid-column: 1 / -1 !important;
+}
+
+/* === NEW: LAYOUT 2 CỘT TRONG MODAL === */
+.modal-body-layout {
+    display: flex;
+    gap: 24px; /* Khoảng cách giữa 2 cột */
+    align-items: flex-start; /* Căn hàng đầu bằng nhau */
+}
+
+.left-panel {
+    flex: 1; /* Chiếm phần còn lại hoặc 50% */
+    display: flex;
+    flex-direction: column;
+}
+
+.right-panel {
+    flex: 1; /* Chiếm 50% */
+    border-left: 1px solid #E5E7EB;
+    padding-left: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === NEW: BẢNG SINH VIÊN TRONG MODAL === */
+/* Override lại độ rộng cột của .class-table gốc */
+.student-table-modal th:nth-child(1) { width: 10%; text-align: center; } /* STT */
+.student-table-modal th:nth-child(2) { width: 25%; text-align: left; }   /* MSSV */
+.student-table-modal th:nth-child(3) { width: 50%; text-align: left; }   /* Họ Tên */
+.student-table-modal th:nth-child(4) { width: 15%; text-align: center; } /* Nút Xóa */
+
+.student-table-modal td:nth-child(1) { text-align: center; }
+.student-table-modal td:nth-child(2) { text-align: left; font-family: monospace; font-weight: 600; }
+.student-table-modal td:nth-child(3) { text-align: left; }
+.student-table-modal td:nth-child(4) { text-align: center; }
+
+/* Sticky Header cho bảng sinh viên */
+.student-table-modal thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #F9FAFB; /* Cần background để che nội dung khi cuộn */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Input Cấu trúc điểm nhỏ gọn */
+.form-grid-grades {
+    display: flex;
+    gap: 20px;
+}
+.five-cols {
+    flex: 1;
+}
+.five-cols input {
+    text-align: center;
+    font-weight: bold;
+}
+
+/* =========================================
+   FILTER POPUP STYLES (Cho trang Lớp học)
+   ========================================= */
+
+/* Popup Container */
+.class-filter-popup {
+    display: none; /* Mặc định ẩn */
+    position: absolute;
+    top: 120%; /* Nằm ngay dưới nút */
+    right: 0; /* Căn phải so với nút Lọc */
+    width: 500px; /* Độ rộng khớp với trang Môn học */
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng hiện dần */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mũi tên nhỏ trỏ lên */
+.class-filter-arrow {
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid #E5E7EB;
+    border-top: 1px solid #E5E7EB;
+    transform: rotate(45deg);
+}
+
+.class-filter-body {
+    padding: 20px;
+}
+
+/* Grid layout cho 2 dropdown nằm ngang */
+.class-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia đều 50-50 */
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.class-filter-item label {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.class-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    color: #111;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.class-filter-select:focus {
+    border-color: #4F46E5;
+}
+
+/* Footer chứa nút */
+.class-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Nút Cancel & OK dùng lại class chung hoặc định nghĩa riêng nếu cần */
+.btn-filter-cancel {
+    background: #E3EBF7; 
+    border: 1px solid #E5E7EB; 
+    color: #285192;
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-cancel:hover { background: #E5E7EB; }
+
+.btn-filter-ok {
+    background: #3B71CA; 
+    border: none; 
+    color: white;
+    padding: 8px 24px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-ok:hover { background: #4338ca; }

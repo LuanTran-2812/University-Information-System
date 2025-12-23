@@ -22,6 +22,10 @@
     <link rel="stylesheet" href="../css/admin/lop-hoc.css">
 
     <link rel="stylesheet" href="../css/admin/lich-hoc.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     
     <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700&display=swap" />
@@ -41,7 +45,7 @@
         <nav class="main-nav">
             <ul>
                 <li>
-                    <a href="#" class="nav-link active"
+                    <a href="/admin/dashboard" class="nav-link active"
                        data-page="pages/trang-chu.html"
                        data-title="Trang chủ"
                        data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">grid_view</span>
@@ -49,7 +53,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
+                    <a href="/admin/nguoi-dung" class="nav-link"
                        data-page="pages/nguoi-dung.html"
                        data-title="Người dùng"
                        data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">person</span>
@@ -57,7 +61,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
+                    <a href="/admin/mon-hoc" class="nav-link"
                         data-page="pages/mon-hoc.html"
                         data-title="Môn học"
                         data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">star</span>
@@ -65,23 +69,23 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
-                        data-page="pages/lop-hoc.html"
-                        data-title="Lớp học"
-                        data-controls="partials/emester-filter.html"> <span class="material-symbols-outlined">school</span>
-                        <span>Lớp học</span>
+                    <a href="/admin/lop-hoc" class="nav-link"
+                    data-page="pages/lop-hoc.html"
+                    data-title="Lớp học"
+                    data-controls="partials/semester-filter.html"> <span class="material-symbols-outlined">school</span>
+                    <span>Lớp học</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
+                    <a href="/admin/lich-hoc" class="nav-link"
                         data-page="pages/lich-hoc.html"
                         data-title="Lịch học"
-                        data-controls="partials/emester-filter.html"> <span class="material-symbols-outlined">calendar_today</span>
+                        data-controls="partials/semester-filter.html"> <span class="material-symbols-outlined">calendar_today</span>
                         <span>Lịch học</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
+                    <a href="/admin/hoc-ky" class="nav-link"
                         data-page="pages/hoc-ky.html"
                         data-title="Học kỳ"
                         data-controls="partials/search-bar.html"> <span class="material-symbols-outlined">tune</span>
@@ -144,5 +148,12 @@
     </main>
 
     <script src="../js/admin/main.js"></script>
+
+    <script src="../js/admin/trang-chu.js"></script>
+    <script src="../js/admin/nguoi-dung.js"></script>
+    <script src="../js/admin/mon-hoc.js"></script>
+    <script src="../js/admin/hoc-ky.js"></script>
+    <script src="../js/admin/lop-hoc.js"></script>
+    <script src="../js/admin/lich-hoc.js"></script>
 </body>
 </html>

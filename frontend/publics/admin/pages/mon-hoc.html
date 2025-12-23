@@ -1,63 +1,80 @@
-<div class="subject-page-container">
-    <div class="page-header">
-        <div class="header-title">
-            <span class="material-symbols-outlined icon-users">star</span> <h2>Danh sách môn học</h2>
-        </div>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách môn học</h2>
+    </div>
 
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="subject-search-input" placeholder="Tìm kiếm">
+        </div>
+        
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-subject-filter" onclick="toggleSubjectFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="subject-filter-popup" id="subject-filter-popup">
+                <div class="subject-filter-arrow"></div>
+                
+                <div class="subject-filter-body">
+                    <div class="subject-filter-row">
+                        <div class="subject-filter-item">
+                            <label>Khoa / Bộ môn</label>
+                            <select class="subject-filter-select" id="subject-filter-khoa">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+                        <div class="subject-filter-item">
+                            <label>Số tín chỉ</label>
+                            <select class="subject-filter-select" id="subject-filter-tinchi">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="subject-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeSubjectFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applySubjectFilter()">Áp dụng</button>
+                    </div>
+                </div>
             </div>
-            
-            <button class="btn-white">
-                Lọc <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span>
-            </button>
-
-            <button class="btn-blue">
-                + Thêm
-            </button>
-
-            <button class="btn-icon-only">
-                <span class="material-symbols-outlined">delete</span>
-            </button>
         </div>
-    </div>
 
-    <div class="table-wrapper">
-        <table class="subject-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px; text-align: center;">
-                        <input type="checkbox" class="custom-checkbox">
-                    </th>
-                    <th>Mã môn</th>
-                    <th>Tên môn</th>
-                    <th style="text-align: center;">Số tín chỉ</th>
-                    <th>Khoa phụ trách</th>
-                    <th>Ràng buộc</th>
-                    <th></th> </tr>
-            </thead>
-            <tbody id="subject-table-body">
-                </tbody>
-        </table>
-    </div>
+        <button class="btn-blue" id="btn-add-subject">
+            <span class="material-symbols-outlined icon-btn">add</span>Thêm
+        </button>
 
-    <div class="pagination">
-        <button class="page-btn">&lt;</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <span class="dots">...</span>
-        <button class="page-btn">&gt;</button>
+        <button class="btn-icon-delete-subject">
+            <span class="material-symbols-outlined">delete</span>
+        </button>
     </div>
 </div>
 
+<div class="table-wrapper">
+    <table class="subject-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAllCheckbox"></th>
+                <th>Mã môn</th>
+                <th>Tên môn</th>
+                <th>Số tín chỉ</th>
+                <th>Khoa phụ trách</th>
+                <th>Ràng buộc</th>
+                <th>Hành động</th> 
+            </tr>
+        </thead>
+        <tbody id="subject-table-body">
+        </tbody>
+    </table>
 </div>
+
+<div class="pagination"></div>
 
 <div id="subject-modal" class="modal-overlay">
-    <div class="modal-content" style="width: 700px;"> <div class="modal-header">
-            <h3>Thêm môn học</h3>
+    <div class="modal-content" style="width: 700px;"> 
+        <div class="modal-header modal-centered-title">
+            <span class="modal-spacer"></span><h3>Thêm môn học</h3>    
             <span class="material-symbols-outlined close-btn" onclick="closeSubjectModal()">close</span>
         </div>
 
@@ -86,10 +103,11 @@
 
                 <div class="form-group">
                     <label>Môn tiên quyết (Optional)</label>
-                    <select id="tienQuyetSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                    <select id="tienQuyetSelect" multiple placeholder="Chọn môn tiên quyết..." autocomplete="off">
                         <option value="">(Không có)</option>
-                    </select>
+                        </select>
                 </div>
+                
                 <div class="form-group">
                     <label>Môn song hành (Optional)</label>
                     <select id="songHanhSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
@@ -98,29 +116,41 @@
                 </div>
             </div>
 
+            <div class="form-section-title">
+                <label>Cấu trúc điểm (%)</label>
+            </div>
+
+            <div class="form-grid-grades">
+                <div class="form-group five-cols">
+                    <label>Quiz</label>
+                    <input type="number" id="Quiz" min="0" placeholder="0">
+                </div>
+
+                <div class="form-group five-cols">
+                    <label>Thí nghiệm</label>
+                    <input type="number" id="ThiNghiem" min="0" placeholder="0">
+                </div>
+
+                <div class="form-group five-cols">
+                    <label>BTL</label>
+                    <input type="number" id="BTL" min="0" placeholder="0">
+                </div>
+
+                <div class="form-group five-cols">
+                    <label>Giữa kỳ</label>
+                    <input type="number" id="GiuaKy" min="0" placeholder="0">
+                </div>
+
+                <div class="form-group five-cols">
+                    <label>Cuối kỳ</label>
+                    <input type="number" id="CuoiKy" min="0" placeholder="0">
+                </div>
+            </div>
+
             <div class="modal-footer">
-                <button type="submit" class="btn-save-orange">Save</button>
+                <input type="hidden" id="editing-subject-id">
+                <button type="submit" class="btn-save-orange" id="btn-save-subject">Save</button>
             </div>
         </form>
     </div>
 </div>
-
-<thead>
-    <tr>
-        <th style="width: 50px; text-align: center;">
-            <input type="checkbox" class="custom-checkbox">
-        </th>
-        <th>Mã môn</th>
-        <th>Tên môn</th>
-        <th style="text-align: center;">Số tín chỉ</th>
-        <th>Khoa phụ trách</th>
-        <th>Ràng buộc</th>
-        <th style="text-align: center;">Hành động</th> </tr>
-</thead>
-
-<form id="modal-add-subject-form">
-    <div class="modal-footer">
-        <input type="hidden" id="editing-subject-id">
-        <button type="submit" class="btn-save-orange" id="btn-save-subject">Save</button>
-    </div>
-</form>

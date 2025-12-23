@@ -1,0 +1,348 @@
+USE themdulieu
+GO
+
+-- Làm sạch theo thứ tự con-cha
+IF OBJECT_ID('v_ThongTinLopHoc', 'V') IS NOT NULL DROP VIEW v_ThongTinLopHoc;
+IF OBJECT_ID('v_ThongTinHocKy', 'V') IS NOT NULL DROP VIEW v_ThongTinHocKy;
+
+IF OBJECT_ID('LienHe','U') IS NOT NULL DROP TABLE LienHe;
+IF OBJECT_ID('MonTienQuyet','U') IS NOT NULL DROP TABLE MonTienQuyet;
+IF OBJECT_ID('ChiTietDiem','U') IS NOT NULL DROP TABLE ChiTietDiem; 
+IF OBJECT_ID('CauTrucDiem','U') IS NOT NULL DROP TABLE CauTrucDiem;
+IF OBJECT_ID('LichHoc','U') IS NOT NULL DROP TABLE LichHoc;
+IF OBJECT_ID('TaiLieu','U') IS NOT NULL DROP TABLE TaiLieu;
+IF OBJECT_ID('DangKy','U') IS NOT NULL DROP TABLE DangKy;
+
+IF OBJECT_ID('LopHoc','U') IS NOT NULL DROP TABLE LopHoc;
+
+IF OBJECT_ID('HocKy','U') IS NOT NULL DROP TABLE HocKy;
+IF OBJECT_ID('MonHoc','U') IS NOT NULL DROP TABLE MonHoc;
+IF OBJECT_ID('GiangVien','U') IS NOT NULL DROP TABLE GiangVien;
+IF OBJECT_ID('SinhVien','U') IS NOT NULL DROP TABLE SinhVien;
+
+IF OBJECT_ID('Khoa','U') IS NOT NULL DROP TABLE Khoa;
+IF OBJECT_ID('TaiKhoan','U') IS NOT NULL DROP TABLE TaiKhoan;
+
+GO
+
+
+CREATE TABLE TaiKhoan (
+	Email VARCHAR(100) PRIMARY KEY,
+	MatKhau VARCHAR(100) NOT NULL,
+	VaiTro NVARCHAR(20) NOT NULL,
+
+    CONSTRAINT CK_Email_Domain CHECK (Email LIKE '%@uis.edu.vn'),
+
+    CONSTRAINT CK_VaiTro_HopLe CHECK (VaiTro IN (N'Sinh viên', N'Giảng viên', N'Admin')),
+
+    CONSTRAINT CK_MatKhau_DoDai CHECK (LEN(MatKhau) > 5)
+);
+
+CREATE TABLE Khoa (
+	TenKhoa NVARCHAR(100) PRIMARY KEY,
+	DiaChi NVARCHAR(200) NOT NULL
+);
+
+CREATE TABLE GiangVien (
+	MSCB VARCHAR(10) PRIMARY KEY,
+	Email VARCHAR(100) UNIQUE NOT NULL,
+	HoTen NVARCHAR(100) NOT NULL,
+	Khoa NVARCHAR(100) NOT NULL,
+    DiaChi NVARCHAR(100) ,
+    SDT VARCHAR(10) ,
+    CONSTRAINT Check_SDT_GV
+        CHECK (
+           SDT LIKE '0[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+        ),
+
+	CONSTRAINT fk_email_gv FOREIGN KEY (Email) REFERENCES TaiKhoan(Email) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_khoa_gv FOREIGN KEY (Khoa) REFERENCES Khoa(TenKhoa) ON UPDATE CASCADE
+);
+
+CREATE TABLE SinhVien (
+	MSSV VARCHAR(10) PRIMARY KEY,
+	Email VARCHAR(100) UNIQUE NOT NULL,
+	HoTen NVARCHAR(100) NOT NULL,
+	GPA DECIMAL(4, 2), -- Lưu hệ 10//cái này sai nên bỏ nhưng chưa biết bỏ thế nào
+	Khoa NVARCHAR(100) NOT NULL,
+    DiaChi NVARCHAR(100) ,
+    SDT VARCHAR(10) ,
+    CONSTRAINT Check_SDT_SV
+        CHECK (
+            SDT LIKE '0[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+        ),
+
+	CONSTRAINT fk_email_sv FOREIGN KEY (Email) REFERENCES TaiKhoan(Email) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_khoa_sv FOREIGN KEY (Khoa) REFERENCES Khoa(TenKhoa) ON UPDATE CASCADE
+);
+
+CREATE TABLE MonHoc (
+	MaMon VARCHAR(10) PRIMARY KEY,
+	TenMon NVARCHAR(150) NOT NULL UNIQUE,
+	SoTinChi INT NOT NULL,
+	MaMonSongHanh VARCHAR(10),
+	KhoaPhuTrach NVARCHAR(100) NOT NULL,
+
+	CONSTRAINT fk_monsonghanh FOREIGN KEY (MaMonSongHanh) REFERENCES MonHoc(MaMon),
+	CONSTRAINT fk_khoa_monhoc FOREIGN KEY (KhoaPhuTrach) REFERENCES Khoa(TenKhoa) ON UPDATE CASCADE,
+    CONSTRAINT CK_SoTinChi CHECK (SoTinChi BETWEEN 2 AND 4)
+);
+
+CREATE TABLE MonTienQuyet (
+	MaMon VARCHAR(10) NOT NULL,
+	MaMonTienQuyet VARCHAR(10) NOT NULL,
+	PRIMARY KEY (MaMon, MaMonTienQuyet),
+
+	CONSTRAINT fk_mamon_tienquyet FOREIGN KEY (MaMon) REFERENCES MonHoc(MaMon),
+	CONSTRAINT fk_montienquyet FOREIGN KEY (MaMonTienQuyet) REFERENCES MonHoc(MaMon),
+
+    CONSTRAINT CK_KhongTuTienQuyet CHECK (MaMon <> MaMonTienQuyet)
+);
+
+CREATE TABLE HocKy (
+    MaHocKy VARCHAR(10) PRIMARY KEY,
+    NamHoc VARCHAR(10) NOT NULL,
+    NgayBatDau DATE NOT NULL UNIQUE,
+    NgayKetThuc DATE NOT NULL UNIQUE,
+    MoDangKy DATE NOT NULL,
+    DongDangKy DATE NOT NULL,
+
+	-- Dùng cột này để xử lý "nút đóng học kỳ" 0 = Chưa mở (mặc định), 1 = Admin đã chủ động đóng
+    DaKhoa BIT NOT NULL DEFAULT 0,
+
+    CONSTRAINT CK_ThoiGianHoc CHECK (NgayBatDau < NgayKetThuc),
+
+    CONSTRAINT CK_ThoiGianDangKy CHECK (MoDangKy < DongDangKy),
+
+    CONSTRAINT CK_ThoiGianMauThuan CHECK (DongDangKy < NgayBatDau),
+
+    CONSTRAINT CK_KhoangCachDangKy CHECK (DATEDIFF(day, DongDangKy, NgayBatDau) >= 15)
+);
+
+CREATE TABLE LopHoc (
+    SiSoToiDa INT NOT NULL,
+    SiSoHienTai INT DEFAULT 0,
+    MaLopHoc VARCHAR(10),
+    MaHocKy VARCHAR(10), 
+    MaMonHoc VARCHAR(10),
+    MSCB VARCHAR(10),
+    -- Dùng cột này để xử lý "nút hủy lớp", 1 = Admin chuyển lớp thành hủy
+    DaHuy BIT NOT NULL DEFAULT 0,
+    
+    PRIMARY KEY (MaLopHoc, MaHocKy, MaMonHoc),
+    FOREIGN KEY (MaHocKy) REFERENCES HocKy(MaHocKy) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (MaMonHoc) REFERENCES MonHoc(MaMon) ON UPDATE CASCADE,
+    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB) ON DELETE SET NULL,
+
+    CONSTRAINT CK_SiSoToiDa CHECK (SiSoToiDa BETWEEN 40 AND 80),
+    CONSTRAINT CK_SiSo CHECK (SiSoHienTai <= SiSoToiDa)
+);
+
+CREATE TABLE CauTrucDiem (
+    MaCauTruc INT IDENTITY(1,1) PRIMARY KEY,
+    MaThanhPhan VARCHAR(20),
+    ThanhPhanDiem NVARCHAR(50),
+    TyTrong INT CHECK (TyTrong BETWEEN 0 AND 100),
+    MaMon VARCHAR(10),
+    TrangThai BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (MaMon) REFERENCES MonHoc(MaMon) ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT CK_ThanhPhanDiem CHECK (ThanhPhanDiem IN (N'Giữa kì', N'Cuối kì', N'BTL', N'Quiz', N'Thí nghiệm'))
+
+);
+
+CREATE TABLE ChiTietDiem (
+    MaDiem VARCHAR(50) PRIMARY KEY,
+    MSSV VARCHAR(10),
+    MaLopHoc VARCHAR(10),
+    MaMon VARCHAR(10),
+    MaHocKy VARCHAR(10),
+
+    MaCauTruc INT,
+
+    Diem DECIMAL(4,2) CHECK (Diem BETWEEN 0 AND 10),
+
+    FOREIGN KEY (MaCauTruc) REFERENCES CauTrucDiem(MaCauTruc),
+    FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (MSSV) REFERENCES SinhVien(MSSV)
+);
+
+CREATE TABLE LichHoc (
+    TuanBatDau INT NOT NULL DEFAULT 1, -- Ở đây mình sẽ mặc định tuần 1 là tuần bắt đầu học kỳ cho dễ. Nghĩa là khi nhập lịch học là đánh số tuần từ 1
+    TuanKetThuc INT NOT NULL,
+    TietBatDau INT NOT NULL, 
+    TietKetThuc INT NOT NULL, 
+    Thu INT NOT NULL,
+    PhongHoc VARCHAR(10),
+    MaLopHoc VARCHAR(10),
+    MaHocKy VARCHAR(10),
+    MaMon VARCHAR(10),
+
+	PRIMARY KEY (TietBatDau, TietKetThuc, Thu, PhongHoc, MaLopHoc, MaHocKy, MaMon),
+    CONSTRAINT fk_lich_hoc FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT CK_Tuan CHECK (TuanBatDau < TuanKetThuc),
+    CONSTRAINT CK_Tuantime CHECK ((TuanKetThuc - TuanBatDau) BETWEEN 8 AND 15 ),
+    CONSTRAINT CK_Tiet CHECK (TietBatDau < TietKetThuc),
+    CONSTRAINT CK_TietBD CHECK (TietBatDau >= 1),
+    CONSTRAINT CK_TietKT CHECK (TietKetThuc <= 12),
+    CONSTRAINT CK_Tiettime CHECK ((TietKetThuc - TietBatDau) BETWEEN 1 AND 4 ),
+    CONSTRAINT CK_Thu CHECK (Thu BETWEEN 2 AND 8)
+
+);
+
+CREATE TABLE TaiLieu (
+    MaTaiLieu VARCHAR(10) NOT NULL PRIMARY KEY,
+    MSCB VARCHAR(10),
+    TenFile NVARCHAR(200) NOT NULL,
+    
+
+    DuLieuFile VARBINARY(MAX), 
+    
+
+    LoaiFile NVARCHAR(10), 
+
+    NgayTaiLen DATE NOT NULL,
+    MaLopHoc VARCHAR(10) NOT NULL,
+    MaMon VARCHAR(10) NOT NULL,
+    MaHocKy VARCHAR(10) NOT NULL,
+
+
+    FOREIGN KEY (MSCB) REFERENCES GiangVien(MSCB),
+
+
+    CONSTRAINT fk_tai_lieu FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) 
+        REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+
+    CONSTRAINT CK_LoaiFile CHECK (LoaiFile IN ('.pdf', '.doc', '.docx'))
+);
+GO
+
+CREATE TABLE DangKy (
+    MSSV VARCHAR(10),
+    MaLopHoc VARCHAR(10),
+    MaMon VARCHAR(10),
+    MaHocKy VARCHAR(10),
+    NgayDangKy DATE DEFAULT (CAST(GETDATE() AS DATE)),
+    TrangThai NVARCHAR(50) CHECK (TrangThai IN (N'Đã đăng ký', N'Đã hủy', N'Không đủ điều kiện')),
+    DaKhoa BIT NOT NULL DEFAULT 0,
+    
+    PRIMARY KEY (MSSV, MaLopHoc, MaHocKy, MaMon),
+    FOREIGN KEY (MSSV) REFERENCES SinhVien(MSSV) ON DELETE CASCADE,
+    CONSTRAINT fk_dang_ky FOREIGN KEY (MaLopHoc, MaHocKy, MaMon) REFERENCES LopHoc(MaLopHoc, MaHocKy, MaMonHoc)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE LienHe (
+    Ma INT IDENTITY(1,1) PRIMARY KEY,
+    HoTen NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) NOT NULL,
+    SDT NVARCHAR(20) NOT NULL,
+    NoiDung NVARCHAR(MAX) NOT NULL,
+    NgayGui DATETIME DEFAULT GETDATE()
+);
+
+GO
+
+CREATE VIEW v_ThongTinHocKy 
+AS
+SELECT
+    -- Lấy tất cả các cột gốc từ bảng HocKy
+    MaHocKy,
+    NamHoc,
+    NgayBatDau,
+    NgayKetThuc,
+    MoDangKy,
+    DongDangKy,
+    DaKhoa,
+
+    -- Cột "TrangThai" tự động
+    -- Dùng CASE WHEN để tính toán logic
+    (
+        CASE
+            -- 1. Ưu tiên cao nhất: Admin đã khóa (nút đóng)
+            WHEN DaKhoa = 1 THEN N'Đã đóng'
+
+            -- 2. Đã qua ngày kết thúc
+            WHEN GETDATE() > NgayKetThuc THEN N'Đã kết thúc'
+
+            -- 3. Đang trong thời gian đăng ký
+            WHEN GETDATE() BETWEEN MoDangKy AND DongDangKy THEN N'Mở đăng ký'
+
+			-- 4. Đã bắt đầu học kỳ (nhưng chưa tới ngày đăng ký)
+            WHEN GETDATE() >= NgayBatDau THEN N'Đang diễn ra'
+
+            -- 5. Đã qua ngày đăng ký nhưng chưa hết học kỳ
+            WHEN GETDATE() > DongDangKy THEN N'Kết thúc đăng ký'
+
+            -- 6. Mặc định (chưa tới ngày bắt đầu)
+            ELSE N'Chưa mở'
+        END
+    ) AS TrangThai -- Đặt tên cột ảo này là TrangThai
+
+FROM
+    HocKy;
+
+GO
+
+CREATE VIEW v_ThongTinLopHoc
+AS
+SELECT
+    -- Các cột từ Lớp học
+    L.MaLopHoc,
+    L.MaHocKy,
+    L.MaMonHoc,
+    L.SiSoHienTai,
+    L.SiSoToiDa,
+    L.MSCB,
+    L.DaHuy,
+    
+    -- Cột trạng thái dẫn xuất
+    (
+        CASE
+            -- 1. Ưu tiên cao nhất: Admin đã khóa (nút đóng)
+            WHEN L.DaHuy = 1 THEN N'Đã hủy lớp'
+
+			-- 2. Ưu tiên 2: CHƯA XẾP LỊCH HỌC
+			WHEN LH.TuanBatDau IS NULL THEN N'Chưa xếp lịch'
+
+            -- 3. Ưu tiên 3: ĐANG ĐĂNG KÝ
+            WHEN GETDATE() BETWEEN HK.MoDangKy AND HK.DongDangKy
+                THEN N'Đang đăng ký'
+
+            -- 4. Ưu tiên 4: ĐÃ KẾT THÚC (Học xong)
+            WHEN LH.TuanKetThuc IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) > LH.TuanKetThuc
+                THEN N'Đã kết thúc'
+
+            -- 5. Ưu tiên 5: ĐANG HỌC
+            WHEN LH.TuanBatDau IS NOT NULL AND (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) BETWEEN LH.TuanBatDau AND LH.TuanKetThuc
+                THEN N'Đang học'
+
+            -- 6. Ưu tiên 6: KẾT THÚC ĐĂNG KÝ
+            WHEN GETDATE() > HK.DongDangKy AND (LH.TuanBatDau IS NULL OR (DATEDIFF(week, HK.NgayBatDau, GETDATE()) + 1) < LH.TuanBatDau)
+                THEN N'Kết thúc đăng ký'
+
+            -- 7. Mặc định: ĐÃ XẾP LỊCH HỌC
+            ELSE N'Đã xếp lịch'
+        END
+    ) AS TrangThai
+
+FROM
+    -- Bảng gốc
+    LopHoc AS L
+    
+-- JOIN với Học kỳ để lấy các mốc thời gian
+INNER JOIN
+    HocKy AS HK ON L.MaHocKy = HK.MaHocKy
+
+-- LEFT JOIN để lấy các lớp CHƯA CÓ LỊCH
+LEFT JOIN
+    LichHoc AS LH
+    -- Nối bằng cả 3 phần của khóa ngoại
+    ON L.MaLopHoc = LH.MaLopHoc
+    AND L.MaHocKy = LH.MaHocKy
+    AND L.MaMonHoc = LH.MaMon
+;

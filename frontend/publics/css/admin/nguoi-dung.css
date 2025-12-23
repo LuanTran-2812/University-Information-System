@@ -1,14 +1,6 @@
-/* Reset & Container */
-.user-page-container {
-    background-color: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    min-height: 85vh;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* Header Styles */
+/* =========================================
+   1. HEADER & BUTTONS (Giữ nguyên)
+   ========================================= */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -16,168 +8,254 @@
     margin-bottom: 24px;
 }
 
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.header-left-group { display: flex; align-items: center; gap: 20px; }
+.header-left-group h2 { font-size: 20px; font-weight: 600; margin: 0; }
+
+.header-actions { display: flex; gap: 12px; }
+
+.search-box { 
+    display: flex; align-items: center; background: #FFFAFA; 
+    border: 1px solid #E4E4E4; border-radius: 8px; padding: 8px 12px; width: 240px; 
+}
+.search-box input { 
+    border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; 
+}
+.search-box input::placeholder {
+    color: #959595;
+    opacity: 1;
 }
 
-.header-title h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #111;
-    margin: 0;
+.btn-white { 
+    background: #FFFAFA; border: 1px solid #E4E4E4; padding: 8px 16px; 
+    border-radius: 8px; cursor: pointer; color: #959595;
+    display: inline-flex; align-items: center; gap: 6px;
 }
-
-.icon-users {
-    color: #00C853; /* Màu xanh lá giống Figma */
-    font-size: 28px;
-}
-
-/* Actions & Buttons */
-.header-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.search-box {
-    display: flex;
-    align-items: center;
-    background: #F9FAFB;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 8px 12px;
-    width: 240px;
-}
-
-.search-box input {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 14px;
-    margin-left: 8px;
-    width: 100%;
-}
-
-.search-box span { color: #9CA3AF; }
-
-.btn-white {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+.btn-white .icon-filter { font-size: 18px; color: #959595; }
 
 .btn-blue {
-    background: #4F46E5; /* Màu xanh tím Figma */
+    background: #4F46E5;
     color: white;
     border: none;
+    padding: 8px 14px;
     border-radius: 8px;
-    padding: 8px 20px;
-    font-weight: 500;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-icon-only {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    width: 40px;
-    cursor: pointer;
-    color: #6B7280;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+}
+.btn-blue .icon-btn { color: white; font-size: 18px; }
+
+.btn-icon-delete-user { 
+    background: #FFFAFA; border: 1px solid #E4E4E4; width: 40px; 
+    border-radius: 8px; cursor: pointer; 
+    display: flex; align-items: center; justify-content: center; color: #959595;
 }
 
-/* Table Styles */
+/* Vô hiệu hóa nút Xóa khi không có checkbox nào được chọn */
+.btn-icon-delete-user:disabled {
+    cursor: not-allowed;
+    opacity: 0.5; 
+}
+/* =========================================
+   2. TABLE STYLES
+   ========================================= */
 .table-wrapper {
     border: 1px solid #E5E7EB;
     border-radius: 12px;
     overflow: hidden;
+    background: #fff;
+    height: 800px;
 }
 
 .user-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed; 
 }
 
 .user-table th {
-    background: #fff;
-    text-align: left;
-    padding: 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 14px 10px;
     border-bottom: 1px solid #E5E7EB;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-table td {
-    padding: 16px;
-    font-size: 14px;
+    padding: 14px 10px;
+    font-size: 14px; 
     color: #111;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid #E5E7EB;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 24px;
-}
+/* === CHIA CỘT === */
+.user-table th:nth-child(1) { width: 5%; text-align: center; }   /* Checkbox */
+.user-table th:nth-child(2) { width: 20%; }                      /* Họ và tên */
+.user-table th:nth-child(3) { width: 12%; }                      /* Vai Trò */
+.user-table th:nth-child(4) { width: 10%; }                      /* SĐT */
+.user-table th:nth-child(5) { width: 18%; }                      /* Email */
+.user-table th:nth-child(6) { width: 25%; }                      /* Ngày tạo */
+.user-table th:nth-child(7) { width: 10%; text-align: center; }  /* Chi tiết */
 
-.page-btn {
-    width: 32px;
-    height: 32px;
-    border: 1px solid #E5E7EB;
-    background: #fff;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #374151;
-    font-size: 13px;
-}
+/* === CĂN CHỈNH === */
+.user-table td:nth-child(1) { text-align: center; }
+.user-table td:nth-child(2) { font-weight: 600; }
+.user-table td:nth-child(7) { text-align: center; }
 
-.page-btn.active {
-    background: #4F46E5;
-    color: white;
-    border-color: #4F46E5;
-}
-
-/* 1. Biến ô chứa nút thành Flexbox để căn giữa dọc và ngang */
-.user-table td:last-child {
-    display: flex;
-    align-items: center;     /* Căn giữa theo chiều dọc */
-    justify-content: center; /* Căn giữa theo chiều ngang */
-    gap: 15px;               /* Khoảng cách giữa thùng rác và mũi tên */
-    height: 100%;            /* Chiếm hết chiều cao dòng */
-    border-bottom: none;     /* Xóa viền trùng */
-}
-
-/* 2. Chỉnh lại nút mũi tên > cho đẹp hơn */
+/* === STYLE CHO NÚT CHI TIẾT (DẤU >) === */
 .btn-detail {
     text-decoration: none;
-    color: #999;
+    color: #9CA3AF; /* Màu xám nhạt giống theme */
     font-weight: bold;
-    font-size: 18px; /* To hơn xíu cho dễ bấm */
-    display: flex;
-    align-items: center;
+    font-size: 18px;
+    display: inline-block;
     transition: 0.2s;
+    cursor: pointer;
 }
 
 .btn-detail:hover {
-    color: #007bff; /* Hover màu xanh */
-    transform: translateX(3px); /* Hiệu ứng di chuyển nhẹ */
+    color: #4F46E5; /* Hover chuyển màu xanh */
+    transform: translateX(3px); /* Hiệu ứng di chuyển nhẹ sang phải */
 }
+
+/* =========================================
+   3. PAGINATION
+   ========================================= */
+.pagination { 
+    display: flex; 
+    justify-content: center; 
+    gap: 8px; 
+    margin-top: 20px; 
+}
+.page-btn { 
+    width: 32px; 
+    height: 32px; 
+    border: 1px solid #E5E7EB; 
+    background: #fff; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.page-btn.active { 
+    background: #4F46E5; 
+    color: white; 
+    border-color: #4F46E5; 
+}
+
+/* =========================================
+   FILTER POPUP STYLES (Người dùng - Đồng bộ Môn học)
+   ========================================= */
+
+/* Khung Popup */
+.user-filter-popup {
+    display: none; /* Mặc định ẩn */
+    position: absolute;
+    top: 120%; /* Nằm ngay dưới nút */
+    right: 0; 
+    width: 500px; /* Độ rộng chuẩn giống trang Môn học */
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng hiện dần */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mũi tên nhỏ trỏ lên */
+.user-filter-arrow {
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid #E5E7EB;
+    border-top: 1px solid #E5E7EB;
+    transform: rotate(45deg);
+}
+
+.user-filter-body {
+    padding: 20px;
+}
+
+/* Layout Grid: 2 cột bằng nhau */
+.user-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia 50-50 */
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.user-filter-item label {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.user-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    color: #111;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.user-filter-select:focus {
+    border-color: #4F46E5;
+}
+
+/* Footer chứa nút */
+.user-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Nút Cancel */
+.btn-filter-cancel {
+    background: #E3EBF7; 
+    border: 1px solid #E5E7EB; 
+    color: #285192;
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-cancel:hover { background: #E5E7EB; }
+
+/* Nút OK/Áp dụng */
+.btn-filter-ok {
+    background: #3B71CA; 
+    border: none; 
+    color: white;
+    padding: 8px 24px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-ok:hover { background: #4338ca; }

@@ -126,10 +126,8 @@
     text-align: right;
     font-size: 12px;
     font-weight: 500;
-    color: #9AA5C0; /* Màu xám nhạt */
+    color: #9AA5C0;
     height: 100%;
-    /* Lùi 1 chút để khớp với thanh 0 (bằng với padding-bottom của .chart-area) */
-    padding-bottom: 30px; 
 }
 
 /* 2.2. Khu vực vẽ biểu đồ (Chart-Area) */
@@ -138,8 +136,6 @@
     position: relative;
     border-left: 1px solid #EFEFEF; /* Trục Y mờ */
     height: 100%;
-    /* Không gian cho label X (THỨ HAI, THỨ BA...) */
-    padding-bottom: 30px; 
 }
 
 /* 2.3. Đường kẻ ngang (Grid lines) */
@@ -151,39 +147,32 @@
     background-color: #F0F3FF; /* Màu rất nhạt */
     z-index: 1;
 }
-/* Vị trí các đường (tính từ DƯỚI LÊN, khớp với trục Y 10-50) */
-.grid-line:nth-child(1) { bottom: 20%; } /* 10 */
-.grid-line:nth-child(2) { bottom: 40%; } /* 20 */
-.grid-line:nth-child(3) { bottom: 60%; } /* 30 */
-.grid-line:nth-child(4) { bottom: 80%; } /* 40 */
-.grid-line:nth-child(5) { bottom: 100%; } /* 50 */
 
 /* 2.4. Nhóm các thanh (Bars) */
 .bar-group {
     display: flex;
     justify-content: space-around;
-    align-items: flex-end; /* Quan trọng: Căn các thanh xuống dưới */
+    align-items: flex-end;
     height: 100%;
     position: relative;
-    z-index: 2; /* Nằm trên các đường grid-line */
+    z-index: 2;
 }
 
 .bar-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1; /* Mỗi thanh chiếm không gian bằng nhau */
-    position: relative; /* Để định vị tooltip */
+    flex: 1;
+    position: relative;
     height: 100%;
-    justify-content: flex-end; /* Căn thanh và label xuống dưới */
+    justify-content: flex-end;
 }
 
-/* [ĐÁP ỨNG YÊU CẦU 2] Chiều cao thanh được set bằng inline style */
 .bar {
-    width: 60%; /* Độ rộng của thanh */
+    width: 60%;
     max-width: 35px;
-    background-color: #A9D5FF; /* Màu xanh nhạt */
-    border-radius: 6px 6px 0 0; /* Bo tròn 2 góc trên */
+    background-color: #A9D5FF;
+    border-radius: 6px 6px 0 0;
     transition: background-color 0.3s ease;
 }
 
@@ -193,18 +182,18 @@
     color: #9AA5C0;
     margin-top: 10px;
     position: absolute;
-    bottom: -30px; /* Đặt label X xuống dưới */
+    bottom: -20px;
 }
 
 /* 2.5. Tooltip (Req 3: Hover) */
 .bar-tooltip {
     position: absolute;
-    top: -32px; /* Vị trí phía trên thanh */
-    background-color: #2A3A5B; /* Màu nền đen/xanh đậm */
+    top: -35px; /* Vị trí phía trên thanh */
+    background-color: #2A3A5B;
     color: #FFFFFF;
     font-size: 12px;
     font-weight: 500;
-    padding: 5px 8px;
+    padding: 10px 13px;
     border-radius: 4px;
     
     /* Ẩn đi mặc định */
@@ -212,38 +201,33 @@
     visibility: hidden;
     transform: translateY(10px);
     transition: all 0.2s ease;
-    
-    /* Tạo mũi tên tam giác */
-    &::after {
-        content: '';
-        position: absolute;
-        bottom: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 5px;
-        border-style: solid;
-        border-color: #2A3A5B transparent transparent transparent;
-    }
 }
 
-/* [ĐÁP ỨNG YÊU CẦU 3] Hiển thị tooltip khi hover */
+.bar-tooltip::after { /* <--- Cú pháp CSS hợp lệ */
+    content: '';
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #2A3A5B transparent transparent transparent;
+}
+
 .bar-wrapper:hover .bar-tooltip {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-/* [ĐÁP ỨNG YÊU CẦU 3] Đổi màu thanh khi hover */
 .bar-wrapper:hover .bar {
-    background-color: #007BFF; /* Màu xanh đậm hơn */
+    background-color: #007BFF;
 }
 
-/* Style cho thanh "active" (Thứ 6 trong ảnh) */
 .bar-wrapper.active .bar {
-    background-color: #007BFF; /* Xanh đậm */
+    background-color: #007BFF;
 }
 
-/* Hiển thị tooltip của thanh active (như trong ảnh) */
 .bar-wrapper.active .bar-tooltip {
     opacity: 1;
     visibility: visible;

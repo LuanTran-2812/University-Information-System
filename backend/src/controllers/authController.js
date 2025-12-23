@@ -16,25 +16,28 @@ const login = async (req, res, next) => {
     const payload = { sub: user.Email, email: user.Email, role: user.VaiTro };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
     
+    res.cookie('jwt_token', token, {
+        httpOnly: true, // Quan trọng: JS frontend không đọc được cookie này, chống XSS
+        secure: false,  // Đặt true nếu chạy https
+        path: '/',      // Đảm bảo cookie áp dụng cho toàn bộ domain
+        maxAge: 8 * 60 * 60 * 1000 // 8 tiếng
+    });
+
     // Determine redirect URL based on role
     let redirectUrl = '/';
     const role = user.VaiTro || '';
     const normalizedRole = role.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '').toLowerCase();
     
     if (normalizedRole === 'admin') {
-      redirectUrl = '/admin/index.html';
-    } 
-
-    else if (normalizedRole === 'giangvien' || normalizedRole.includes('giang')) {
-      redirectUrl = '/lecturer/index.html'; 
-    } 
-  
-    else if (normalizedRole === 'sinhvien' || normalizedRole.includes('sinh')) {
-      redirectUrl = '/student/index.html';  
+      redirectUrl = '/admin/dashboard';
+    } else if (normalizedRole === 'giangvien' || normalizedRole.includes('giang')) {
+      redirectUrl = '/lecturer/dashboard';
+    } else if (normalizedRole === 'sinhvien' || normalizedRole.includes('sinh')) {
+      redirectUrl = '/student/dashboard';
     }
     
     res.json({ 
-      token, 
+      message: "Login successful",
       role: user.VaiTro,
       redirectUrl 
     });
@@ -43,4 +46,13 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { login };
+const logout = (req, res) => {
+    res.clearCookie('jwt_token', {
+        httpOnly: true,
+        secure: false,
+        path: '/'
+    }); 
+    res.json({ success: true, message: 'Đăng xuất thành công' });
+};
+
+module.exports = { login, logout };

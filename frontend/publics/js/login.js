@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     guestBtn.addEventListener('click', () => {
       const isLiveServer = window.location.port === '5500';
       const basePath = isLiveServer ? '/frontend/publics' : '';
-      window.location.href = basePath + '/dashboard-guest.html';
+      window.location.href = basePath + '/user/index.html';
     });
   }
 
@@ -57,44 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const data = await response.json();
-        console.log(data);
         
         if (response.ok) {
-          // 1. Lưu Token
-          localStorage.setItem('token', data.token);
-          
-          // 2. Lưu Email (QUAN TRỌNG: Để trang Giảng viên biết ai đang đăng nhập)
-          localStorage.setItem('userEmail', email); 
-          
-          // Xác định đường dẫn cơ sở (cho Live Server)
-          const isLiveServer = window.location.port === '5500';
-          const basePath = isLiveServer ? '/frontend/publics' : '';
-          
-          // Ưu tiên dùng redirectUrl từ Backend gửi về
           if (data.redirectUrl) {
-            // Backend trả về dạng /admin/index.html -> ta ghép với basePath
-            const redirectPath = basePath + data.redirectUrl;
-            window.location.href = redirectPath;
+            window.location.href = data.redirectUrl; 
           } else {
-            // Fallback: Tự kiểm tra vai trò nếu backend không gửi redirectUrl
-            const rawRole = (data.role || '');
-            const normalized = rawRole.normalize ? rawRole.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : rawRole;
-            const roleKey = normalized.replace(/\s+/g, '').toLowerCase();
-            
-            console.log('Raw role:', rawRole, 'Normalized:', roleKey);
-
-            if (roleKey === 'admin') {
-              window.location.href = basePath + '/admin/index.html';
-            } else if (roleKey === 'giangvien' || roleKey.includes('giang')) {
-              window.location.href = basePath + '/lecturer/index.html'; // Đã sửa lại đúng đường dẫn folder lecturer
-            } else if (roleKey === 'sinhvien' || roleKey.includes('sinh')) {
-              window.location.href = basePath + '/student/index.html'; // Dự phòng cho sinh viên
-            } else {
-              alert('Vai trò của bạn chưa được định nghĩa: ' + rawRole);
-            }
+            alert("Đăng nhập thành công nhưng không xác định được trang đích. Vui lòng liên hệ Admin.");
           }
         } else {
-          alert(data.message);
+          alert(data.message || 'Đăng nhập thất bại');
         }
       } catch (error) {
         console.error('Error during login:', error);

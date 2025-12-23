@@ -1,12 +1,6 @@
-/* Container chung  */
-.semester-page-container {
-    background-color: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    min-height: 85vh;
-}
-
+/* =========================================
+   1. HEADER
+   ========================================= */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -14,32 +8,117 @@
     margin-bottom: 24px;
 }
 
-.header-title h2 { font-size: 20px; font-weight: 600; color: #111; }
-
-/* Search box & Buttons  */
-.search-box {
-    display: flex; align-items: center; background: #fff;
-    border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px;
-}
-.search-box input { border: none; outline: none; width: 100%; margin-left: 8px; }
-
-.btn-add-semester {
-    background: #3b82f6; color: white; border: none;
-    border-radius: 8px; padding: 8px 20px; font-weight: 600; cursor: pointer;
+.header-left-group h2 { 
+    font-size: 20px; 
+    font-weight: 600; 
+    margin: 0; 
 }
 
-/* Bảng */
-.table-wrapper { border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; }
-.semester-table { width: 100%; border-collapse: collapse; }
+/* =========================================
+   2. BUTTONS & SEARCH
+   ========================================= */
+.header-actions { display: flex; gap: 12px; }
+
+.search-box { 
+    display: flex; 
+    align-items: center; 
+    background: #FFFAFA; 
+    border: 1px solid #E4E4E4; 
+    border-radius: 8px; 
+    padding: 8px 12px; 
+    width: 240px; 
+}
+.search-box input { 
+    border: none; 
+    background: transparent; 
+    outline: none; 
+    width: 100%; 
+    margin-left: 8px; 
+}
+.search-box input::placeholder {
+    color: #959595;
+    opacity: 1;
+}
+
+.btn-blue {
+    background: #4F46E5;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+.btn-blue .icon-btn {
+    color: white;
+    font-size: 18px;
+}
+
+/* =========================================
+   3. BẢNG DỮ LIỆU
+   ========================================= */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    height: 449px;
+}
+
+.semester-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; /* Quan trọng: Khóa layout để chia cột đều */
+}
+
 .semester-table th {
-    background: #fff; text-align: left; padding: 16px;
-    font-size: 13px; font-weight: 600; color: #374151; border-bottom: 1px solid #E5E7EB;
-}
-.semester-table td {
-    padding: 16px; font-size: 14px; color: #111; border-bottom: 1px solid #F3F4F6;
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 14px 10px;
+    border-bottom: 1px solid #E5E7EB;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
 }
 
-/* === QUAN TRỌNG: BADGE TRẠNG THÁI === */
+.semester-table td {
+    padding: 14px 10px;
+    font-size: 14px; 
+    color: #111; 
+    border-bottom: 1px solid #F3F4F6;
+    vertical-align: middle;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+
+/* === PHẦN MỚI: CHIA CỘT (WIDTHS) === */
+/* Tổng cộng 100% */
+.semester-table th:nth-child(1) { width: 12%; text-align: center; } /* Mã HK */
+.semester-table th:nth-child(2) { width: 10%; text-align: center; } /* Năm học */
+.semester-table th:nth-child(3) { width: 12%; text-align: center; } /* Ngày BĐ */
+.semester-table th:nth-child(4) { width: 12%; text-align: center; } /* Ngày KT */
+.semester-table th:nth-child(5) { width: 25%; text-align: center; } /* TG Đăng ký (Dài nhất) */
+.semester-table th:nth-child(6) { width: 15%; text-align: center; } /* Trạng thái */
+.semester-table th:nth-child(7) { width: 14%; text-align: center; } /* Hành động */
+
+/* Căn chỉnh nội dung (ALIGNMENT) tương ứng với Header */
+.semester-table td:nth-child(1) { text-align: center; font-weight: 600; }
+.semester-table td:nth-child(2) { text-align: center; }
+.semester-table td:nth-child(3) { text-align: center; }
+.semester-table td:nth-child(4) { text-align: center; }
+.semester-table td:nth-child(5) { text-align: center; }
+.semester-table td:nth-child(6) { text-align: center; }
+.semester-table td:nth-child(7) { text-align: center; }
+
+
+/* === BADGE TRẠNG THÁI === */
 .badge {
     padding: 4px 12px;
     border-radius: 20px;
@@ -47,49 +126,40 @@
     font-weight: 600;
     display: inline-block;
     text-align: center;
-    width: 110px; /* Cố định chiều rộng cho đều */
+    width: 110px;
 }
+.badge.blue { background-color: #E6F7FF; color: #1890FF; }
+.badge.green { background-color: #E9FFEF; color: #409261; }
+.badge.red { background-color: #FFF1F0; color: #FF4D4F; }
+.badge.orange { background-color: #FFF2DD; color: #D98634; }
+.badge.grey { background-color: #E4E4E4; color: #3F3748; }
+.badge.yellow { background-color: #FFFBE6; color: #FAAD14; }
 
-/* Màu xanh dương: Mở đăng ký */
-.badge.blue { background-color: #E0F2FE; color: #0284C7; }
-/* Màu xanh lá: Đang diễn ra */
-.badge.green { background-color: #DCFCE7; color: #16A34A; }
-/* Màu đỏ: Đã đóng */
-.badge.red { background-color: #FEE2E2; color: #DC2626; }
-/* Màu cam: Kết thúc đăng ký */
-.badge.orange { background-color: #FFEDD5; color: #EA580C; }
-/* Màu xám: Chưa mở */
-.badge.grey { background-color: #F3F4F6; color: #4B5563; }
-
-/* Icons hành động */
 .action-btn {
     background: none; border: none; cursor: pointer; color: #9CA3AF; font-size: 18px; margin: 0 4px;
 }
 .action-btn:hover { color: #333; }
 
-/* === MODAL STYLES === */
+/* =========================================
+   4. PAGINATION
+   ========================================= */
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+.page-btn { width: 32px; height: 32px; border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.page-btn.active { background: #4F46E5; color: white; border-color: #4F46E5; }
+
+/* =========================================
+   5. MODAL STYLES
+   ========================================= */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Nền tối mờ */
-    display: none; /* Mặc định ẩn */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none; justify-content: center; align-items: center; z-index: 1000;
 }
-
-.modal-overlay.active {
-    display: flex; /* Hiện lên khi có class active */
-}
+.modal-overlay.active { display: flex; }
 
 .modal-content {
-    background: #fff;
-    width: 600px;
-    border-radius: 12px;
-    overflow: hidden;
+    background: #fff; width: 600px; border-radius: 12px; overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     animation: slideDown 0.3s ease;
 }
@@ -99,73 +169,45 @@
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Header Xanh */
 .modal-header {
-    background-color: #4472C4; 
-    color: white;
-    padding: 15px 20px;
-    display: flex;
+    background-color: #4472C4; color: white; padding: 15px 20px;
+    display: flex; 
     justify-content: space-between;
     align-items: center;
+}
+
+.modal-spacer {
+    width: 24px; 
+    height: 24px;
+    visibility: hidden;
+}
+
+.modal-header.modal-centered-title h3 {
+    flex-grow: 1;
+    text-align: center;
+}
+.modal-header.modal-centered-title .close-btn {
+    flex-shrink: 0;
 }
 
 .modal-header h3 { margin: 0; font-size: 18px; font-weight: 500; }
 .close-btn { cursor: pointer; font-size: 24px; }
 .close-btn:hover { opacity: 0.8; }
 
-/* Form Layout */
-.form-grid {
-    padding: 20px;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Chia 2 cột */
-    gap: 20px;
-}
-
-.full-width { grid-column: span 2; } /* Ô nào muốn dài hết dòng */
-
-.form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-}
-
+.form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.full-width { grid-column: span 2; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; }
 .required { color: red; }
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    outline: none;
-    font-size: 14px;
+.form-group input, .form-group select { 
+    width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; 
 }
-
-/* Nhóm ngày tháng đăng ký (Start -> End) */
-.date-range-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+.date-range-group { display: flex; align-items: center; gap: 10px; }
 .date-range-group input { flex: 1; }
 .date-range-group .arrow { color: #999; font-size: 18px; }
 
-/* Footer Cam */
-.modal-footer {
-    padding: 0 20px 20px;
-    display: flex;
-    justify-content: center;
-}
-
+.modal-footer { padding: 0 20px 20px; display: flex; justify-content: center; }
 .btn-save-orange {
-    background-color: #FF5722; /* Màu cam */
-    color: white;
-    border: none;
-    padding: 10px 50px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
+    background-color: #FF5722; color: white; border: none; padding: 10px 50px; 
+    border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;
 }
 .btn-save-orange:hover { background-color: #e64a19; }

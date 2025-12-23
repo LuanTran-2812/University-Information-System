@@ -1,0 +1,748 @@
+USE themdulieu;
+GO
+
+PRINT N'=== BẮT ĐẦU QUÁ TRÌNH LÀM SẠCH DỮ LIỆU ===';
+
+IF OBJECT_ID('MonTienQuyet', 'U') IS NOT NULL DELETE FROM MonTienQuyet;
+IF OBJECT_ID('ChiTietDiem', 'U') IS NOT NULL DELETE FROM ChiTietDiem;
+IF OBJECT_ID('TaiLieu', 'U') IS NOT NULL DELETE FROM TaiLieu;
+IF OBJECT_ID('DangKy', 'U') IS NOT NULL DELETE FROM DangKy;
+IF OBJECT_ID('LichHoc', 'U') IS NOT NULL DELETE FROM LichHoc;
+IF OBJECT_ID('CauTrucDiem', 'U') IS NOT NULL DELETE FROM CauTrucDiem;
+IF OBJECT_ID('LienHe', 'U') IS NOT NULL DELETE FROM LienHe;
+
+IF OBJECT_ID('LopHoc', 'U') IS NOT NULL DELETE FROM LopHoc;
+
+IF OBJECT_ID('MonHoc', 'U') IS NOT NULL 
+BEGIN
+    UPDATE MonHoc SET MaMonSongHanh = NULL;
+    DELETE FROM MonHoc;
+END
+
+IF OBJECT_ID('SinhVien', 'U') IS NOT NULL DELETE FROM SinhVien;
+IF OBJECT_ID('GiangVien', 'U') IS NOT NULL DELETE FROM GiangVien;
+
+IF OBJECT_ID('HocKy', 'U') IS NOT NULL DELETE FROM HocKy;
+IF OBJECT_ID('Khoa', 'U') IS NOT NULL DELETE FROM Khoa;
+IF OBJECT_ID('TaiKhoan', 'U') IS NOT NULL DELETE FROM TaiKhoan;
+
+IF OBJECT_ID('LienHe', 'U') IS NOT NULL 
+    DBCC CHECKIDENT ('LienHe', RESEED, 0);
+
+PRINT N'=== ĐÃ DỌN SẠCH DỮ LIỆU CŨ (NẾU CÓ), BẮT ĐẦU INSERT ===';
+GO
+
+----------------------------------------------------------------
+-- KHỐI 1: Thêm Khoa, Thêm môn, Thêm Học Kỳ
+----------------------------------------------------------------
+
+PRINT N'Đang thêm dữ liệu cho: 8 Khoa...';
+INSERT INTO Khoa (TenKhoa, DiaChi) VALUES 
+(N'ĐIỆN - ĐIỆN TỬ', N'B1'),
+(N'KỸ THUẬT XÂY DỰNG', N'B2'),
+(N'CƠ KHÍ', N'B3'),
+(N'KỸ THUẬT HOÁ HỌC', N'B4'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', N'B5'), 
+(N'CÔNG NGHỆ VẬT LIỆU', N'D1'),
+(N'KHOA HỌC ỨNG DỤNG', N'D2'),
+(N'KỸ THUẬT GIAO THÔNG', N'D3')
+
+GO
+
+PRINT N'Đang thêm 80 Môn học (10 môn/khoa)...';
+INSERT INTO MonHoc (KhoaPhuTrach, MaMon, SoTinChi, TenMon) VALUES
+(N'ĐIỆN - ĐIỆN TỬ', 'DT101', 2 , N'Mạch điện'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT102', 2 , N'Kỹ thuật điện tử'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT103', 3 , N'Máy điện'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT104', 3 , N'Hệ thống điện'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT105', 3 , N'Kỹ thuật số'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT106', 3 , N'Điện tử công suất'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT107', 4 , N'Truyền động điện'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT108', 4 , N'Vi điều khiển'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT109', 4 , N'Tự động hóa'),
+(N'ĐIỆN - ĐIỆN TỬ', 'DT110', 4 , N'Điện tử công nghiệp'),
+
+(N'KỸ THUẬT XÂY DỰNG', 'XD101', 2 , N'Vật liệu xây dựng'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD102', 2 , N'Địa chất công trình'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD103', 3 , N'Vẽ kỹ thuật xây dựng'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD104', 3 , N'Trắc địa'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD105', 3 , N'Kiến trúc công trình'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD106', 3 , N'Kết cấu bê tông cốt thép'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD107', 4 , N'Cơ học kết cấu'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD108', 4 , N'Địa kỹ thuật xây dựng'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD109', 4 , N'Quản lý dự án xây dựng'),
+(N'KỸ THUẬT XÂY DỰNG', 'XD110', 4 , N'Xây dựng công trình'),
+
+(N'CƠ KHÍ', 'CK101', 2 , N'Cơ học lý thuyết'),
+(N'CƠ KHÍ', 'CK102', 2 , N'Sức bền vật liệu'),
+(N'CƠ KHÍ', 'CK103', 3 , N'Nguyên lý máy'),
+(N'CƠ KHÍ', 'CK104', 3 , N'Chi tiết máy'),
+(N'CƠ KHÍ', 'CK105', 3 , N'Vẽ kỹ thuật cơ khí'),
+(N'CƠ KHÍ', 'CK106', 3 , N'Công nghệ chế tạo máy'),
+(N'CƠ KHÍ', 'CK107', 4 , N'Kỹ thuật nhiệt'),
+(N'CƠ KHÍ', 'CK108', 4 , N'Tự động hóa trong cơ khí'),
+(N'CƠ KHÍ', 'CK109', 4 , N'Thiết kế và gia công trên máy tính'),
+(N'CƠ KHÍ', 'CK110', 4 , N'Robot công nghiệp'),
+
+(N'KỸ THUẬT HOÁ HỌC', 'HH101', 2 , N'Hóa học đại cương'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH102', 2 , N'Hóa hữu cơ'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH103', 3 , N'Hóa vô cơ'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH104', 3 , N'Hóa lý'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH105', 3 , N'Hóa phân tích'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH106', 3 , N'Hóa sinh'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH107', 4 , N'Kỹ thuật phản ứng hóa học'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH108', 4 , N'Quá trình và thiết bị trong công nghệ hóa học'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH109', 4 , N'Công nghệ hóa dầu'),
+(N'KỸ THUẬT HOÁ HỌC', 'HH110', 4 , N'Công nghệ vật liệu polymer'),
+
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT101', 2 , N'Cấu trúc dữ liệu và giải thuật'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT102', 2 , N'Nguyên lý hệ điều hành'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT103', 3 , N'Kiến trúc máy tính'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT104', 3 , N'Lập trình hướng đối tượng'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT105', 3 , N'Mạng máy tính'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT106', 3 , N'Cơ sở dữ liệu'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT107', 4 , N'Trí tuệ nhân tạo'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT108', 4 , N'An toàn và bảo mật thông tin'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT109', 4 , N'Công nghệ phần mềm'),
+(N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH', 'MT110', 4 , N'Học máy'),
+
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL101', 2 , N'Vật liệu học cơ sở'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL102', 2 , N'Cơ học vật liệu'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL103', 3 , N'Khoa học bề mặt và ăn mòn'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL104', 3 , N'Vật liệu kim loại'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL105', 3 , N'Vật liệu polymer'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL106', 3 , N'Vật liệu gốm – silicat'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL107', 4 , N'Vật liệu composite'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL108', 4 , N'Công nghệ chế tạo và xử lý vật liệu'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL109', 4 , N'Phân tích và kiểm tra chất lượng vật liệu'),
+(N'CÔNG NGHỆ VẬT LIỆU', 'VL110', 4 , N'Thí nghiệm vật liệu'),
+
+(N'KHOA HỌC ỨNG DỤNG', 'UD101', 2 , N'Toán cao cấp'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD102', 2 , N'Vật lý đại cương'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD103', 3 , N'Xác suất – Thống kê ứng dụng'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD104', 3 , N'Tin học ứng dụng'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD105', 3 , N'Cơ học ứng dụng'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD106', 3 , N'Nhiệt động lực học'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD107', 4 , N'Điện học ứng dụng'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD108', 4 , N'Vật liệu học ứng dụng'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD109', 4 , N'Phương pháp nghiên cứu khoa học'),
+(N'KHOA HỌC ỨNG DỤNG', 'UD110', 4 , N'Phương pháp tính'),
+
+(N'KỸ THUẬT GIAO THÔNG', 'GT101', 2 , N'Cơ học cầu'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT102', 2 , N'Vật liệu xây dựng giao thông'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT103', 3 , N'Trắc địa – đo đạc công trình'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT104', 3 , N'Địa chất công trình và nền móng'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT105', 3 , N'Kết cấu bê tông cốt thép trong giao thông'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT106', 3 , N'Kỹ thuật cầu'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT107', 4 , N'Kỹ thuật đường bộ'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT108', 4 , N'Kỹ thuật hầm và công trình ngầm'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT109', 4 , N'Quản lý dự án giao thông'),
+(N'KỸ THUẬT GIAO THÔNG', 'GT110', 4 , N'Công nghệ thi công công trình giao thông');
+GO
+
+;WITH DanhSachXepHang AS (
+    SELECT 
+        MaMon,
+        TenMon,
+        KhoaPhuTrach,
+        -- Đánh số 1, 2, 3... cho các môn trong cùng 1 khoa, sắp xếp theo Mã Môn
+        ROW_NUMBER() OVER (PARTITION BY KhoaPhuTrach ORDER BY MaMon) as STT
+    FROM MonHoc
+)
+-- Insert dữ liệu dựa trên cặp STT đã định
+INSERT INTO MonTienQuyet (MaMon, MaMonTienQuyet)
+SELECT 
+    MonSau.MaMon,       -- Môn chính (Môn cần điều kiện)
+    MonTruoc.MaMon      -- Môn tiên quyết (Môn phải học trước)
+FROM DanhSachXepHang MonSau
+JOIN DanhSachXepHang MonTruoc 
+    ON MonSau.KhoaPhuTrach = MonTruoc.KhoaPhuTrach -- Bắt buộc cùng khoa (để qua mặt Trigger)
+WHERE 
+    -- QUY TẮC 3 CẶP MÔN:
+    (MonSau.STT = 3 AND MonTruoc.STT = 1)  -- Cặp 1: Môn thứ 3 cần Môn thứ 1
+    OR
+    (MonSau.STT = 5 AND MonTruoc.STT = 2)  -- Cặp 2: Môn thứ 5 cần Môn thứ 2
+    OR
+    (MonSau.STT = 7 AND MonTruoc.STT = 4)  -- Cặp 3: Môn thứ 7 cần Môn thứ 4
+;
+GO
+
+PRINT N'=== ĐÃ THÊM THÀNH CÔNG (MỖI KHOA 3 CẶP) ===';
+
+
+PRINT N'Đang thêm dữ liệu cho: 6 HocKy...';
+INSERT INTO HocKy (MaHocKy, NamHoc, NgayBatDau, NgayKetThuc, MoDangKy, DongDangKy) VALUES 
+('HK1_2425', '2024-2025', '2024-09-02', '2025-01-15', '2024-08-07', '2024-08-15'), 
+('HK2_2425', '2024-2025', '2025-01-16', '2025-06-02', '2024-12-23', '2024-12-30'), 
+('HK3_2425', '2024-2025', '2025-06-03', '2025-09-01', '2025-05-01', '2025-05-07'),
+
+('HK1_2526', '2025-2026', '2025-09-02', '2026-01-15', '2025-08-07', '2025-08-15'), 
+('HK2_2526', '2025-2026', '2026-01-16', '2026-06-02', '2025-12-23', '2025-12-30'),
+('HK3_2526', '2025-2026', '2026-06-03', '2026-09-01', '2026-05-01', '2026-05-07');
+GO
+
+----------------------------------------------------------------
+-- KHỐI 2: TÀI KHOẢN (Cho 5 Admin)
+----------------------------------------------------------------
+PRINT N'Đang thêm 5 tài khoản Admin mới...';
+INSERT INTO TaiKhoan (Email, MatKhau, VaiTro) VALUES
+('admin1@uis.edu.vn', 'pass123', N'Admin'),
+('admin2@uis.edu.vn', 'pass123', N'Admin'),
+('admin3@uis.edu.vn', 'pass123', N'Admin'),
+('admin4@uis.edu.vn', 'pass123', N'Admin'),
+('admin5@uis.edu.vn', 'pass123', N'Admin');
+GO
+
+----------------------------------------------------------------
+-- KHỐI 3: GIẢNG VIÊN (GV) VÀ SINH VIÊN (SV)
+----------------------------------------------------------------
+
+PRINT N'Bắt đầu quá trình tạo dữ liệu mẫu...';
+
+-- 1. CHUẨN BỊ DỮ LIỆU TÊN (Dùng chung cho cả SV và GV)
+DECLARE @Ho_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ho NVARCHAR(50));
+DECLARE @Lot_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Lot NVARCHAR(50));
+DECLARE @Ten_Pool TABLE (id INT IDENTITY(1,1) PRIMARY KEY, Ten NVARCHAR(50));
+
+INSERT INTO @Ho_Pool (Ho) VALUES (N'Nguyễn'), (N'Trần'), (N'Lê'), (N'Phạm'), (N'Hoàng'), (N'Vũ'), (N'Đặng'), (N'Bùi'), (N'Đỗ'), (N'Hồ'), (N'Ngô'), (N'Lý'),(N'Võ'),(N'Tạ'),(N'Đinh');
+INSERT INTO @Lot_Pool (Lot) VALUES (N'Văn'), (N'Thị'), (N'Minh'), (N'Đức'), (N'Bảo'), (N'Gia'), (N'Thùy'),(N'Thảo'),(N'Quốc'), (N'Tuấn'), (N'Ngọc'), (N'Quang'), (N'Thanh'), (N'Mỹ'), (N'Anh');
+INSERT INTO @Ten_Pool (Ten) VALUES (N'Anh'), (N'Bình'), (N'Cường'), (N'Dũng'), (N'Hương'), (N'Nguyên'), (N'Liên'), (N'Linh'), (N'Minh'), (N'Nam'), (N'Phúc'), (N'Quân'), (N'Tâm'), (N'Trang');
+
+----------------------------------------------------------------
+-- PHẦN 1: TẠO 8000 SINH VIÊN (SV0001 -> SV8000)
+----------------------------------------------------------------
+PRINT N'Đang tạo 8000 Sinh viên...';
+
+DECLARE @j INT = 1;
+DECLARE @TenKhoa NVARCHAR(100);
+DECLARE @HoTen_Moi NVARCHAR(150);
+DECLARE @Email_Moi VARCHAR(100);
+DECLARE @MSSV_Moi VARCHAR(20); -- Biến chứa mã số chuẩn
+DECLARE @SDT_Random VARCHAR(10);
+DECLARE @DiaChi_Random NVARCHAR(100);
+
+WHILE @j <= 8000
+BEGIN
+    -- A. Tạo MSSV chuẩn (Thêm số 0 vào trước)
+    SET @MSSV_Moi = 'SV' + RIGHT('0000' + CAST(@j AS VARCHAR(10)), 4);
+    SET @Email_Moi = @MSSV_Moi + '@uis.edu.vn';
+
+    -- B. Phân khoa
+    SET @TenKhoa = CASE
+        WHEN @j % 8 = 1 THEN N'ĐIỆN - ĐIỆN TỬ'
+        WHEN @j % 8 = 2 THEN N'KỸ THUẬT XÂY DỰNG'
+        WHEN @j % 8 = 3 THEN N'CƠ KHÍ'
+        WHEN @j % 8 = 4 THEN N'KỸ THUẬT HOÁ HỌC'
+        WHEN @j % 8 = 5 THEN N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH'
+        WHEN @j % 8 = 6 THEN N'CÔNG NGHỆ VẬT LIỆU'
+        WHEN @j % 8 = 7 THEN N'KHOA HỌC ỨNG DỤNG'
+        ELSE N'KỸ THUẬT GIAO THÔNG'
+    END;
+
+    -- C. Tạo Tên Ngẫu Nhiên
+    SELECT @HoTen_Moi = (H.Ho + N' ' + L.Lot + N' ' + T.Ten) 
+    FROM @Ho_Pool H, @Lot_Pool L, @Ten_Pool T 
+    WHERE H.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND L.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND T.id = ((ABS(CHECKSUM(NEWID())) % 14) + 1);
+
+    -- D. Tạo SDT & Địa chỉ
+    SET @SDT_Random = '0' + RIGHT('000000000' + CAST(ABS(CHECKSUM(NEWID())) AS VARCHAR(20)), 9);
+    SET @DiaChi_Random = N'Đường số ' + CAST((ABS(CHECKSUM(NEWID())) % 100) AS NVARCHAR(5)) + N', TP.HCM';
+
+    -- E. Insert vào TAI KHOAN trước
+    IF NOT EXISTS (SELECT 1 FROM TaiKhoan WHERE Email = @Email_Moi)
+    BEGIN
+        INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
+        VALUES (@Email_Moi, '123456', N'Sinh viên'); 
+    END
+
+    -- F. Insert vào SINH VIEN
+    IF NOT EXISTS (SELECT 1 FROM SinhVien WHERE MSSV = @MSSV_Moi)
+    BEGIN
+        INSERT INTO SinhVien (MSSV, Email, HoTen, GPA, Khoa, DiaChi, SDT)
+        VALUES (
+            @MSSV_Moi,
+            @Email_Moi,
+            @HoTen_Moi,
+            ROUND(RAND(CHECKSUM(NEWID())) * 1.5 + 2.5, 2), -- GPA random từ 2.5 -> 4.0
+            @TenKhoa,
+            @DiaChi_Random, 
+            @SDT_Random     
+        );
+    END
+
+    SET @j = @j + 1;
+END;
+
+----------------------------------------------------------------
+-- PHẦN 2: TẠO 80 GIẢNG VIÊN (GV0001 -> GV0080)
+----------------------------------------------------------------
+PRINT N'Đang tạo 80 Giảng viên...';
+
+DECLARE @k INT = 1;
+DECLARE @TenKhoaGV NVARCHAR(100);
+DECLARE @HoTenGV_Moi NVARCHAR(150);
+DECLARE @EmailGV_Moi VARCHAR(100);
+DECLARE @MSCB_Moi VARCHAR(20); -- Biến chứa mã số chuẩn
+DECLARE @SDTGV_Random VARCHAR(10);
+DECLARE @DiaChiGV_Random NVARCHAR(100);
+
+WHILE @k <= 80
+BEGIN
+    -- A. Tạo MSCB chuẩn (GV0001)
+    SET @MSCB_Moi = 'GV' + RIGHT('0000' + CAST(@k AS VARCHAR(10)), 4);
+    SET @EmailGV_Moi = @MSCB_Moi + '@uis.edu.vn';
+
+    -- B. Phân khoa
+    SET @TenKhoaGV = CASE 
+        WHEN @k % 8 = 1 THEN N'ĐIỆN - ĐIỆN TỬ'
+        WHEN @k % 8 = 2 THEN N'KỸ THUẬT XÂY DỰNG'
+        WHEN @k % 8 = 3 THEN N'CƠ KHÍ'
+        WHEN @k % 8 = 4 THEN N'KỸ THUẬT HOÁ HỌC'
+        WHEN @k % 8 = 5 THEN N'KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH'
+        WHEN @k % 8 = 6 THEN N'CÔNG NGHỆ VẬT LIỆU'
+        WHEN @k % 8 = 7 THEN N'KHOA HỌC ỨNG DỤNG'
+        ELSE N'KỸ THUẬT GIAO THÔNG' 
+    END;
+
+    -- C. Tạo Tên
+    SELECT @HoTenGV_Moi = (H.Ho + N' ' + L.Lot + N' ' + T.Ten) 
+    FROM @Ho_Pool H, @Lot_Pool L, @Ten_Pool T 
+    WHERE H.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND L.id = ((ABS(CHECKSUM(NEWID())) % 15) + 1)
+      AND T.id = ((ABS(CHECKSUM(NEWID())) % 14) + 1);
+
+    -- D. Tạo thông tin phụ
+    SET @SDTGV_Random = '0' + RIGHT('000000000' + CAST(ABS(CHECKSUM(NEWID())) AS VARCHAR(20)), 9);
+    SET @DiaChiGV_Random = N'Quận ' + CAST((ABS(CHECKSUM(NEWID())) % 12) + 1 AS NVARCHAR(5)) + N', TP.HCM';
+
+    -- E. Insert TAI KHOAN
+    IF NOT EXISTS (SELECT 1 FROM TaiKhoan WHERE Email = @EmailGV_Moi)
+    BEGIN
+        INSERT INTO TaiKhoan (Email, MatKhau, VaiTro)
+        VALUES (@EmailGV_Moi, 'password123', N'Giảng viên'); 
+    END
+
+    -- F. Insert GIANG VIEN
+    IF NOT EXISTS (SELECT 1 FROM GiangVien WHERE MSCB = @MSCB_Moi)
+    BEGIN
+        INSERT INTO GiangVien (MSCB, Email, HoTen, Khoa, DiaChi, SDT)
+        VALUES (
+            @MSCB_Moi,
+            @EmailGV_Moi,
+            @HoTenGV_Moi,
+            @TenKhoaGV,
+            @DiaChiGV_Random,
+            @SDTGV_Random
+        );
+    END
+
+    SET @k = @k + 1;
+END;
+GO
+
+----------------------------------------------------------------
+-- KHỐI 4: CẤU TRÚC ĐIỂM
+----------------------------------------------------------------
+
+PRINT N'=== BẮT ĐẦU TẠO CẤU TRÚC ĐIỂM ===';
+
+-- 1. Khai báo biến
+DECLARE @MaMonCur VARCHAR(10);
+DECLARE @RandomType INT;
+
+-- 2. Khai báo Cursor để duyệt qua danh sách môn học
+DECLARE cur_MonHoc CURSOR FOR 
+SELECT MaMon FROM MonHoc;
+
+-- 3. Mở Cursor
+OPEN cur_MonHoc;
+
+-- 4. Đọc dòng đầu tiên
+FETCH NEXT FROM cur_MonHoc INTO @MaMonCur;
+
+-- 5. Vòng lặp
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Random kiểu cấu trúc (0, 1 hoặc 2)
+    SET @RandomType = ABS(CHECKSUM(NEWID())) % 3;
+
+    -- KIỂU 1: 
+    IF @RandomType = 0
+    BEGIN
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
+        VALUES 
+        (@MaMonCur + '_GK', N'Giữa kì', 20, @MaMonCur, 1), -- Set TrangThai = 1
+        (@MaMonCur + '_CK', N'Cuối kì', 50, @MaMonCur, 1),
+        (@MaMonCur + '_TN', N'Thí nghiệm', 30, @MaMonCur, 1);
+    END
+
+    -- KIỂU 2:
+    ELSE IF @RandomType = 1
+    BEGIN
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
+        VALUES 
+        (@MaMonCur + '_BTL', N'BTL', 20, @MaMonCur, 1),
+        (@MaMonCur + '_Q', N'Quiz', 10, @MaMonCur, 1),
+        (@MaMonCur + '_GK',  N'Giữa kì', 20, @MaMonCur, 1),
+        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur, 1);
+    END
+
+    -- KIỂU 3: 
+    ELSE 
+    BEGIN
+        INSERT INTO CauTrucDiem (MaThanhPhan, ThanhPhanDiem, TyTrong, MaMon, TrangThai)
+        VALUES 
+        (@MaMonCur + '_Q',   N'Quiz', 20, @MaMonCur, 1),
+        (@MaMonCur + '_BTL',  N'BTL', 30, @MaMonCur, 1),
+        (@MaMonCur + '_CK',  N'Cuối kì', 50, @MaMonCur, 1);
+    END
+
+    -- Đọc dòng tiếp theo
+    FETCH NEXT FROM cur_MonHoc INTO @MaMonCur;
+END
+
+-- 6. Đóng và hủy Cursor
+CLOSE cur_MonHoc;
+DEALLOCATE cur_MonHoc;
+
+PRINT N'=== HOÀN TẤT INSERT CẤU TRÚC ĐIỂM ===';
+GO
+
+-- ============================================================
+-- TẠO 300 LỚP HỌC CHO 80 MÔN (DÙNG BIẾN BẢNG & LOOP)
+-- ============================================================
+PRINT N'=== ĐANG TẠO 300 LỚP HỌC (RANDOM SĨ SỐ & GV) ===';
+
+-- 1. Lưu danh sách 80 môn vừa tạo vào bảng tạm
+DECLARE @DsMonHoc TABLE (
+    ID INT IDENTITY(1,1), 
+    MaMon VARCHAR(10),
+    KhoaPhuTrach NVARCHAR(100)
+);
+
+INSERT INTO @DsMonHoc (MaMon, KhoaPhuTrach) 
+SELECT MaMon, KhoaPhuTrach FROM MonHoc;
+
+DECLARE @i INT = 1;         
+DECLARE @SoMon INT = 80;    
+DECLARE @MaMonCur VARCHAR(10);
+DECLARE @KhoaCur NVARCHAR(100); 
+DECLARE @SoLopCanMo INT;    
+DECLARE @j INT;             
+DECLARE @MaLopHocTao VARCHAR(10);
+DECLARE @SiSoRandom INT;
+DECLARE @MSCBRandom VARCHAR(10);
+
+-- 3. Vòng lặp duyệt qua từng môn học
+WHILE @i <= @SoMon
+BEGIN
+    -- Lấy mã môn hiện tại
+    SELECT @MaMonCur = MaMon, @KhoaCur = KhoaPhuTrach 
+    FROM @DsMonHoc 
+    WHERE ID = @i;
+
+    IF @i <= 60 
+        SET @SoLopCanMo = 4;
+    ELSE 
+        SET @SoLopCanMo = 3;
+
+    -- Vòng lặp tạo lớp cho môn này
+    SET @j = 1;
+    WHILE @j <= @SoLopCanMo
+    BEGIN
+        -- Tạo Mã Lớp: 
+        SET @MaLopHocTao = 'L' + RIGHT('00' + CAST(@j AS VARCHAR(2)), 2);
+
+        -- Random Sĩ số tối đa (Từ 40 đến 80)
+        SET @SiSoRandom = ABS(CHECKSUM(NEWID())) % (80 - 40 + 1) + 40;
+        
+        SET @MSCBRandom = NULL; -- Reset biến trước khi tìm
+
+        SELECT TOP 1 @MSCBRandom = MSCB 
+        FROM GiangVien 
+        WHERE Khoa = @KhoaCur -- Điều kiện lọc theo khoa
+        ORDER BY NEWID();     -- Lấy ngẫu nhiên trong khoa đó
+
+        -- Thực hiện Insert
+        INSERT INTO LopHoc (SiSoToiDa, SiSoHienTai, MaLopHoc, MaHocKy, MaMonHoc, MSCB)
+        VALUES (
+            @SiSoRandom,   -- Sĩ số ngẫu nhiên
+            0,             -- Sĩ số hiện tại mặc định 0
+            @MaLopHocTao,  -- L01, L02...
+            'HK1_2526',    -- Học kỳ cố định
+            @MaMonCur,     -- Mã môn đang duyệt
+            @MSCBRandom    -- GV ngẫu nhiên 
+        );
+
+        SET @j = @j + 1;
+    END
+
+    SET @i = @i + 1;
+END
+
+PRINT N'=== HOÀN TẤT: ĐÃ THÊM ĐỦ 300 LỚP HỌC CHO 80 MÔN ===';
+GO
+
+PRINT N'=== BẮT ĐẦU XẾP LỊCH HỌC TỰ ĐỘNG CHO 300 LỚP ===';
+
+-- 1. Lấy danh sách các lớp cần xếp lịch trong HK1_2526
+-- Kèm theo thông tin Tòa nhà (Địa chỉ Khoa) để xếp phòng cho đúng
+DECLARE @LopCanXep TABLE (
+    STT INT IDENTITY(1,1),
+    MaLop VARCHAR(10),
+    MaMon VARCHAR(10),
+    ToaNha VARCHAR(10) -- Ví dụ: B1, C1, D5...
+);
+
+INSERT INTO @LopCanXep (MaLop, MaMon, ToaNha)
+SELECT L.MaLopHoc, L.MaMonHoc, K.DiaChi
+FROM LopHoc L
+JOIN MonHoc M ON L.MaMonHoc = M.MaMon
+JOIN Khoa K ON M.KhoaPhuTrach = K.TenKhoa
+WHERE L.MaHocKy = 'HK1_2526';
+
+-- 2. Khai báo biến
+DECLARE @i INT = 1;
+DECLARE @TongSoLop INT = (SELECT COUNT(*) FROM @LopCanXep);
+DECLARE @MaLopCur VARCHAR(10);
+DECLARE @MaMonCur VARCHAR(10);
+DECLARE @ToaNhaCur VARCHAR(10);
+
+-- Biến Random
+DECLARE @ThuRandom INT;
+DECLARE @CaHocRandom INT; -- 1: Sáng sớm, 2: Sáng muộn, 3: Chiều sớm, 4: Chiều muộn
+DECLARE @TietBD INT;
+DECLARE @TietKT INT;
+DECLARE @PhongRandom VARCHAR(10);
+DECLARE @DaXepDuoc BIT;
+DECLARE @SoLanThu INT;
+
+-- 3. Vòng lặp duyệt từng lớp
+WHILE @i <= @TongSoLop
+BEGIN
+    SELECT 
+        @MaLopCur = MaLop, 
+        @MaMonCur = MaMon, 
+        @ToaNhaCur = ToaNha 
+    FROM @LopCanXep WHERE STT = @i;
+
+    SET @DaXepDuoc = 0;
+    SET @SoLanThu = 0;
+
+    -- Vòng lặp thử (Retry) cho đến khi tìm được giờ/phòng trống (tránh trùng lặp)
+    WHILE @DaXepDuoc = 0 AND @SoLanThu < 50 -- Thử tối đa 50 lần, ko được thì bỏ qua
+    BEGIN
+        -- A. Random Thứ (2 đến 7)
+        SET @ThuRandom = (ABS(CHECKSUM(NEWID())) % 6) + 2;
+
+        -- B. Random Ca học (4 ca)
+        SET @CaHocRandom = (ABS(CHECKSUM(NEWID())) % 4) + 1;
+        
+        IF @CaHocRandom = 1      BEGIN SET @TietBD = 1; SET @TietKT = 3; END
+        ELSE IF @CaHocRandom = 2 BEGIN SET @TietBD = 4; SET @TietKT = 6; END
+        ELSE IF @CaHocRandom = 3 BEGIN SET @TietBD = 7; SET @TietKT = 9; END
+        ELSE                     BEGIN SET @TietBD = 10; SET @TietKT = 12; END
+
+        -- C. Random Phòng học theo quy tắc: Tòa Nhà + Số phòng (101 -> 505)
+        -- Ví dụ: Tòa B1 -> Random B1-101, B1-203...
+        SET @PhongRandom = @ToaNhaCur + '-' + 
+                           CAST((ABS(CHECKSUM(NEWID())) % 5) + 1 AS VARCHAR(1)) + -- Tầng (1-5)
+                           RIGHT('0' + CAST((ABS(CHECKSUM(NEWID())) % 9) + 1 AS VARCHAR(2)), 2); -- Phòng (01-09)
+
+        -- D. Kiểm tra thử xem có trùng lịch trong DB không (Giả lập trigger check)
+        IF NOT EXISTS (
+            SELECT 1 FROM LichHoc 
+            WHERE PhongHoc = @PhongRandom 
+              AND Thu = @ThuRandom 
+              AND MaHocKy = 'HK1_2526'
+              AND (
+                  (@TietBD BETWEEN TietBatDau AND TietKetThuc) OR 
+                  (@TietKT BETWEEN TietBatDau AND TietKetThuc)
+              )
+        )
+        BEGIN
+            -- Nếu không trùng -> Insert thật
+            BEGIN TRY
+                INSERT INTO LichHoc (TuanBatDau, TuanKetThuc, TietBatDau, TietKetThuc, Thu, PhongHoc, MaLopHoc, MaHocKy, MaMon)
+                VALUES (
+                    1, 15,            -- Học từ tuần 1 đến 15
+                    @TietBD, @TietKT, -- Tiết vừa random
+                    @ThuRandom,       -- Thứ vừa random
+                    @PhongRandom,     -- Phòng vừa ghép
+                    @MaLopCur,
+                    'HK1_2526',
+                    @MaMonCur
+                );
+                SET @DaXepDuoc = 1; -- Đánh dấu thành công để thoát vòng lặp retry
+            END TRY
+            BEGIN CATCH
+                -- Nếu vẫn lỗi (do trigger hoặc gì đó) thì thử lại
+                SET @DaXepDuoc = 0;
+            END CATCH
+        END
+
+        SET @SoLanThu = @SoLanThu + 1;
+    END
+
+    SET @i = @i + 1;
+END;
+GO
+
+PRINT N'=== HOÀN TẤT XẾP LỊCH ===';
+
+SET NOCOUNT ON; -- Tắt thông báo "1 row affected" để chạy nhanh hơn
+
+PRINT N'=== BẮT ĐẦU QUÁ TRÌNH ĐĂNG KÝ HỌC PHẦN TỰ ĐỘNG CHO 8000 SV ===';
+PRINT N'=== (Lưu ý: Quá trình này sẽ kiểm tra Trigger Trùng Lịch và Sĩ Số) ===';
+
+-- 1. Lấy danh sách 8000 Sinh viên vào bảng tạm để duyệt
+DECLARE @DsSinhVien TABLE (
+    STT INT IDENTITY(1,1) PRIMARY KEY, 
+    MSSV VARCHAR(10)
+);
+INSERT INTO @DsSinhVien (MSSV) SELECT MSSV FROM SinhVien;
+
+-- 2. Khai báo biến
+DECLARE @i INT = 1;
+DECLARE @TongSV INT = (SELECT COUNT(*) FROM @DsSinhVien);
+DECLARE @MSSVCur VARCHAR(10);
+DECLARE @SoMonMuonHoc INT;
+DECLARE @DemMonDaDK INT;
+DECLARE @MaLopRandom VARCHAR(10);
+DECLARE @MaMonRandom VARCHAR(10);
+DECLARE @SoLanThu INT; -- Tránh vòng lặp vô tận nếu hết lớp
+
+-- 3. Vòng lặp duyệt qua từng Sinh viên
+WHILE @i <= @TongSV
+BEGIN
+    -- Lấy MSSV hiện tại
+    SELECT @MSSVCur = MSSV FROM @DsSinhVien WHERE STT = @i;
+
+    -- Random số môn sinh viên này muốn học (Từ 2 đến 4 môn)
+    -- Do chỉ có 300 lớp cho 8000 SV nên trung bình mỗi bạn chỉ được khoảng 2.5 môn
+    SET @SoMonMuonHoc = (ABS(CHECKSUM(NEWID())) % 3) + 2; 
+    
+    SET @DemMonDaDK = 0;
+    SET @SoLanThu = 0;
+
+    -- Vòng lặp đăng ký từng môn cho SV đó
+    WHILE @DemMonDaDK < @SoMonMuonHoc AND @SoLanThu < 10 -- Thử tối đa 10 lần tìm lớp
+    BEGIN
+        SET @MaLopRandom = NULL;
+        SET @MaMonRandom = NULL;
+
+        SELECT TOP 1 
+            @MaLopRandom = L.MaLopHoc,
+            @MaMonRandom = L.MaMonHoc
+        FROM LopHoc L
+        WHERE L.MaHocKy = 'HK1_2526'
+          AND L.SiSoHienTai < L.SiSoToiDa -- Lớp phải còn chỗ
+          AND NOT EXISTS ( --  SV chưa học môn này
+              SELECT 1 FROM DangKy DK 
+              WHERE DK.MSSV = @MSSVCur 
+                AND DK.MaHocKy = 'HK1_2526' 
+                AND DK.MaMon = L.MaMonHoc
+                AND DK.TrangThai = N'Đã đăng ký'
+          )
+        ORDER BY NEWID(); -- Random
+
+        -- Nếu tìm được lớp hợp lệ 
+        IF @MaLopRandom IS NOT NULL
+        BEGIN
+            BEGIN TRY
+                -- Cố gắng Insert
+                -- Tại đây Trigger Trùng Lịch (trg_CheckTrungLichHoc) sẽ hoạt động
+                INSERT INTO DangKy (MSSV, MaLopHoc, MaMon, MaHocKy, TrangThai)
+                VALUES (@MSSVCur, @MaLopRandom, @MaMonRandom, 'HK1_2526', N'Đã đăng ký');
+
+                -- Nếu thành công (không bị Trigger Rollback)
+                SET @DemMonDaDK = @DemMonDaDK + 1;
+            END TRY
+            BEGIN CATCH
+                -- Nếu lỗi (do Trùng lịch hoặc Lớp vừa bị đầy tức thì)
+                -- Không làm gì cả, vòng lặp sẽ quay lại tìm lớp khác
+            END CATCH
+        END
+
+        SET @SoLanThu = @SoLanThu + 1;
+    END
+
+    -- In tiến độ mỗi 500 sinh viên
+    IF @i % 500 = 0
+        PRINT N'-> Đã xử lý xong sinh viên thứ: ' + CAST(@i AS NVARCHAR(10));
+
+    SET @i = @i + 1;
+END;
+GO
+
+PRINT N'=== HOÀN TẤT ĐĂNG KÝ ===';
+
+-- 2. Thực hiện Insert hàng loạt (Bulk Insert)
+INSERT INTO ChiTietDiem (MaDiem, MSSV, MaLopHoc, MaMon, MaHocKy, MaCauTruc, Diem)
+SELECT 
+    -- Tạo Mã Điểm duy nhất: MSSV + Mã Thành Phần (VD: SV001_DT101_GK)
+    DK.MSSV + '_' + CT.MaThanhPhan AS MaDiem,
+    
+    DK.MSSV,
+    DK.MaLopHoc,
+    DK.MaMon,
+    DK.MaHocKy,
+    CT.MaCauTruc,
+    
+
+    CAST((ABS(CHECKSUM(NEWID())) % 81) / 10.0 + 2.0 AS DECIMAL(4,2)) AS Diem
+
+FROM DangKy DK
+-- Kết nối Đăng ký với Cấu trúc điểm thông qua Mã Môn
+JOIN CauTrucDiem CT ON DK.MaMon = CT.MaMon AND CT.TrangThai = 1
+
+WHERE 
+    DK.MaHocKy = 'HK1_2526' 
+    AND DK.TrangThai = N'Đã đăng ký'; -- Chỉ nhập điểm cho ai đã đăng ký thành công
+
+-- 3. Thông báo kết quả
+DECLARE @SoDong INT = @@ROWCOUNT;
+PRINT N'-> Đã nhập thành công ' + CAST(@SoDong AS NVARCHAR(20)) + N' đầu điểm chi tiết!';
+GO
+
+-- 2. Insert tailieu
+INSERT INTO TaiLieu (MaTaiLieu, MSCB, TenFile, DuLieuFile, LoaiFile, NgayTaiLen, MaLopHoc, MaMon, MaHocKy)
+SELECT 
+    -- Mã tài liệu
+    'TL' + RIGHT('00000' + CAST(ROW_NUMBER() OVER(ORDER BY LH.MaLopHoc, So.N) AS VARCHAR(10)), 5),
+
+    -- Người đăng (Giảng viên của lớp)
+    ISNULL(LH.MSCB, (SELECT TOP 1 MSCB FROM GiangVien)), 
+
+    -- Tên file
+    N'GiaoTrinh_' + MH.MaMon + N'_Phan' + CAST(So.N AS NVARCHAR(2)) + N'.pdf',
+
+    -- [QUAN TRỌNG] Giả lập dữ liệu file PDF bằng cách chuyển chuỗi sang nhị phân
+    -- Thực tế sau này code web sẽ ném file thật vào đây
+    CAST(N'Đây là nội dung giả lập của file PDF môn ' + MH.TenMon AS VARBINARY(MAX)),
+
+    -- Loại file
+    '.pdf',
+
+    -- Ngày đăng
+    DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 30), CAST(GETDATE() AS DATE)),
+
+    -- Thông tin lớp
+    LH.MaLopHoc,
+    LH.MaMonHoc,
+    LH.MaHocKy
+
+FROM LopHoc LH
+JOIN MonHoc MH ON LH.MaMonHoc = MH.MaMon
+CROSS JOIN (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10)) AS So(N)
+WHERE LH.MaHocKy = 'HK1_2526';
+
+PRINT N'-> Đã Fake thành công dữ liệu nhị phân!';
+GO
+
+-- 3. Thông báo
+DECLARE @Count INT = @@ROWCOUNT;
+PRINT N'-> Đã upload thành công ' + CAST(@Count AS NVARCHAR(10)) + N' tài liệu!';
+GO

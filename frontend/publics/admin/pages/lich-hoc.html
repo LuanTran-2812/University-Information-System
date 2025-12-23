@@ -1,113 +1,174 @@
-<div class="schedule-page-container">
-    <div class="page-header">
-        <div class="header-left-group">
-            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">calendar_month</span>
-            <h2 style="margin-right: 20px;">Lịch học</h2>
-            
-            <div class="semester-select-wrapper">
-                <select id="semester-filter" class="semester-dropdown">
-                    <option value="">Đang tải học kỳ...</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
-            </div>
-            <button class="btn-white">Lọc <span class="material-symbols-outlined">filter_list</span></button>
-            <button class="btn-blue btn-add-schedule">+ Thêm</button>
-            <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
-        </div>
-    </div>
-
-    <div class="table-wrapper">
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox"></th>
-                    <th>Mã lớp</th>
-                    <th>Tên môn</th>
-                    <th>Tên giảng viên</th>
-                    <th>Phòng học</th>
-                    <th>Thứ</th>
-                    <th>Tiết</th>
-                    <th>Tuần học</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="schedule-table-body"></tbody>
-        </table>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách lịch học</h2>
     </div>
     
-    <div class="pagination"></div>
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input id="schedule-search-input" type="text" placeholder="Tìm kiếm">
+        </div>
+
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-schedule-filter" onclick="toggleScheduleFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="schedule-filter-popup" id="schedule-filter-popup">
+                <div class="schedule-filter-arrow"></div>
+                
+                <div class="schedule-filter-body">
+                    <div class="schedule-filter-row">
+                        <div class="schedule-filter-item">
+                            <label>Giảng viên</label>
+                            <select class="schedule-filter-select" id="schedule-filter-lecturer">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+
+                        <div class="schedule-filter-item">
+                            <label>Thứ</label>
+                            <select class="schedule-filter-select" id="schedule-filter-thu">
+                                <option value="">Tất cả</option>
+                                <option value="2">Thứ 2</option>
+                                <option value="3">Thứ 3</option>
+                                <option value="4">Thứ 4</option>
+                                <option value="5">Thứ 5</option>
+                                <option value="6">Thứ 6</option>
+                                <option value="7">Thứ 7</option>
+                                <option value="8">Chủ nhật</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="schedule-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeScheduleFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applyScheduleFilter()">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-blue btn-add-schedule"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
+        <button class="btn-icon-delete-schedule"><span class="material-symbols-outlined">delete</span></button>
+    </div>
 </div>
 
+<div class="table-wrapper">
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAllCheckbox"></th>
+                <th>Mã lớp</th>
+                <th>Tên môn</th>
+                <th>Tên giảng viên</th>
+                <th>Phòng học</th>
+                <th>Thứ</th>
+                <th>Tiết</th>
+                <th>Tuần học</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="schedule-table-body"></tbody>
+    </table>
+</div>
+    
+<div class="pagination"></div>
+
 <div id="schedule-modal" class="modal-overlay">
-    <div class="modal-content" style="width: 800px;">
-        <div class="modal-header">
-            <h3>Thêm lịch học</h3>
+    <div class="modal-content" style="width: 1200px; max-width: 95vw;">
+        <div class="modal-header modal-centered-title">
+            <span class="modal-spacer"></span> <h3>Thêm lịch học</h3>
             <span class="material-symbols-outlined close-btn" onclick="closeScheduleModal()">close</span>
         </div>
+        
         <form id="modal-add-schedule-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Mã lớp - Mã môn <span class="required">*</span></label>
-                    <select id="scheduleClassSelect" class="full-width-select" required>
-                        <option value="">-- Chọn Lớp --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tên giảng viên</label>
-                    <input type="text" id="scheduleGVName" disabled style="background: #f0f0f0;">
-                </div>
+            <div class="schedule-modal-layout">
+                
+                <div class="schedule-left-panel">
+                    <div class="schedule-form-grid">
+                        <div class="form-group col-span-4">
+                            <label>Mã lớp - Mã môn <span class="required">*</span></label>
+                            <select id="scheduleClassSelect" class="full-width-select" required>
+                                <option value="">-- Chọn Lớp --</option>
+                            </select>
+                        </div>
 
-                <div class="form-group full-width">
-                    <label>Tên môn</label>
-                    <input type="text" id="scheduleMonName" disabled style="background: #f0f0f0;">
-                </div>
+                        <div class="form-group col-span-2">
+                            <label>Tên giảng viên</label>
+                            <input type="text" id="scheduleGVName" disabled style="background: #f0f0f0;">
+                        </div>
 
-                <div class="form-group">
-                    <label>Phòng học <span class="required">*</span></label>
-                    <input type="text" id="schedulePhong" placeholder="H6-101" required>
-                </div>
-                <div class="form-group">
-                    <label>Thứ <span class="required">*</span></label>
-                    <select id="scheduleThu" class="full-width-select">
-                        <option value="2">Thứ 2</option>
-                        <option value="3">Thứ 3</option>
-                        <option value="4">Thứ 4</option>
-                        <option value="5">Thứ 5</option>
-                        <option value="6">Thứ 6</option>
-                        <option value="7">Thứ 7</option>
-                        <option value="8">Chủ nhật</option>
-                    </select>
-                </div>
-                <div class="form-group full-width">
-                    <label>Tiết học (Bắt đầu - Kết thúc) <span class="required">*</span></label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="number" id="scheduleTietBD" placeholder="Ví dụ: 1" min="1" max="12" required style="width: 100%;">
-                        <span>➝</span>
-                        <input type="number" id="scheduleTietKT" placeholder="Ví dụ: 3" min="1" max="12" required style="width: 100%;">
+                        <div class="form-group col-span-6">
+                            <label>Tên môn</label>
+                            <input type="text" id="scheduleMonName" disabled style="background: #f0f0f0;">
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label>Thứ <span class="required">*</span></label>
+                            <select id="scheduleThu" class="full-width-select">
+                                <option value="2">Thứ 2</option>
+                                <option value="3">Thứ 3</option>
+                                <option value="4">Thứ 4</option>
+                                <option value="5">Thứ 5</option>
+                                <option value="6">Thứ 6</option>
+                                <option value="7">Thứ 7</option>
+                                <option value="8">Chủ nhật</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tiết bắt đầu <span class="required">*</span></label>
+                            <input type="text" id="scheduleTietBD" placeholder="1" required>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tiết kết thúc <span class="required">*</span></label>
+                            <input type="text" id="scheduleTietKT" placeholder="3" required>
+                        </div>
+
+                        <div class="form-group col-span-2">
+                            <label>Phòng học <span class="required">*</span></label>
+                            <input type="text" id="schedulePhong" placeholder="H6-101" required>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tuần bắt đầu</label>
+                            <select id="scheduleTuanBD" class="full-width-select">
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label>Tuần kết thúc</label>
+                            <select id="scheduleTuanKT" class="full-width-select">
+                                <option value="15" selected>15</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Tuần học bắt đầu</label>
-                    <select id="scheduleTuanBD" class="full-width-select">
-                        <option value="1">1</option>
-                        </select>
-                </div>
-                <div class="form-group">
-                    <label>Tuần học kết thúc</label>
-                    <select id="scheduleTuanKT" class="full-width-select">
-                        <option value="15" selected>15</option>
-                    </select>
+                <div class="schedule-right-panel" id="teacher-schedule-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600; color: #333;">Lịch dạy của Giảng viên</label>
+                    </div>
+
+                    <div class="table-wrapper" style="height: 345px; overflow-y: auto;">
+                        <table class="schedule-preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Lớp - Môn</th> 
+                                    <th>Thứ</th>
+                                    <th>Tiết</th>
+                                    <th>Tuần</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacher-schedule-tbody">
+                                <tr><td colspan="4" style="text-align:center; color: #999; padding: 20px;">Vui lòng chọn lớp để xem</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
             <div class="modal-footer">
-                <button type="submit" class="btn-save-orange">Save</button>
+                <button type="submit" class="btn-save-orange">Lưu</button>
             </div>
         </form>
     </div>

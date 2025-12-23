@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const contactRouter = require('./contact');
 const authRouter = require('./auth');
 const dashboardRouter = require('./dashboard');
 const userRouter = require('./users'); 
@@ -12,6 +13,7 @@ const materialRouter = require('./materials');
 const gradeRouter = require('./grades');
 const registrationRouter = require('./registration');
 
+router.use('/contact', contactRouter);
 router.use('/auth', authRouter);
 router.use('/dashboard', dashboardRouter);
 router.use('/users', userRouter);      

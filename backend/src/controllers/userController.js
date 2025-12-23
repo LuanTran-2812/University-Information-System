@@ -3,7 +3,10 @@ const userService = require('../services/userService');
 //  Hàm lấy danh sách sinh viên
 const getStudents = async (req, res, next) => {
   try {
-    const students = await userService.getAllStudents();
+    // loc tùy chọn , giảng viên , vai trò 
+    const { q, faculty, role } = req.query;
+    const filters = { q, faculty, role };
+    const students = await userService.getAllStudents(filters);
     res.json({
       success: true,
       data: students
@@ -29,10 +32,12 @@ const getFaculties = async (req, res, next) => {
 //  Hàm tạo người dùng mới
 const createUser = async (req, res, next) => {
   try {
-    await userService.createUser(req.body);
+    const result = await userService.createUser(req.body);
     res.json({ 
       success: true, 
-      message: 'Thêm thành công!' 
+      message: result.message || 'Thêm thành công!',
+      NewCode: result.newCode, // Service trả về newCode, Controller trả về NewCode cho Frontend
+      NewEmail: result.newEmail
     });
   } catch (err) {
     // Trả về lỗi 400 để frontend biết
@@ -75,6 +80,23 @@ const updateProfile = async (req, res, next) => {
     const { email } = req.body; // Lấy email từ body gửi lên
     await userService.updateUserProfile(email, req.body);
     res.json({ success: true, message: 'Cập nhật hồ sơ thành công!' });
+    }
+};
+  
+const deleteMultipleUsers = async (req, res, next) => {
+  try {
+    const { emails } = req.body; // Array of email addresses
+    
+    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+      return res.status(400).json({ success: false, message: 'Danh sách email không hợp lệ' });
+    }
+
+    const deletedCount = await userService.deleteMultipleUsers(emails);
+    res.json({ 
+      success: true, 
+      message: `Đã xóa thành công ${deletedCount} người dùng`,
+      deletedCount 
+    });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -86,4 +108,7 @@ module.exports = {
   getFaculties, 
   getUserDetail, 
   deleteUser, 
-  updateProfile };
+  updateProfile,
+  deleteMultipleUsers
+};
+

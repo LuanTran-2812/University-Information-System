@@ -1,80 +1,76 @@
-<div class="user-detail-container">
-    <h2 class="page-title">
-        Chi tiết người dùng 
-        <span class="material-symbols-outlined" style="color: #007bff;">person_edit</span>
-    </h2>
-    
-    <div class="detail-layout">
-        <div class="left-column">
-            <h3 class="section-title">Thông tin cơ bản</h3>
-            
-            <form id="update-user-form" class="detail-form">
-                <input type="hidden" id="original-email">
+<h2 class="page-title">Chi tiết người dùng</h2>
 
-                <div class="form-group">
-                    <label>Họ và Tên</label>
-                    <div class="input-box">
-                        <input type="text" id="detail-fullname" readonly class="readonly-input">
-                        <span class="char-counter">0/80</span>
-                    </div>
+<div class="form-layout">
+    <form id="detail-user-form" class="detail-form">
+        
+        <div class="form-row two-cols">
+            <div class="form-group">
+                <label>01. Họ và tên</label>
+                <div class="input-wrapper readonly-wrapper">
+                    <input type="text" id="detail-fullname" value="Đang tải..." readonly>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Tên thay thế</label>
-                    <div class="input-box">
-                        <input type="text" id="detail-alt-name" placeholder="Nhập họ tên mới">
-                        <span class="char-counter">0/120</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Vai trò</label>
-                    <div class="input-box">
-                        <select id="detail-role" disabled class="readonly-input no-arrow">
-                            <option value="Sinh viên">Sinh viên</option>
-                            <option value="Giảng viên">Giảng viên</option>
-                            <option value="Admin">Admin</option>
-                        </select>
-                        <span class="material-symbols-outlined dropdown-icon">expand_more</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-box">
-                        <input type="email" id="detail-email" readonly class="readonly-input">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Số điện thoại</label>
-                    <div class="input-box">
-                        <input type="text" id="detail-phone">
-                        <span class="char-counter">0/12</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Khoa</label>
-                    <div class="input-box">
-                        <input type="text" id="detail-khoa" readonly class="readonly-input">
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn-save-orange">Save</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="right-column">
-            <div class="avatar-wrapper">
-                <img src="../img/image 10.png" alt="User Avatar" id="detail-avatar">
-                <div class="avatar-actions">
-                    <button class="btn-outline">Thay đổi ảnh</button>
-                    <button class="btn-outline">Đổi mật khẩu</button>
+            <div class="form-group">
+                <label>02. Email</label>
+                <div class="input-wrapper readonly-wrapper">
+                    <input type="email" id="detail-email" value="loading..." readonly>
                 </div>
             </div>
         </div>
-    </div>
+
+        <div class="form-row three-cols">
+            <div class="form-group">
+                <label>03. Mã số (MSSV/MSCB)</label>
+                <div class="input-wrapper readonly-wrapper">
+                    <input type="text" id="detail-id" value="" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>04. Mật khẩu</label>
+                <div class="input-wrapper readonly-wrapper">
+                    <input type="text" id="detail-password" value="******" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>05. Số điện thoại</label>
+                <div class="input-wrapper readonly-wrapper">
+                    <input type="text" id="detail-phone" value="" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>06. Khoa / Viện</label>
+            <div class="input-wrapper readonly-wrapper">
+                <select id="detail-faculty" disabled>
+                    <option value="">-- Đang tải dữ liệu --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>07. Địa chỉ</label>
+            <div class="input-wrapper readonly-wrapper">
+                <input type="text" id="detail-address" value="" placeholder="Chưa cập nhật" readonly>
+            </div>
+        </div>
+
+        <div class="role-selection">
+            <label class="radio-container">
+                <input type="radio" name="role" value="Giảng viên" disabled>
+                <span class="checkmark"></span> Giảng viên
+            </label>
+            <label class="radio-container">
+                <input type="radio" name="role" value="Sinh viên" disabled>
+                <span class="checkmark"></span> Sinh viên
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" id="btn-back-user-list" class="btn-save-orange">Quay lại</button>
+        </div>
+    </form>
 </div>

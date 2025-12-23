@@ -1,55 +1,76 @@
-<div class="user-page-container">
-    <div class="page-header">
-        <div class="header-title">
-            <span class="material-symbols-outlined icon-users">group</span>
-            <h2>Danh sách người dùng</h2>
-        </div>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách người dùng</h2>
+    </div>
 
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input id="user-search-input" type="text" placeholder="Tìm kiếm">
+        </div>
+        
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-user-filter" onclick="toggleUserFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="user-filter-popup" id="user-filter-popup">
+                <div class="user-filter-arrow"></div>
+                
+                <div class="user-filter-body">
+                    <div class="user-filter-row">
+                        <div class="user-filter-item">
+                            <label>Khoa / Bộ môn</label>
+                            <select class="user-filter-select" id="user-filter-khoa">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+
+                        <div class="user-filter-item">
+                            <label>Vai trò</label>
+                            <select class="user-filter-select" id="user-filter-vaitro">
+                                <option value="">Tất cả</option>
+                                <option value="Sinh viên">Sinh viên</option>
+                                <option value="Giảng viên">Giảng viên</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="user-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeUserFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applyUserFilter()">Áp dụng</button>
+                    </div>
+                </div>
             </div>
-            
-            <button class="btn-white">
-                Lọc <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span>
-            </button>
-
-            <button class="btn-blue">
-                <span class="material-symbols-outlined" style="font-size: 18px;">add</span> Thêm
-            </button>
-
-            <button class="btn-icon-only">
-                <span class="material-symbols-outlined">delete</span>
-            </button>
         </div>
-    </div>
 
-    <div class="table-wrapper">
-        <table class="user-table">
-            <thead>
-                <tr>
-                    <th style="padding-left: 24px;">Họ và tên</th>
-                    <th>Vai Trò</th>
-                    <th>Số điện thoại</th>
-                    <th>Email</th>
-                    <th>Ngày tạo</th>
-                    <th style="text-align: center;">Chi tiết</th>
-                </tr>
-            </thead>
-            <tbody id="student-table-body">
-                </tbody>
-        </table>
-    </div>
+        <button class="btn-blue btn-add-user">
+            <span class="material-symbols-outlined icon-btn">add</span>Thêm
+        </button>
 
-    <div class="pagination">
-        <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <button class="page-btn">4</button>
-        <span class="dots">...</span>
-        <button class="page-btn">10</button>
-        <button class="page-btn"><span class="material-symbols-outlined">chevron_right</span></button>
+        <button class="btn-icon-delete-user">
+            <span class="material-symbols-outlined">delete</span>
+        </button>
     </div>
+</div>
+
+<div class="table-wrapper">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAllUserCheckbox"></th>
+                <th>Họ và tên</th>
+                <th>Vai Trò</th>
+                <th>Mã số</th>
+                <th>Email</th>
+                <th>Khoa</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="student-table-body">
+            </tbody>
+    </table>
+</div>
+
+<div class="pagination">
 </div>

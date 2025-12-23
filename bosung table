@@ -1,0 +1,80 @@
+USE themdulieu;
+GO
+
+PRINT N'--- BẮT ĐẦU QUY TRÌNH SỬA LỖI SĨ SỐ ---';
+
+ALTER TABLE LopHoc NOCHECK CONSTRAINT CK_SiSoToiDa;
+ALTER TABLE LopHoc NOCHECK CONSTRAINT CK_SiSo;
+
+PRINT N'--- Đã tạm tắt các ràng buộc kiểm tra ---';
+
+UPDATE LopHoc
+SET SiSoHienTai = (
+    SELECT COUNT(*)
+    FROM DangKy
+    WHERE DangKy.MaLopHoc = LopHoc.MaLopHoc
+      AND DangKy.MaHocKy = LopHoc.MaHocKy
+      AND DangKy.MaMon = LopHoc.MaMonHoc
+      AND DangKy.TrangThai = N'Đã đăng ký'
+);
+
+PRINT N'--- Đã cập nhật Sĩ số hiện tại (SiSoHienTai) ---';
+
+UPDATE LopHoc
+SET SiSoToiDa = SiSoHienTai
+WHERE SiSoHienTai > SiSoToiDa;
+
+PRINT N'--- Đã điều chỉnh Sĩ số tối đa cho các lớp bị tràn ---';
+
+
+ALTER TABLE LopHoc DROP CONSTRAINT CK_SiSoToiDa;
+ALTER TABLE LopHoc ADD CONSTRAINT CK_SiSoToiDa CHECK (SiSoToiDa BETWEEN 10 AND 200); 
+
+ALTER TABLE LopHoc CHECK CONSTRAINT CK_SiSo;
+
+PRINT N'--- HOÀN TẤT! HỆ THỐNG ĐÃ ĐỒNG BỘ DỮ LIỆU ---';
+
+-- 1. Xóa Trigger cũ
+IF OBJECT_ID('trg_ChanDoiTrangThaiQuaHan', 'TR') IS NOT NULL 
+    DROP TRIGGER trg_ChanDoiTrangThaiQuaHan;
+GO
+
+-- 2. Tạo Trigger mới (Đã sửa lỗi hiển thị ngày)
+CREATE TRIGGER trg_ChanDoiTrangThaiQuaHan
+ON DangKy
+AFTER UPDATE
+AS
+BEGIN
+    -- Chỉ kiểm tra khi người dùng cố tình thay đổi cột 'TrangThai'
+    IF UPDATE(TrangThai)
+    BEGIN
+        -- Kiểm tra điều kiện thời gian
+        IF EXISTS (
+            SELECT 1
+            FROM inserted i
+            JOIN HocKy hk ON i.MaHocKy = hk.MaHocKy
+            WHERE 
+                -- Điều kiện 1: Đã quá ngày đóng đăng ký
+                CAST(GETDATE() AS DATE) > hk.DongDangKy
+                
+                -- Điều kiện 2: Hoặc học kỳ đã bị Admin khóa chủ động
+                OR hk.DaKhoa = 1
+        )
+        BEGIN
+            -- SỬA LỖI Ở ĐÂY:
+            -- Khai báo biến là NVARCHAR (Chuỗi) thay vì DATE
+            DECLARE @NgayDongStr NVARCHAR(20);
+
+            -- Lấy ngày và Convert sang chuỗi (định dạng 103 là dd/mm/yyyy)
+            SELECT TOP 1 @NgayDongStr = CONVERT(NVARCHAR(20), hk.DongDangKy, 103)
+            FROM inserted i 
+            JOIN HocKy hk ON i.MaHocKy = hk.MaHocKy;
+
+            -- Bây giờ %s sẽ nhận chuỗi @NgayDongStr một cách hợp lệ
+            RAISERROR (N'Lỗi: Đã quá thời hạn đăng ký (%s) hoặc Học kỳ đã khóa, không thể thay đổi trạng thái lúc này!', 16, 1, @NgayDongStr);
+            ROLLBACK TRANSACTION;
+        END
+    END
+END;
+
+GO

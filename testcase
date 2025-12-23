@@ -1,0 +1,22 @@
+USE test111;
+GO
+
+SELECT name 
+FROM sys.tables 
+WHERE type = 'U' 
+ORDER BY name;
+
+SELECT * FROM LienHe;
+SELECT * FROM CauTrucDiem;
+SELECT * FROM ChiTietDiem;
+SELECT * FROM DangKy;
+SELECT * FROM GiangVien;
+SELECT * FROM HocKy;
+SELECT * FROM Khoa;
+SELECT * FROM LichHoc;
+SELECT * FROM LopHoc;
+SELECT * FROM MonHoc;
+SELECT * FROM MonTienQuyet;
+SELECT * FROM SinhVien;
+SELECT * FROM TaiKhoan;
+SELECT * FROM TaiLieu;

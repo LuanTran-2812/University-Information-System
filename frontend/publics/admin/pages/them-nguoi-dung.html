@@ -1,81 +1,62 @@
-<div class="add-user-container">
-    <h2 class="page-title">Thêm người dùng <span class="material-symbols-outlined">person_add</span></h2>
-    
-    <div class="form-layout">
-        <form id="add-user-form" class="main-form">
-            
-            <div class="form-group">
-                <label>01. Họ và tên</label>
-                <div class="input-wrapper">
-                    <input type="text" id="fullname" placeholder="Ví dụ: Nguyễn Văn A" required>
-                </div>
-            </div>
+<h2 class="page-title">Thêm người dùng</h2>
 
-            <div class="form-group">
-                <label>02. Email</label>
-                <div class="input-wrapper">
-                    <input type="email" id="email" placeholder="email@uis.edu.vn" required>
-                </div>
+<div class="form-layout">
+    <form id="add-user-form" class="main-form">
+        
+        <div class="form-group">
+            <label>01. Họ và tên</label>
+            <div class="input-wrapper">
+                <input type="text" id="fullname" placeholder="Ví dụ: Nguyễn Văn A" required>
             </div>
+        </div>
 
+        <div class="form-row">
             <div class="form-group">
-                <label>03. Mật khẩu</label>
+                <label>02. Mật khẩu</label>
                 <div class="input-wrapper">
                     <input type="password" id="password" placeholder="••••••" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>04. Xác nhận mật khẩu</label>
-                <div class="input-wrapper">
-                    <input type="password" id="confirm-password" placeholder="••••••" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>05. Số điện thoại</label>
+                <label>03. Số điện thoại</label>
                 <div class="input-wrapper">
                     <input type="text" id="phone" placeholder="09xxxxxxxxx">
                 </div>
             </div>
-
-            <div class="form-group">
-                <label>06. Khoa / Viện</label>
-                <div class="input-wrapper">
-                    <select id="faculty-select" style="width: 100%; border: none; outline: none; background: transparent;">
-                        <option value="">-- Đang tải danh sách khoa... --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>07. Địa chỉ</label>
-                <div class="input-wrapper">
-                    <input type="text" id="address" placeholder="Nhập địa chỉ">
-                </div>
-            </div>
-
-            <div class="role-selection">
-                <label class="radio-container">
-                    <input type="radio" name="role" value="Giảng viên">
-                    <span class="checkmark"></span> Giảng viên
-                </label>
-                <label class="radio-container">
-                    <input type="radio" name="role" value="Sinh viên" checked>
-                    <span class="checkmark"></span> Sinh viên
-                </label>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-save-orange">Lưu Kết Quả</button>
-            </div>
-        </form>
-
-        <div class="avatar-upload-section">
-            <div class="avatar-preview">
-                <img src="../img/image 10.png" alt="Avatar">
-            </div>
-            <button class="btn-change-photo">Thay đổi ảnh</button>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label>04. Khoa / Viện</label>
+            <div class="input-wrapper">
+                <select id="faculty-select">
+                    <option value="">-- Đang tải danh sách khoa... --</option>
+                    <option value="CNTT">Công nghệ thông tin</option>
+                    <option value="KT">Kinh tế</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>05. Địa chỉ</label>
+            <div class="input-wrapper">
+                <input type="text" id="address" placeholder="Nhập địa chỉ">
+            </div>
+        </div>
+
+        <div class="role-selection">
+            <label class="radio-container">
+                <input type="radio" name="role" value="Giảng viên">
+                <span class="checkmark"></span> Giảng viên
+            </label>
+            <label class="radio-container">
+                <input type="radio" name="role" value="Sinh viên" checked>
+                <span class="checkmark"></span> Sinh viên
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save-orange">Lưu Kết Quả</button>
+        </div>
+    </form>
 </div>

@@ -1,81 +1,163 @@
-<div class="class-page-container">
-    
-    <div class="page-header">
-        <div class="header-left-group">
-            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">school</span>
-            <h2 style="margin-right: 20px;">Lớp học</h2>
-            
-            <div class="semester-select-wrapper">
-                <select id="semester-filter" class="semester-dropdown">
-                    <option value="">Đang tải học kỳ...</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="material-symbols-outlined">search</span>
-                <input type="text" placeholder="Tìm kiếm">
-            </div>
-            <button class="btn-white">Lọc <span class="material-symbols-outlined">filter_list</span></button>
-            <button class="btn-blue btn-add-class">+ Thêm</button>
-            <button class="btn-icon-only"><span class="material-symbols-outlined">delete</span></button>
-        </div>
+<div class="page-header">
+    <div class="header-left-group">
+        <h2>Danh sách lớp học</h2>
     </div>
+    
+    <div class="header-actions">
+        <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Tìm kiếm">
+        </div>
 
-    <div class="table-wrapper">
-        <table class="class-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox"></th>
-                    <th>Mã lớp</th>
-                    <th>Tên môn</th>
-                    <th>Tên giảng viên</th>
-                    <th>Số SV/Tối đa</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="class-table-body">
-                </tbody>
-        </table>
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-class-filter" onclick="toggleClassFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="class-filter-popup" id="class-filter-popup">
+                <div class="class-filter-arrow"></div>
+                
+                <div class="class-filter-body">
+                    <div class="class-filter-row">
+                        <div class="class-filter-item">
+                            <label>Giảng viên</label>
+                            <select class="class-filter-select" id="class-filter-lecturer">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+
+                        <div class="class-filter-item">
+                            <label>Trạng thái</label>
+                            <select class="class-filter-select" id="class-filter-status">
+                                <option value="">Tất cả</option>
+                                <option value="Chưa xếp lịch">Chưa xếp lịch</option>
+                                <option value="Đã xếp lịch">Đã xếp lịch</option>
+                                <option value="Đang đăng ký">Đang đăng ký</option>
+                                <option value="Kết thúc đăng ký">Kết thúc đăng ký</option>
+                                <option value="Đang học">Đang học</option>
+                                <option value="Đã kết thúc">Đã kết thúc</option>
+                                <option value="Đã hủy lớp">Đã hủy lớp</option>
+                            </select>
+                        </div>                        
+                    </div>
+
+                    <div class="class-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeClassFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applyClassFilterButton()">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-blue btn-add-class"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
+        <button class="btn-icon-delete-class">
+            <span class="material-symbols-outlined">delete</span>
+        </button>
     </div>
-    
-    <div class="pagination"></div>
 </div>
 
+<div class="table-wrapper">
+    <table class="class-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAllClassCheckbox"></th>
+                <th>Mã lớp</th>
+                <th>Tên môn</th>
+                <th>Tên giảng viên</th>
+                <th>Số SV/Tối đa</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="class-table-body">
+            </tbody>
+    </table>
+</div>
+    
+<div class="pagination"></div>
+
 <div id="class-modal" class="modal-overlay">
-    <div class="modal-content" style="width: 700px;">
-        <div class="modal-header">
-            <h3>Thêm lớp học</h3>
+    <div class="modal-content" style="width: 1100px; max-width: 95vw;">
+        <div class="modal-header modal-centered-title">
+            <span class="modal-spacer"></span><h3>Thêm lớp học</h3>
             <span class="material-symbols-outlined close-btn" onclick="closeClassModal()">close</span>
         </div>
+        
         <form id="modal-add-class-form">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Mã lớp <span class="required">*</span></label>
-                    <input type="text" id="maLop" placeholder="L01" required>
+            <div class="modal-body-layout">
+                
+                <div class="left-panel">
+                    <div class="form-grid">
+                        <div class="form-group" id="group-ma-lop">
+                            <label>Mã lớp <span class="required">*</span></label>
+                            <input type="text" id="maLop" placeholder="Tự động" disabled>
+                        </div>
+                        
+                        <div class="form-group" id="group-si-so">
+                            <label>Số sinh viên tối đa</label>
+                            <input type="number" id="siSoMax" value="50">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label>Tên môn <span class="required">*</span></label>
+                            <select id="classMonHocSelect" class="full-width-select" required>
+                                <option value="">-- Chọn Môn --</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Giảng viên phụ trách</label>
+                            <select id="classGiangVienSelect" class="full-width-select">
+                                <option value="">-- Chọn Giảng viên --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title" style="margin-top: 15px;">
+                        <label>Cấu trúc điểm % (Tự động theo môn)</label>
+                    </div>
+
+                    <div class="form-grid-grades">
+                        <div class="form-group five-cols"><label>Quiz</label><input type="text" id="classQuiz" disabled></div>
+                        <div class="form-group five-cols"><label>TN</label><input type="text" id="classThiNghiem" disabled></div>
+                        <div class="form-group five-cols"><label>BTL</label><input type="text" id="classBTL" disabled></div>
+                        <div class="form-group five-cols"><label>GK</label><input type="text" id="classGiuaKy" disabled></div>
+                        <div class="form-group five-cols"><label>CK</label><input type="text" id="classCuoiKy" disabled></div>
+                    </div>
+
+                    <div id="cancel-class-wrapper" style="margin-top: 3px; display: none; padding-top: 10px; padding: 20px; border-top: 1px dashed #ccc;">
+                        <label style="display: flex; align-items: center; gap: 8px; color: #ef4444; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" id="chkHuyLop">
+                            Hủy lớp học này (Sinh viên sẽ bị hủy đăng ký)
+                        </label>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Số sinh viên tối đa</label>
-                    <input type="number" id="siSoMax" value="50">
-                </div>
-                <div class="form-group full-width">
-                    <label>Tên môn <span class="required">*</span></label>
-                    <select id="classMonHocSelect" class="full-width-select" required>
-                        <option value="">-- Chọn Môn --</option>
-                    </select>
-                </div>
-                <div class="form-group full-width">
-                    <label>Giảng viên phụ trách</label>
-                    <select id="classGiangVienSelect" class="full-width-select">
-                        <option value="">-- Chọn Giảng viên --</option>
-                    </select>
+
+                <div class="right-panel" id="student-list-panel" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600;">Danh sách sinh viên</label>
+                        <span id="student-count-badge" class="badge blue">0 SV</span>
+                    </div>
+
+                    <div class="table-wrapper" style="height: 435px; overflow-y: auto;">
+                        <table class="class-table student-table-modal">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>MSSV</th>
+                                    <th>Họ Tên</th>
+                                    <th>Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-list-tbody">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <input type="hidden" id="editing-class-id"> 
-                <button type="submit" class="btn-save-orange" id="btn-save-class">Save</button>
+                <button type="submit" class="btn-save-orange" id="btn-save-class">Lưu</button>
             </div>
         </form>
     </div>
