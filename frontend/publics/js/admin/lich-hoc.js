@@ -564,23 +564,61 @@ async function loadClassesForScheduleModal() {
 
 function setupAddScheduleForm() {
     const form = document.getElementById('modal-add-schedule-form');
-    if(!form) return;
+    if (!form) return;
     const newForm = form.cloneNode(true);
     form.parentNode.replaceChild(newForm, form);
+    
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const [maLop, maMon] = document.getElementById('scheduleClassSelect').value.split('|');
-        const valPhong = document.getElementById('schedulePhong').value;
-        const valThu = document.getElementById('scheduleThu').value;
+        const valPhong = document.getElementById('schedulePhong').value.trim();
         
-        const valTietBD = document.getElementById('scheduleTietBD') ? document.getElementById('scheduleTietBD').value : null;
-        const valTietKT = document.getElementById('scheduleTietKT') ? document.getElementById('scheduleTietKT').value : null;
+        const valThu = parseInt(document.getElementById('scheduleThu').value);
+        const valTietBD = parseInt(document.getElementById('scheduleTietBD').value);
+        const valTietKT = parseInt(document.getElementById('scheduleTietKT').value);
+        const valTuanBD = parseInt(document.getElementById('scheduleTuanBD').value);
+        const valTuanKT = parseInt(document.getElementById('scheduleTuanKT').value);
 
-        const valTuanBD = document.getElementById('scheduleTuanBD').value;
-        const valTuanKT = document.getElementById('scheduleTuanKT').value;
+        // CK_Thu: BETWEEN 2 AND 8
+        if (isNaN(valThu) || valThu < 2 || valThu > 8) {
+            alert("Thứ học phải từ Thứ 2 đến Chủ Nhật (8)!");
+            document.getElementById('scheduleThu').focus();
+            return;
+        }
 
-        if(parseInt(valTietBD) >= parseInt(valTietKT)) {
+        // CK_TietBD (>=1) và CK_TietKT (<=12)
+        if (valTietBD < 1 || valTietKT > 12) {
+            alert("Tiết học phải nằm trong khoảng từ tiết 1 đến tiết 12!");
+            return;
+        }
+
+        // CK_Tiet (Start < End)
+        if (valTietBD >= valTietKT) {
             alert("Tiết bắt đầu phải nhỏ hơn tiết kết thúc!");
+            document.getElementById('scheduleTietBD').focus();
+            return;
+        }
+
+        // CK_Tiettime ((End - Start) BETWEEN 1 AND 4)
+        const lessonDuration = valTietKT - valTietBD;
+        if (lessonDuration < 1 || lessonDuration > 4) {
+            alert(`Thời lượng buổi học phải từ 1 đến 4 tiết (theo quy định)!\nHệ thống tính: ${valTietKT} - ${valTietBD} = ${lessonDuration} tiết.`);
+            document.getElementById('scheduleTietKT').focus();
+            return;
+        }
+
+        // CK_Tuan (Start < End)
+        if (valTuanBD >= valTuanKT) {
+            alert("Tuần bắt đầu phải nhỏ hơn tuần kết thúc!");
+            document.getElementById('scheduleTuanBD').focus();
+            return;
+        }
+
+        // CK_Tuantime ((End - Start) BETWEEN 8 AND 15)
+        const weekDuration = valTuanKT - valTuanBD;
+        if (weekDuration < 8 || weekDuration > 15) {
+            alert(`Đợt học phải kéo dài từ 8 đến 15 tuần!\nHệ thống tính: ${valTuanKT} - ${valTuanBD} = ${weekDuration} tuần.`);
+            document.getElementById('scheduleTuanKT').focus();
             return;
         }
 
@@ -595,6 +633,7 @@ function setupAddScheduleForm() {
             tuanBD: valTuanBD,
             tuanKT: valTuanKT,
             
+            // Dữ liệu cho Update (để tìm dòng cũ xóa đi update dòng mới)
             newPhong: valPhong,
             newThu: valThu,
             newTietBD: valTietBD,

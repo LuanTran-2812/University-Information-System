@@ -632,6 +632,7 @@ function setupAddClassButton() {
 async function openClassEditModal(data) {
     isClassEditMode = true;
     await loadDataForClassModal();
+    
     // Hiện Mã lớp, Thu gọn Sĩ số
     document.getElementById('group-ma-lop').style.display = 'block'; 
     document.getElementById('group-si-so').classList.remove('grid-span-full');
@@ -642,13 +643,16 @@ async function openClassEditModal(data) {
 
     // Điền dữ liệu
     document.getElementById('maLop').value = data.MaLopHoc;
-    document.getElementById('siSoMax').value = data.SiSoToiDa;
+    
+    const siSoInput = document.getElementById('siSoMax');
+    siSoInput.value = data.SiSoToiDa;
+    // Lưu sĩ số hiện tại vào dataset để dùng khi validate form
+    siSoInput.dataset.currentCount = data.SiSoHienTai; 
+
     document.getElementById('classMonHocSelect').value = data.MaMonHoc;
     
-    // Trigger change để load cấu trúc điểm và lọc giảng viên
     loadClassGradeStructure(data.MaLopHoc, data.MaHocKy, data.MaMonHoc);
     
-    // Lấy khoa của môn học để lọc giảng viên
     const monSelect = document.getElementById('classMonHocSelect');
     const selectedOption = monSelect.querySelector(`option[value="${data.MaMonHoc}"]`);
     if (selectedOption) {
@@ -658,15 +662,11 @@ async function openClassEditModal(data) {
 
     document.getElementById('classGiangVienSelect').value = data.MSCB || "";
     
-    // Xử lý checkbox Hủy lớp
     const chkHuyLop = document.getElementById('chkHuyLop');
     chkHuyLop.checked = (data.TrangThai === 'Đã hủy lớp');
     
-    // Logic: Chỉ cho phép chọn hủy khi trạng thái là "Kết thúc đăng ký"
     chkHuyLop.onclick = function(e) {
         const allowedStatus = 'Kết thúc đăng ký';
-        
-        // Nếu đang check (muốn hủy) mà trạng thái không phải Kết thúc đăng ký
         if (this.checked && data.TrangThai !== allowedStatus && data.TrangThai !== 'Đã hủy lớp') {
             e.preventDefault();
             alert(`Không thể hủy lớp ở trạng thái "${data.TrangThai}".\nChỉ có thể hủy khi lớp ở trạng thái "${allowedStatus}".`);
@@ -677,8 +677,7 @@ async function openClassEditModal(data) {
     document.getElementById('maLop').disabled = true;
     document.getElementById('classMonHocSelect').disabled = true; 
 
-    // GỌI HÀM LOAD CẤU TRÚC VÀ SINH VIÊN
-    loadStudentList(data.MaLopHoc, data.MaHocKy, data.MaMonHoc); // Hàm này sẽ vẽ bảng
+    loadStudentList(data.MaLopHoc, data.MaHocKy, data.MaMonHoc); 
 
     document.querySelector('#class-modal h3').innerText = 'Cập nhật lớp học';
     document.getElementById('btn-save-class').innerText = 'Cập nhật';
@@ -694,14 +693,31 @@ function setupAddClassForm() {
 
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const siSoInput = document.getElementById('siSoMax');
+        const siSoVal = parseInt(siSoInput.value);
+        const currentStudentCount = parseInt(siSoInput.dataset.currentCount || 0);
+
+        if (isNaN(siSoVal) || siSoVal < 40 || siSoVal > 80) {
+            alert('Sĩ số lớp học phải nằm trong khoảng từ 40 đến 80 sinh viên!');
+            siSoInput.focus();
+            return;
+        }
+
+        if (isClassEditMode && siSoVal < currentStudentCount) {
+            alert(`Không thể cập nhật sĩ số tối đa xuống ${siSoVal}!\nLớp đang có ${currentStudentCount} sinh viên.`);
+            siSoInput.focus();
+            return;
+        }
+
         const data = {
             maLop: document.getElementById('maLop').value,
             maHK: currentSemesterId,
             maMon: document.getElementById('classMonHocSelect').value,
-            siSoMax: document.getElementById('siSoMax').value,
+            siSoMax: siSoVal, // Dùng biến đã parse
             mscb: document.getElementById('classGiangVienSelect').value,
             huyLop: document.getElementById('chkHuyLop').checked 
         };
+        
         if (!data.maMon) { alert("Vui lòng chọn môn học!"); return; }
 
         let url = 'http://localhost:8000/api/classes/create';
@@ -719,6 +735,10 @@ function setupAddClassForm() {
             const result = await response.json();
             if (result.success) {
                 alert(result.message);
+                
+                // Reset dataset để tránh lỗi cho lần thêm mới tiếp theo
+                siSoInput.dataset.currentCount = 0;
+                
                 closeClassModal();
                 fetchAndInitClassTable(currentSemesterId);
             } else { alert('Lỗi: ' + result.message); }

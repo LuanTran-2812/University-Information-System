@@ -427,6 +427,43 @@ function setupAddSubjectForm() {
 
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        const maMonInput = document.getElementById('maMon').value.trim();
+        const tenMonInput = document.getElementById('tenMon').value.trim();
+        const tinChiInput = parseInt(document.getElementById('soTinChi').value);
+
+        // 1. Validate Số tín chỉ (2 - 4)
+        if (isNaN(tinChiInput) || tinChiInput < 2 || tinChiInput > 4) {
+            alert('Số tín chỉ phải nằm trong khoảng từ 2 đến 4!');
+            document.getElementById('soTinChi').focus();
+            return;
+        }
+
+        // 2. Validate Trùng lặp (Dựa trên allSubjectsForModal đã tải sẵn)
+        if (allSubjectsForModal.length > 0) {
+            // Kiểm tra trùng Mã môn (Chỉ check khi Thêm mới, vì Update thường khóa mã)
+            if (!currentSubjectId) {
+                const isDuplicateCode = allSubjectsForModal.some(s => s.MaMon === maMonInput);
+                if (isDuplicateCode) {
+                    alert(`Mã môn "${maMonInput}" đã tồn tại trong hệ thống!`);
+                    document.getElementById('maMon').focus();
+                    return;
+                }
+            }
+
+            // Kiểm tra trùng Tên môn (Trừ chính nó nếu đang Update)
+            const isDuplicateName = allSubjectsForModal.some(s => 
+                s.TenMon.toLowerCase() === tenMonInput.toLowerCase() && 
+                s.MaMon !== currentSubjectId 
+            );
+
+            if (isDuplicateName) {
+                alert(`Tên môn "${tenMonInput}" đã được sử dụng bởi một môn học khác!`);
+                document.getElementById('tenMon').focus();
+                return;
+            }
+        }
+
         let maMonTienQuyet = "";
         if (tqTomSelect) maMonTienQuyet = tqTomSelect.getValue().join(',');
         else {
@@ -436,9 +473,9 @@ function setupAddSubjectForm() {
         }
 
         const data = {
-            maMon: document.getElementById('maMon').value,
-            tenMon: document.getElementById('tenMon').value,
-            soTinChi: document.getElementById('soTinChi').value,
+            maMon: maMonInput,
+            tenMon: tenMonInput,
+            soTinChi: tinChiInput,
             khoa: document.getElementById('khoaSelect').value,
             maMonTienQuyet: maMonTienQuyet,
             maMonSongHanh: document.getElementById('songHanhSelect').value,

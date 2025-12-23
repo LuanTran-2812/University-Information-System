@@ -391,27 +391,44 @@ function setupAddUserForm() {
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Lấy vai trò từ radio button
         const roleRadios = document.getElementsByName('role');
-        let selectedRole = 'Sinh viên'; // Mặc định
+        let selectedRole = 'Sinh viên'; 
         roleRadios.forEach(radio => {
             if (radio.checked) selectedRole = radio.value;
         });
         
-        const data = {
-            hoTen: document.getElementById('fullname').value,
-            password: document.getElementById('password').value,
-            phone: document.getElementById('phone').value || null,
-            address: document.getElementById('address').value || null,
-            role: selectedRole,
-            faculty: document.getElementById('faculty-select').value
-        };
+        const rawPassword = document.getElementById('password').value;
+        const rawPhone = document.getElementById('phone').value;
+        const selectedFaculty = document.getElementById('faculty-select').value;
 
-        // Validate
-        if (!data.faculty) {
+        if (rawPassword.length <= 5) {
+            alert('Mật khẩu phải dài hơn 5 ký tự!');
+            document.getElementById('password').focus();
+            return;
+        }
+
+        if (rawPhone && rawPhone.trim() !== '') {
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(rawPhone)) {
+                alert('Số điện thoại không hợp lệ! (Phải bắt đầu bằng 0 và đủ 10 số)');
+                document.getElementById('phone').focus();
+                return;
+            }
+        }
+
+        if (!selectedFaculty) {
             alert('Vui lòng chọn Khoa / Viện!');
             return;
         }
+
+        const data = {
+            hoTen: document.getElementById('fullname').value,
+            password: rawPassword,
+            phone: rawPhone.trim() === '' ? null : rawPhone,
+            address: document.getElementById('address').value || null,
+            role: selectedRole,
+            faculty: selectedFaculty
+        };
 
         try {
             const response = await fetch('http://localhost:8000/api/users/create', {
@@ -423,7 +440,6 @@ function setupAddUserForm() {
             const result = await response.json();
             
             if (result.success) {
-                // Backend trả về NewCode (chữ hoa từ SQL), không phải newCode
                 const newCode = result.NewCode || 'N/A';
                 const newEmail = result.NewEmail || result.newEmail || 'N/A';
                 
