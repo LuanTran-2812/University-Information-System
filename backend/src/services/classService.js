@@ -143,6 +143,138 @@ const getAllLecturers = async () => {
     } catch (err) { throw err; }
 };
 
+// Lấy danh sách môn dạy của giảng viên (Gộp lớp L01, L02...)
+// backend/src/services/classService.js
+
+const getLecturerCourses = async (email, maHK) => {
+    try {
+        const pool = await getPool();
+        
+        // BƯỚC 1: Lấy Mã Giảng Viên (MSCB) từ Email trước
+        // Cách này an toàn hơn việc JOIN trực tiếp nếu dữ liệu không đồng bộ
+        const gvRes = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT MSCB FROM GiangVien WHERE Email = @email");
+            
+        const mscb = gvRes.recordset[0]?.MSCB;
+        
+        // Nếu không tìm thấy GV, trả về rỗng luôn (tránh lỗi query sau)
+        if (!mscb) return []; 
+
+        // BƯỚC 2: Truy vấn danh sách môn học đơn giản hơn
+        // Thay vì SUM/GROUP BY phức tạp, ta lấy danh sách thô rồi xử lý bằng JS nếu cần,
+        // hoặc dùng câu query tối giản này:
+        const result = await pool.request()
+            .input('mscb', sql.VarChar, mscb)
+            .input('maHK', sql.VarChar, maHK)
+            .query(`
+                SELECT 
+                    mh.MaMon, 
+                    mh.TenMon, 
+                    mh.SoTinChi,
+                    -- Gom nhóm lớp: L01, L02
+                    STRING_AGG(lh.MaLopHoc, ', ') WITHIN GROUP (ORDER BY lh.MaLopHoc) AS DanhSachLop,
+                    -- Tính tổng sinh viên: Chuyển NULL thành 0 trước khi cộng
+                    SUM(ISNULL(lh.SiSoHienTai, 0)) AS TongSinhVien
+                FROM LopHoc lh
+                JOIN MonHoc mh ON lh.MaMonHoc = mh.MaMon
+                WHERE lh.MSCB = @mscb AND lh.MaHocKy = @maHK
+                GROUP BY mh.MaMon, mh.TenMon, mh.SoTinChi
+            `);
+
+        return result.recordset;
+    } catch (err) { 
+        console.error("Lỗi SQL getLecturerCourses:", err); // In lỗi ra console server để debug
+        throw err; 
+    }
+};
+
+const getClassesForGradeManagement = async (email, maHK) => {
+    try {
+        const pool = await getPool();
+        
+        // 1. Lấy MSCB
+        const gv = await pool.request().input('email', sql.NVarChar, email).query("SELECT MSCB FROM GiangVien WHERE Email = @email");
+        if(gv.recordset.length === 0) return [];
+        const mscb = gv.recordset[0].MSCB;
+
+        // 2. Lấy danh sách lớp chi tiết
+        const result = await pool.request()
+            .input('mscb', sql.VarChar, mscb)
+            .input('maHK', sql.VarChar, maHK)
+            .query(`
+                SELECT 
+                    lh.MaLopHoc, 
+                    mh.MaMon, 
+                    mh.TenMon, 
+                    mh.SoTinChi,
+                    lh.SiSoHienTai,
+                    lh.SiSoToiDa
+                FROM LopHoc lh
+                JOIN MonHoc mh ON lh.MaMonHoc = mh.MaMon
+                WHERE lh.MSCB = @mscb AND lh.MaHocKy = @maHK
+                ORDER BY mh.TenMon, lh.MaLopHoc
+            `);
+
+        return result.recordset;
+    } catch (err) { throw err; }
+};
+
+const getStudentCoursesWithGrades = async (email, maHK) => {
+    try {
+        const pool = await getPool();
+
+        // 1. Lấy MSSV
+        const svRes = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query("SELECT MSSV FROM SinhVien WHERE Email = @email");
+        
+        const mssv = svRes.recordset[0]?.MSSV;
+        if (!mssv) return [];
+
+        // 2. Truy vấn dữ liệu môn học + Pivot điểm
+        const query = `
+            SELECT 
+                DK.MaLopHoc,
+                DK.MaMon,
+                MH.TenMon,
+                MH.SoTinChi,
+                GV.HoTen AS TenGV,
+                GV.Email AS EmailGV,
+                
+                -- PIVOT ĐIỂM (Chuyển dòng thành cột)
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Giữa kì' THEN CD.Diem END) AS GK,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Cuối kì' THEN CD.Diem END) AS CK,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'BTL' THEN CD.Diem END) AS BTL,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Quiz' THEN CD.Diem END) AS Quiz,
+                MAX(CASE WHEN CT.ThanhPhanDiem = N'Thí nghiệm' THEN CD.Diem END) AS TN
+
+            FROM DangKy DK
+            JOIN LopHoc LH ON DK.MaLopHoc = LH.MaLopHoc AND DK.MaHocKy = LH.MaHocKy AND DK.MaMon = LH.MaMonHoc
+            JOIN MonHoc MH ON DK.MaMon = MH.MaMon
+            JOIN GiangVien GV ON LH.MSCB = GV.MSCB
+            
+            -- Join bảng điểm (Left join để lấy cả môn chưa có điểm)
+            LEFT JOIN ChiTietDiem CD ON DK.MSSV = CD.MSSV 
+                                     AND DK.MaLopHoc = CD.MaLopHoc 
+                                     AND DK.MaHocKy = CD.MaHocKy
+            
+            -- Join cấu trúc điểm để biết loại điểm (GK, CK...)
+            LEFT JOIN CauTrucDiem CT ON CD.MaCauTruc = CT.MaCauTruc
+
+            WHERE DK.MSSV = @mssv 
+              AND DK.MaHocKy = @maHK
+              AND DK.TrangThai = N'Đã đăng ký'
+
+            GROUP BY DK.MaLopHoc, DK.MaMon, MH.TenMon, MH.SoTinChi, GV.HoTen, GV.Email
+        `;
+
+        const res = await pool.request()
+            .input('mssv', sql.VarChar, mssv)
+            .input('maHK', sql.VarChar, maHK)
+            .query(query);
+
+        return res.recordset;
 // Lấy danh sách sinh viên trong lớp
 const getStudentsByClass = async (maLop, maHK, maMon) => {
     try {
@@ -291,4 +423,15 @@ const getClassGradeStructure = async (maLop, maHK, maMon) => {
     } catch (err) { throw err; }
 };
 
-module.exports = { getClassesBySemester, createClass, updateClass, deleteClass, getAllLecturers, deleteMultipleClasses, getStudentsByClass, removeStudentFromClass, getClassGradeStructure };
+module.exports = { 
+    getClassesBySemester, 
+    createClass, 
+    updateClass, 
+    deleteClass, 
+    getAllLecturers,
+    getLecturerCourses,
+    getClassesForGradeManagement,
+    getStudentCoursesWithGrades,
+  deleteMultipleClasses, getStudentsByClass, removeStudentFromClass, getClassGradeStructure
+};
+

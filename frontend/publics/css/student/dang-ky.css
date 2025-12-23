@@ -1,0 +1,34 @@
+/* Trạng thái */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-registered { background-color: #dcfce7; color: #166534; } /* Xanh lá */
+.status-cancelled { background-color: #fee2e2; color: #991b1b; } /* Đỏ nhạt */
+.status-none { background-color: #f3f4f6; color: #6b7280; } /* Xám */
+
+/* Nút bấm */
+.btn-reg-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+    width: 100px;
+}
+
+.btn-register {
+    background-color: #4F46E5;
+    color: white;
+}
+.btn-register:hover { background-color: #4338ca; }
+
+.btn-cancel {
+    background-color: #ef4444;
+    color: white;
+}
+.btn-cancel:hover { background-color: #dc2626; }

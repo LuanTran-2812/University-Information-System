@@ -43,6 +43,30 @@ const getLecturers = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+const getLecturerCourses = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getLecturerCourses(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
+const getClassesForGradeManagement = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getClassesForGradeManagement(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
+const getStudentCourses = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getStudentCoursesWithGrades(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+////////////////////////////////////////////////////
 const deleteMultipleClasses = async (req, res, next) => {
     try {
         const { classes } = req.body; // Array of { maLop, maHK, maMon }
@@ -87,4 +111,16 @@ const getClassGradeStructure = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers, deleteMultipleClasses, getStudents, removeStudent, getClassGradeStructure };
+module.exports = { 
+  getClasses, 
+  createClass, 
+  updateClass, 
+  deleteClass, 
+  getLecturers,
+  getLecturerCourses,
+  getClassesForGradeManagement,
+  getStudentCourses,
+  deleteMultipleClasses, getStudents, removeStudent, getClassGradeStructure
+ };
+
+

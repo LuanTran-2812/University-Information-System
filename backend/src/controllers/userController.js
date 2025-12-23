@@ -75,6 +75,14 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+const updateProfile = async (req, res, next) => {
+  try {
+    const { email } = req.body; // Lấy email từ body gửi lên
+    await userService.updateUserProfile(email, req.body);
+    res.json({ success: true, message: 'Cập nhật hồ sơ thành công!' });
+    }
+};
+  
 const deleteMultipleUsers = async (req, res, next) => {
   try {
     const { emails } = req.body; // Array of email addresses
@@ -94,4 +102,13 @@ const deleteMultipleUsers = async (req, res, next) => {
   }
 };
 
-module.exports = { getStudents, createUser, getFaculties, getUserDetail, deleteUser, deleteMultipleUsers };
+module.exports = { 
+  getStudents, 
+  createUser, 
+  getFaculties, 
+  getUserDetail, 
+  deleteUser, 
+  updateProfile,
+  deleteMultipleUsers
+};
+

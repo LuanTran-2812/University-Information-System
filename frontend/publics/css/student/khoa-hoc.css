@@ -1,0 +1,162 @@
+/* Container chính: Card màu trắng */
+.grade-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: calc(100vh - 140px); /* Chiều cao tự động trừ header */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header: Tiêu đề + Bộ lọc */
+.grade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.grade-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+/* Khu vực bộ lọc bên phải */
+.filter-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Dropdown Học kỳ */
+.semester-select {
+    padding: 8px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #374151;
+    background-color: #f9fafb;
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Ô tìm kiếm */
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 6px 12px;
+    width: 250px;
+    transition: all 0.2s;
+}
+
+.search-box:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    margin-left: 8px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.search-box span {
+    color: #9ca3af;
+    font-size: 20px;
+}
+
+/* --- BẢNG ĐIỂM (TABLE) --- */
+.table-responsive {
+    flex: 1;
+    overflow-y: auto; /* Cho phép cuộn dọc nếu bảng dài */
+}
+
+.main-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+/* Hàng tiêu đề bảng */
+.main-table thead th {
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    text-align: center; /* Căn giữa mặc định */
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Căn trái cho Tên môn và GV */
+.main-table thead th:nth-child(4),
+.main-table thead th:nth-child(6) {
+    text-align: left;
+}
+
+/* Các hàng dữ liệu */
+.main-table tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.main-table tbody tr:hover {
+    background-color: #f9fafb; /* Hiệu ứng hover nhẹ */
+}
+
+.main-table tbody td {
+    padding: 16px;
+    color: #374151;
+    vertical-align: middle;
+}
+
+/* Style riêng cho các cột điểm số */
+.main-table tbody td:nth-child(n+7) { /* Từ cột thứ 7 trở đi (Điểm) */
+    font-family: 'Consolas', 'Monaco', monospace; /* Font số cho đẹp */
+    font-size: 15px;
+}
+
+/* Màu sắc điểm số (đã inline trong JS nhưng override ở đây cho chắc chắn đẹp) */
+.score-gk { color: #4F46E5; font-weight: 700; }
+.score-ck { color: #ea580c; font-weight: 700; }
+
+/* Style cho nút mũi tên chi tiết */
+.btn-go-detail {
+    border: none;
+    background: none;
+    font-size: 24px;       /* Chữ to */
+    font-weight: 900;      /* In đậm hết cỡ */
+    font-family: monospace; /* Font đơn giản để dấu > đẹp hơn */
+    color: #4F46E5;        /* Màu xanh chủ đạo */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hiệu ứng khi di chuột vào */
+.btn-go-detail:hover {
+    color: #ea580c;        /* Đổi sang màu cam */
+    transform: translateX(5px); /* Dịch chuyển sang phải một chút */
+    background-color: #fff7ed;  /* Nền cam nhạt */
+    border-radius: 50%;
+}

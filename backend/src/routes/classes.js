@@ -8,6 +8,9 @@ router.put('/update/:id', classController.updateClass);
 router.delete('/delete', classController.deleteClass); // Dùng query param ?maLop=...&maHK=...
 router.post('/delete-multiple', classController.deleteMultipleClasses); // Xóa nhiều lớp
 router.get('/lecturers', classController.getLecturers); // API lấy giảng viên
+router.get('/my-courses', classController.getLecturerCourses);
+router.get('/my-classes-separate', classController.getClassesForGradeManagement);
+router.get('/student-courses', classController.getStudentCourses);
 router.get('/students', classController.getStudents); // API lấy danh sách sinh viên
 router.delete('/students/:mssv', classController.removeStudent); // API xóa sinh viên
 router.get('/grade-structure', classController.getClassGradeStructure); // API lấy cấu trúc điểm của lớp

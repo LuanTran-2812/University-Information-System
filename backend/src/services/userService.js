@@ -255,5 +255,31 @@ const deleteMultipleUsers = async (emails) => {
   } catch (err) { throw err; }
 };
 
+const updateUserProfile = async (email, data) => {
+  try {
+    const pool = await getPool();
+    const { sdt, diaChi } = data;
+    
+    // Thử update GiangVien
+    let result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .input('sdt', sql.VarChar, sdt)
+      .input('diaChi', sql.NVarChar, diaChi)
+      .query("UPDATE GiangVien SET SDT = @sdt, DiaChi = @diaChi WHERE Email = @email");
+
+    // Nếu không update được dòng nào (nghĩa là không phải GV), thử update SinhVien
+    if (result.rowsAffected[0] === 0) {
+       await pool.request()
+        .input('email', sql.NVarChar, email)
+        .input('sdt', sql.VarChar, sdt)
+        .input('diaChi', sql.NVarChar, diaChi)
+        .query("UPDATE SinhVien SET SDT = @sdt, DiaChi = @diaChi WHERE Email = @email");
+    }
+
+    return { success: true };
+  } catch (err) { throw err; }
+};
+
+module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser, updateUserProfile, deleteMultipleUsers };
 // Nhớ export thêm hàm deleteUser và deleteMultipleUsers
-module.exports = { getAllStudents, createUser, getAllFaculties, getUserDetail, deleteUser, deleteMultipleUsers };
+

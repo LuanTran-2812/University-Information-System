@@ -24,4 +24,6 @@ router.get('/detail', verifyToken, checkRole(['admin']), userController.getUserD
 router.delete('/delete/:email', verifyToken, checkRole(['admin']), userController.deleteUser);
 router.post('/delete-multiple', verifyToken, checkRole(['admin']), userController.deleteMultipleUsers); // Xóa nhiều người dùng
 
+router.put('/update-profile', userController.updateProfile);
+
 module.exports = router;

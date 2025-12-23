@@ -8,5 +8,6 @@ router.delete('/delete', scheduleController.deleteSchedule);
 router.put('/update', scheduleController.updateSchedule);
 router.post('/delete-multiple', scheduleController.deleteMultipleSchedules);
 router.get('/lecturer', scheduleController.getLecturerSchedule);
+router.get('/student', scheduleController.getStudentSchedule);
 
 module.exports = router;

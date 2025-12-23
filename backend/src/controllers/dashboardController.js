@@ -34,8 +34,17 @@ const getLecturerStats = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { 
-    getStats,
-    getWeeklySchedule,
-    getLecturerStats
+const getStudentStats = async (req, res, next) => {
+    try {
+        const { email } = req.query;
+        const data = await dashboardService.getStudentStats(email);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
 };
+
+module.exports = { 
+  getStats, 
+  getLecturerStats,
+  getWeeklySchedule,
+  getStudentStats };
+

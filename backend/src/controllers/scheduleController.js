@@ -18,6 +18,7 @@ const createSchedule = async (req, res, next) => {
 
 const deleteSchedule = async (req, res, next) => {
     try {
+        // Lấy các tham số từ query string
         // Lấy các tham số từ query string (Đã thay đổi tiet -> tietBD, tietKT)
         const { maLop, maHK, maMon, thu, tietBD, tietKT, phong } = req.query;
         await scheduleService.deleteSchedule(maLop, maHK, maMon, thu, tietBD, tietKT, phong);
@@ -59,4 +60,15 @@ const getLecturerSchedule = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule, deleteMultipleSchedules, getLecturerSchedule };
+const getStudentSchedule = async (req, res, next) => {
+    try {
+        const { email } = req.query;
+        const schedule = await scheduleService.getStudentSchedule(email);
+        res.json({ success: true, data: schedule });
+    } catch (err) { next(err); }
+};
+
+module.exports = { getSchedules, createSchedule, deleteSchedule, updateSchedule,
+                  deleteMultipleSchedules, getLecturerSchedule, getStudentSchedule
+ };
+
