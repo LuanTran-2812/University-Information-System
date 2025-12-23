@@ -594,28 +594,89 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // === HÀM PHÂN TRANG NGƯỜI DÙNG (SMART VERSION) ===
     function renderUserPagination() {
         const paginationEl = document.querySelector('.pagination');
         if (!paginationEl) return;
+
         paginationEl.innerHTML = '';
         
+        // Tính tổng số trang
         const totalPages = Math.ceil(allUsersData.length / rowsPerPage);
+        
+        // Nếu ít hơn 1 trang thì ẩn luôn thanh phân trang
         if (totalPages <= 1) return;
 
-        const createBtn = (text, page, disabled = false) => {
+        // --- Helper: Hàm tạo nút ---
+        const createBtn = (text, page, disabled = false, isActive = false) => {
+            // Nếu là dấu ba chấm (...)
+            if (text === '...') {
+                const span = document.createElement('span');
+                span.className = 'dots'; // Nhớ thêm CSS cho class này
+                span.innerText = '...';
+                span.style.margin = '0 5px';
+                span.style.color = '#999';
+                paginationEl.appendChild(span);
+                return;
+            }
+
             const btn = document.createElement('button');
-            btn.className = `page-btn ${page === currentPage ? 'active' : ''}`;
+            btn.className = `page-btn ${isActive ? 'active' : ''}`;
             btn.innerHTML = text;
             btn.disabled = disabled;
-            btn.onclick = () => {
-                currentPage = page;
-                renderUserTable(currentPage);
-            };
+
+            // Nếu không bị disable thì gắn sự kiện click
+            if (!disabled) {
+                btn.onclick = () => {
+                    if (page !== currentPage) {
+                        currentPage = page; 
+                        renderUserTable(currentPage); // Vẽ lại bảng
+                    }
+                };
+            }
             paginationEl.appendChild(btn);
         };
 
+        // 1. Nút Lùi (<)
         createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentPage - 1, currentPage === 1);
-        for (let i = 1; i <= totalPages; i++) createBtn(i, i);
+
+        // 2. Logic hiển thị số trang thông minh
+        // Luôn hiện trang 1
+        createBtn(1, 1, false, currentPage === 1);
+
+        // Nếu đang ở xa trang đầu (vd trang 5), hiện dấu ...
+        if (currentPage > 4) {
+            createBtn('...', null, true);
+        }
+
+        // Hiện các trang xung quanh trang hiện tại (Trừ 1 và Cuối)
+        // Ví dụ đang ở trang 10 -> hiện 8, 9, 10, 11, 12
+        let start = Math.max(2, currentPage - 2);
+        let end = Math.min(totalPages - 1, currentPage + 2);
+
+        // Điều chỉnh nếu ở gần đầu hoặc gần cuối để luôn hiện đủ 5 nút ở giữa
+        if (currentPage <= 4) {
+            end = Math.min(5, totalPages - 1);
+        }
+        if (currentPage >= totalPages - 3) {
+            start = Math.max(totalPages - 4, 2);
+        }
+
+        for (let i = start; i <= end; i++) {
+            createBtn(i, i, false, i === currentPage);
+        }
+
+        // Nếu đang ở xa trang cuối, hiện dấu ...
+        if (currentPage < totalPages - 3) {
+            createBtn('...', null, true);
+        }
+
+        // Luôn hiện trang cuối (nếu tổng > 1)
+        if (totalPages > 1) {
+            createBtn(totalPages, totalPages, false, currentPage === totalPages);
+        }
+
+        // 3. Nút Tiến (>)
         createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentPage + 1, currentPage === totalPages);
     }
 
@@ -1106,10 +1167,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // LOGIC LỊCH HỌC (CẬP NHẬT: CÓ NÚT SỬA)
     // ============================================================
 
+    let allSchedulesData = [];
+    let currentSchedulePage = 1;
     let currentSemesterIdForSchedule = "";
     let classListForSchedule = []; 
     let isScheduleEditMode = false; 
-    let currentScheduleOldData = null; // Lưu thông tin cũ để đối chiếu khi sửa
+    let currentScheduleOldData = null;
+
 
     async function initSchedulePage() {
         await loadSemestersToFilter(); 
@@ -1154,49 +1218,98 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(`http://localhost:8000/api/schedules?maHK=${maHK}`);
             const result = await response.json();
             
-            const tbody = document.getElementById('schedule-table-body');
-            tbody.innerHTML = '';
-            
             if (result.success) {
-                if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học.</td></tr>';
-                    return;
-                }
-
-                result.data.forEach(s => {
-                    // Chuẩn bị dữ liệu cho nút Sửa
-                    const dataString = JSON.stringify(s).replace(/"/g, '&quot;');
-
-                    const row = `
-                        <tr>
-                            <td style="text-align: center;"><input type="checkbox"></td>
-                            <td style="font-weight:600; text-align:center;">${s.MaLopHoc}</td>
-                            <td>${s.TenMon}</td>
-                            <td>${s.TenGiangVien || '-'}</td>
-                            <td style="text-align:center; font-weight:bold; color:#2563eb;">${s.PhongHoc}</td>
-                            <td style="text-align:center;">${s.Thu}</td>
-                            <td style="text-align:center;">${s.Tiet}</td>
-                            <td style="text-align:center;">${s.TuanBatDau} - ${s.TuanKetThuc}</td>
-                            <td style="text-align: center;">
-                                <button class="action-btn edit-schedule-btn" data-info="${dataString}" 
-                                    style="border:none; background:none; cursor:pointer; margin-right:8px;">
-                                    <span class="material-symbols-outlined" style="color:#3b82f6">edit</span>
-                                </button>
-                                <button class="action-btn delete-schedule-btn" 
-                                    data-lop="${s.MaLopHoc}" data-hk="${s.MaHocKy}" data-mon="${s.MaMon}" 
-                                    data-thu="${s.Thu}" data-tiet="${s.Tiet}" data-phong="${s.PhongHoc}"
-                                    style="border:none; background:none; cursor:pointer;">
-                                    <span class="material-symbols-outlined" style="color:#ef4444">delete</span>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-                attachScheduleActionEvents();
+                allSchedulesData = result.data; // Lưu dữ liệu
+                currentSchedulePage = 1;        // Reset về trang 1
+                renderScheduleTable(currentSchedulePage); // Vẽ bảng
             }
         } catch (err) { console.error(err); }
     }
+
+    function renderScheduleTable(page) {
+        const rowsPerPage = 10; // 10 dòng mỗi trang
+        const tbody = document.getElementById('schedule-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (allSchedulesData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Chưa có lịch học.</td></tr>';
+            const paginationEl = document.querySelector('.pagination');
+            if (paginationEl) paginationEl.innerHTML = '';
+            return;
+        }
+
+        // Tính toán cắt trang
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = allSchedulesData.slice(start, end);
+
+        pageData.forEach(s => {
+            const tietDisplay = (s.TietBatDau && s.TietKetThuc) ? `${s.TietBatDau} - ${s.TietKetThuc}` : s.Tiet;
+            const dataString = JSON.stringify(s).replace(/"/g, '&quot;');
+
+            const row = `
+                <tr>
+                    <td style="text-align: center;"><input type="checkbox"></td>
+                    <td style="font-weight:600; text-align:center;">${s.MaLopHoc}</td>
+                    <td>${s.TenMon}</td>
+                    <td>${s.TenGiangVien || '-'}</td>
+                    <td style="text-align:center; font-weight:bold; color:#2563eb;">${s.PhongHoc}</td>
+                    <td style="text-align:center;">${s.Thu}</td>
+                    <td style="text-align:center;">${tietDisplay}</td>
+                    <td style="text-align:center;">${s.TuanBatDau} - ${s.TuanKetThuc}</td>
+                    <td style="text-align: center;">
+                        <button class="action-btn edit-schedule-btn" data-info="${dataString}" style="border:none; background:none; cursor:pointer; margin-right:8px;">
+                            <span class="material-symbols-outlined" style="color:#3b82f6">edit</span>
+                        </button>
+                        <button class="action-btn delete-schedule-btn" 
+                            data-lop="${s.MaLopHoc}" data-hk="${s.MaHocKy}" data-mon="${s.MaMon}" 
+                            data-thu="${s.Thu}" data-tietbd="${s.TietBatDau}" data-tietkt="${s.TietKetThuc}" data-phong="${s.PhongHoc}"
+                            style="border:none; background:none; cursor:pointer;">
+                            <span class="material-symbols-outlined" style="color:#ef4444">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        // Gắn lại sự kiện click
+        attachScheduleActionEvents();
+        
+        // Vẽ phân trang
+        renderSchedulePagination();
+    }
+
+    function renderSchedulePagination() {
+        const rowsPerPage = 10;
+        const paginationEl = document.querySelector('.pagination');
+        if (!paginationEl) return;
+        paginationEl.innerHTML = '';
+
+        const totalPages = Math.ceil(allSchedulesData.length / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        const createBtn = (text, page, disabled = false) => {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${page === currentSchedulePage ? 'active' : ''}`;
+            btn.innerHTML = text;
+            btn.disabled = disabled;
+            btn.onclick = () => {
+                currentSchedulePage = page;
+                renderScheduleTable(currentSchedulePage);
+            };
+            paginationEl.appendChild(btn);
+        };
+
+        createBtn('<span class="material-symbols-outlined">chevron_left</span>', currentSchedulePage - 1, currentSchedulePage === 1);
+        for (let i = 1; i <= totalPages; i++) {
+            createBtn(i, i);
+        }
+        createBtn('<span class="material-symbols-outlined">chevron_right</span>', currentSchedulePage + 1, currentSchedulePage === totalPages);
+    }
+
+
 
     function attachScheduleActionEvents() {
         // 1. Sự kiện Sửa
@@ -1212,11 +1325,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // 2. Sự kiện Xóa
         document.querySelectorAll('.delete-schedule-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const d = e.currentTarget.dataset;
+                const button = e.target.closest('.delete-schedule-btn');
+                const d = button.dataset;
                 if(confirm(`Xóa lịch học lớp ${d.lop} thứ ${d.thu}?`)) {
-                    const query = `maLop=${d.lop}&maHK=${d.hk}&maMon=${d.mon}&thu=${d.thu}&tiet=${d.tiet}&phong=${d.phong}`;
-                    await fetch(`http://localhost:8000/api/schedules/delete?${query}`, { method: 'DELETE' });
-                    fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+                    // Gửi tietBD và tietKT lên server
+                    const query = `maLop=${d.lop}&maHK=${d.hk}&maMon=${d.mon}&thu=${d.thu}&tietBD=${d.tietbd}&tietKT=${d.tietkt}&phong=${d.phong}`;
+                    try {
+                        await fetch(`http://localhost:8000/api/schedules/delete?${query}`, { method: 'DELETE' });
+                        fetchAndInitScheduleTable(currentSemesterIdForSchedule);
+                    } catch (err) { alert('Lỗi kết nối!'); }
                 }
             });
         });
@@ -1262,7 +1379,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // 3. Điền các thông tin khác
         document.getElementById('schedulePhong').value = data.PhongHoc;
         document.getElementById('scheduleThu').value = data.Thu;
-        document.getElementById('scheduleTiet').value = data.Tiet;
+        document.getElementById('scheduleTietBD').value = data.TietBatDau;
+        document.getElementById('scheduleTietKT').value = data.TietKetThuc;
         document.getElementById('scheduleTuanBD').value = data.TuanBatDau;
         document.getElementById('scheduleTuanKT').value = data.TuanKetThuc;
 
@@ -1311,7 +1429,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Lấy giá trị từ các ô input
             const valPhong = document.getElementById('schedulePhong').value;
             const valThu = document.getElementById('scheduleThu').value;
-            const valTiet = document.getElementById('scheduleTiet').value;
+            const valTietBD = document.getElementById('scheduleTietBD').value;
+            const valTietKT = document.getElementById('scheduleTietKT').value;
             const valTuanBD = document.getElementById('scheduleTuanBD').value;
             const valTuanKT = document.getElementById('scheduleTuanKT').value;
 
@@ -1324,21 +1443,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 1. Dữ liệu cho API THÊM (Create)
                 phong: valPhong,
                 thu: valThu,
-                tiet: valTiet,
+                tietBD: valTietBD,
+                tietKT: valTietKT,
                 tuanBD: valTuanBD,
                 tuanKT: valTuanKT,
 
                 // 2. Dữ liệu cho API SỬA (Update - có chữ new)
                 newPhong: valPhong,
                 newThu: valThu,
-                newTiet: valTiet,
+                newtietBD: valTietBD,
+                newtietKT: valTietKT,
                 newTuanBD: valTuanBD,
                 newTuanKT: valTuanKT,
                 
                 // 3. Dữ liệu cũ (Chỉ dùng khi Sửa)
                 oldPhong: isScheduleEditMode ? currentScheduleOldData.PhongHoc : null,
                 oldThu: isScheduleEditMode ? currentScheduleOldData.Thu : null,
-                oldTiet: isScheduleEditMode ? currentScheduleOldData.Tiet : null
+                oldTietBD: isScheduleEditMode ? currentScheduleOldData.TietBatDau : null,
+                oldTietKT: isScheduleEditMode ? currentScheduleOldData.TietKetThuc : null
             };
 
             // Chọn API

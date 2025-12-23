@@ -7,5 +7,7 @@ router.post('/create', classController.createClass);
 router.put('/update/:id', classController.updateClass);
 router.delete('/delete', classController.deleteClass); // Dùng query param ?maLop=...&maHK=...
 router.get('/lecturers', classController.getLecturers); // API lấy giảng viên
+router.get('/my-courses', classController.getLecturerCourses);
+router.get('/my-classes-separate', classController.getClassesForGradeManagement);
 
 module.exports = router;

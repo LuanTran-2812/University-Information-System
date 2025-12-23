@@ -22,4 +22,6 @@ router.get('/faculties', userController.getFaculties);
 router.get('/detail', userController.getUserDetail); // API: GET /api/users/detail?email=...
 router.delete('/delete/:email', userController.deleteUser);
 
+router.put('/update-profile', userController.updateProfile);
+
 module.exports = router;

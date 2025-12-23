@@ -9,7 +9,8 @@ const getSchedulesBySemester = async (maHK) => {
       .query(`
         SELECT 
             lh.MaLopHoc, lh.MaHocKy, lh.MaMon, 
-            lh.PhongHoc, lh.Thu, lh.Tiet, 
+            lh.PhongHoc, lh.Thu, 
+            lh.TietBatDau, lh.TietKetThuc, 
             lh.TuanBatDau, lh.TuanKetThuc,
             mh.TenMon,
             gv.HoTen AS TenGiangVien
@@ -28,29 +29,39 @@ const getSchedulesBySemester = async (maHK) => {
 const createSchedule = async (data) => {
   try {
     const pool = await getPool();
-    const { maLop, maHK, maMon, phong, thu, tiet, tuanBD, tuanKT } = data;
+    const { maLop, maHK, maMon, phong, thu, tietBD, tietKT, tuanBD, tuanKT } = data;
 
     // Kiểm tra trùng lịch (cơ bản)
     const check = await pool.request()
         .input('phong', sql.VarChar, phong)
         .input('thu', sql.Int, thu)
-        .input('tiet', sql.VarChar, tiet)
+        .input('tietBD', sql.VarChar, tiet)
+        .input('tietKT', sql.VarChar, tiet)
         .input('maHK', sql.VarChar, maHK)
-        .query('SELECT * FROM LichHoc WHERE MaHocKy=@maHK AND PhongHoc=@phong AND Thu=@thu AND Tiet=@tiet');
+        .query(`
+            SELECT * FROM LichHoc 
+            WHERE MaHocKy=@maHK AND PhongHoc=@phong AND Thu=@thu 
+            AND (
+                (TietBatDau <= @tietBD AND TietKetThuc >= @tietBD) -- Giờ mới bắt đầu trong giờ cũ
+                OR 
+                (TietBatDau <= @tietKT AND TietKetThuc >= @tietKT) -- Giờ mới kết thúc trong giờ cũ
+            )
+        `);
     
     if (check.recordset.length > 0) throw new Error('Phòng học này đã bị trùng lịch vào thời gian đó!');
 
     await pool.request()
         .input('tuanBD', sql.Int, tuanBD)
         .input('tuanKT', sql.Int, tuanKT)
-        .input('tiet', sql.VarChar, tiet)
+        .input('tietBD', sql.Int, tietBD)
+        .input('tietKT', sql.Int, tietKT)
         .input('thu', sql.Int, thu)
         .input('phong', sql.VarChar, phong)
         .input('maLop', sql.VarChar, maLop)
         .input('maHK', sql.VarChar, maHK)
         .input('maMon', sql.VarChar, maMon)
         .query(`
-            INSERT INTO LichHoc (TuanBatDau, TuanKetThuc, Tiet, Thu, PhongHoc, MaLopHoc, MaHocKy, MaMon)
+            INSERT INTO LichHoc (TuanBatDau, TuanKetThuc, TietBatDau, TietKetThuc, Thu, PhongHoc, MaLopHoc, MaHocKy, MaMon)
             VALUES (@tuanBD, @tuanKT, @tiet, @thu, @phong, @maLop, @maHK, @maMon)
         `);
     return { success: true };
@@ -66,11 +77,13 @@ const deleteSchedule = async (maLop, maHK, maMon, thu, tiet, phong) => {
             .input('maHK', sql.VarChar, maHK)
             .input('maMon', sql.VarChar, maMon)
             .input('thu', sql.Int, thu)
-            .input('tiet', sql.VarChar, tiet)
+            .input('tietBD', sql.Int, tietBD)
+            .input('tietKT', sql.Int, tietKT)
             .input('phong', sql.VarChar, phong)
             .query(`
                 DELETE FROM LichHoc 
-                WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon AND Thu=@thu AND Tiet=@tiet AND PhongHoc=@phong
+                WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
+                AND Thu=@thu AND TietBatDau=@tietBD AND TietKetThuc=@tietKT AND PhongHoc=@phong
             `);
         return { success: true };
     } catch (err) { throw err; }
@@ -84,25 +97,34 @@ const updateSchedule = async (data) => {
         const { 
             maLop, maHK, maMon, 
             oldThu, oldTiet, oldPhong, 
-            newThu, newTiet, newPhong, newTuanBD, newTuanKT 
+            newThu, newTietBD, newTietKT, newPhong, newTuanBD, newTuanKT 
         } = data;
 
         // 1. Kiểm tra trùng lịch (Nếu có thay đổi giờ/phòng)
-        if (oldThu != newThu || oldTiet != newTiet || oldPhong != newPhong) {
+        if (oldThu != newThu || oldTietBD != newTietBD || oldTietKT != newTietKT || oldPhong != newPhong) {
              const check = await pool.request()
                 .input('phong', sql.VarChar, newPhong)
                 .input('thu', sql.Int, newThu)
-                .input('tiet', sql.VarChar, newTiet)
+                input('tietBD', sql.Int, newTietBD)
+                .input('tietKT', sql.Int, newTietKT)
                 .input('maHK', sql.VarChar, maHK)
-                .query('SELECT * FROM LichHoc WHERE MaHocKy=@maHK AND PhongHoc=@phong AND Thu=@thu AND Tiet=@tiet');
-             
-             if (check.recordset.length > 0) throw new Error(`Lịch học bị trùng tại phòng ${newPhong} thứ ${newThu} tiết ${newTiet}!`);
+                .query(`
+                    SELECT * FROM LichHoc 
+                    WHERE MaHocKy=@maHK AND PhongHoc=@phong AND Thu=@thu 
+                    AND (
+                        (TietBatDau <= @tietKT AND TietKetThuc >= @tietBD) -- Logic giao nhau của khoảng thời gian
+                    )
+                `);
+             if (check.recordset.length > 0) {
+                 throw new Error(`Lịch học bị trùng tại phòng ${newPhong} thứ ${newThu} tiết ${newTietBD}-${newTietKT}!`);
+             }
         }
 
         // 2. Thực hiện Update
         await pool.request()
             .input('newThu', sql.Int, newThu)
-            .input('newTiet', sql.VarChar, newTiet)
+            .input('newTietBD', sql.Int, newTietBD)
+            .input('newTietKT', sql.Int, newTietKT)
             .input('newPhong', sql.VarChar, newPhong)
             .input('newTuanBD', sql.Int, newTuanBD)
             .input('newTuanKT', sql.Int, newTuanKT)
@@ -114,8 +136,17 @@ const updateSchedule = async (data) => {
             .input('oldPhong', sql.VarChar, oldPhong)
             .query(`
                 UPDATE LichHoc
-                SET Thu=@newThu, Tiet=@newTiet, PhongHoc=@newPhong, TuanBatDau=@newTuanBD, TuanKetThuc=@newTuanKT
-                WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon AND Thu=@oldThu AND Tiet=@oldTiet AND PhongHoc=@oldPhong
+                SET Thu=@newThu, 
+                    TietBatDau=@newTietBD, 
+                    TietKetThuc=@newTietKT, 
+                    PhongHoc=@newPhong, 
+                    TuanBatDau=@newTuanBD, 
+                    TuanKetThuc=@newTuanKT
+                WHERE MaLopHoc=@maLop AND MaHocKy=@maHK AND MaMon=@maMon 
+                  AND Thu=@oldThu 
+                  AND TietBatDau=@oldTietBD 
+                  AND TietKetThuc=@oldTietKT 
+                  AND PhongHoc=@oldPhong
             `);
         return { success: true };
     } catch (err) { throw err; }
@@ -140,16 +171,17 @@ const getLecturerSchedule = async (email) => {
             .input('mscb', DataType.VarChar, mscb)
             .query(`
                 SELECT 
-                    lh.Thu, lh.Tiet, lh.PhongHoc, 
+                    lh.Thu, lh.PhongHoc, 
+                    lh.TietBatDau, lh.TietKetThuc, -- Lấy 2 cột mới
                     mh.TenMon, lh.MaLopHoc,
                     lh.TuanBatDau, lh.TuanKetThuc,
-                    hk.NgayBatDau -- <--- LẤY THÊM CỘT NÀY
+                    hk.NgayBatDau
                 FROM LichHoc lh
                 JOIN LopHoc l ON lh.MaLopHoc = l.MaLopHoc AND lh.MaHocKy = l.MaHocKy AND lh.MaMon = l.MaMonHoc
                 JOIN MonHoc mh ON l.MaMonHoc = mh.MaMon
-                JOIN HocKy hk ON l.MaHocKy = hk.MaHocKy -- <--- JOIN THÊM BẢNG HỌC KỲ
+                JOIN HocKy hk ON l.MaHocKy = hk.MaHocKy
                 WHERE l.MSCB = @mscb
-                ORDER BY lh.Thu, lh.Tiet
+                ORDER BY lh.Thu, lh.TietBatDau
             `);
 
         return result.recordset;

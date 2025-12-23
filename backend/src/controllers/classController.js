@@ -38,4 +38,28 @@ const getLecturers = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { getClasses, createClass, updateClass, deleteClass, getLecturers };
+const getLecturerCourses = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getLecturerCourses(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
+const getClassesForGradeManagement = async (req, res, next) => {
+    try {
+        const { email, maHK } = req.query;
+        const data = await classService.getClassesForGradeManagement(email, maHK);
+        res.json({ success: true, data: data });
+    } catch (err) { next(err); }
+};
+
+module.exports = { 
+  getClasses, 
+  createClass, 
+  updateClass, 
+  deleteClass, 
+  getLecturers,
+  getLecturerCourses,
+  getClassesForGradeManagement
+ };

@@ -1,0 +1,38 @@
+<div class="course-page-container">
+    <div class="page-header">
+        <div class="header-left-group">
+            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">class</span>
+            <h2 style="margin-right: 20px;">Khóa học của tôi</h2>
+            
+            <div class="semester-select-wrapper">
+                <select id="course-semester-filter" class="semester-dropdown">
+                    <option value="">Đang tải học kỳ...</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="search-box">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="course-search-input" placeholder="Tìm kiếm môn học...">
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">#</th>
+                    <th style="width: 100px; text-align: center;">Mã môn</th>
+                    <th style="text-align: left;">Tên môn học</th>
+                    <th style="width: 100px; text-align: center;">Số tín chỉ</th>
+                    <th style="width: 150px; text-align: left;">Lớp phụ trách</th> <th style="width: 120px; text-align: center;">Tổng SV</th>
+                    <th style="width: 80px; text-align: center;">Chi tiết</th>
+                </tr>
+            </thead>
+            <tbody id="course-table-body">
+                </tbody>
+        </table>
+    </div>
+</div>

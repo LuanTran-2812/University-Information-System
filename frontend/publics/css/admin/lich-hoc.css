@@ -1,15 +1,87 @@
-
-.schedule-page-container { 
-    background-color: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); min-height: 85vh;
+/* =========================================
+   1. CONTAINER & HEADER
+   ========================================= */
+.schedule-page-container {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    min-height: 85vh;
 }
 
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
 
-/* TABLE */
-.schedule-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.schedule-table th { background: #F9FAFB; color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 14px 10px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.schedule-table td { padding: 14px 10px; font-size: 14px; color: #111; border-bottom: 1px solid #F3F4F6; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-left-group { display: flex; align-items: center; gap: 20px; }
+.header-left-group h2 { font-size: 20px; font-weight: 600; margin: 0; }
 
-/* WIDTHS */
+/* Dropdown Học kỳ */
+.semester-select-wrapper { position: relative; }
+.semester-dropdown {
+    padding: 8px 32px 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    font-size: 14px;
+    color: #374151;
+    outline: none;
+    cursor: pointer;
+    font-weight: 500;
+    min-width: 180px;
+}
+
+/* =========================================
+   2. BUTTONS & SEARCH
+   ========================================= */
+.header-actions { display: flex; gap: 12px; }
+.search-box { display: flex; align-items: center; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
+
+.btn-white { background: #fff; border: 1px solid #E5E7EB; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.btn-blue { background: #4F46E5; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.btn-icon-only { background: #fff; border: 1px solid #E5E7EB; width: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* =========================================
+   3. BẢNG DỮ LIỆU (TABLE)
+   ========================================= */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Cố định khung */
+}
+
+/* Header & Cells */
+.schedule-table th, .schedule-table td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #E5E7EB;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.schedule-table th {
+    background: #F9FAFB;
+    color: #6B7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.schedule-table td { font-size: 14px; color: #111; }
+
+/* Chiều rộng cột */
 .schedule-table th:nth-child(1) { width: 5%; text-align: center; }
 .schedule-table th:nth-child(2) { width: 10%; text-align: center; } /* Mã lớp */
 .schedule-table th:nth-child(3) { width: 20%; text-align: left; }   /* Tên môn */
@@ -20,25 +92,35 @@
 .schedule-table th:nth-child(8) { width: 10%; text-align: center; } /* Tuần */
 .schedule-table th:nth-child(9) { width: 12%; text-align: center; } /* Action */
 
-/* ALIGNMENT */
+/* Căn lề nội dung */
 .schedule-table td:nth-child(1) { text-align: center; }
 .schedule-table td:nth-child(2) { text-align: center; font-weight: 600; }
 .schedule-table td:nth-child(3) { text-align: left; }
 .schedule-table td:nth-child(4) { text-align: left; }
-.schedule-table td:nth-child(5) { text-align: center; font-weight: 600; color: #2563eb; }
+.schedule-table td:nth-child(5) { text-align: center; font-weight: 700; color: #2563eb; }
 .schedule-table td:nth-child(6) { text-align: center; }
 .schedule-table td:nth-child(7) { text-align: center; }
 .schedule-table td:nth-child(8) { text-align: center; }
 .schedule-table td:nth-child(9) { text-align: center; }
 
-/* Modal */
+/* =========================================
+   4. MODAL & FORM
+   ========================================= */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
 .modal-overlay.active { display: flex; }
 .modal-content { background: #fff; border-radius: 12px; overflow: hidden; animation: slideDown 0.3s ease; }
+@keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 .modal-header { background-color: #4472C4; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { margin: 0; font-size: 18px; font-weight: 500; }
+.close-btn { cursor: pointer; font-size: 24px; }
+
 .form-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .full-width { grid-column: span 2; }
+
 .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #333; }
+.required { color: red; }
 .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
+
 .modal-footer { padding: 0 20px 20px; display: flex; justify-content: center; }
 .btn-save-orange { background-color: #FF5722; color: white; border: none; padding: 10px 50px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; }

@@ -1,0 +1,68 @@
+/* Container */
+.course-page-container {
+    background-color: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); min-height: 85vh;
+}
+
+/* Header */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header-left-group { display: flex; align-items: center; gap: 20px; }
+.header-left-group h2 { font-size: 20px; font-weight: 600; margin: 0; }
+
+/* Dropdown */
+.semester-dropdown {
+    padding: 8px 32px 8px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
+    background-color: #F9FAFB; font-size: 14px; color: #374151; outline: none; cursor: pointer; min-width: 180px;
+}
+
+/* Search */
+.search-box { display: flex; align-items: center; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; width: 240px; }
+.search-box input { border: none; background: transparent; outline: none; width: 100%; margin-left: 8px; }
+
+/* Table */
+.table-wrapper { border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; background: #fff; }
+.course-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+.course-table th {
+    background: #F9FAFB; color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    padding: 14px 16px; border-bottom: 1px solid #E5E7EB;
+}
+
+.course-table td {
+    padding: 16px; font-size: 14px; color: #111; border-bottom: 1px solid #F3F4F6; vertical-align: middle;
+}
+
+/* Style cho danh sách lớp (L01, L02) */
+.class-tag {
+    display: inline-block;
+    background-color: #EEF2FF;
+    color: #4F46E5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+/* Thêm thanh cuộn cho bảng */
+.table-wrapper {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #fff;
+    
+    /* --- CODE MỚI --- */
+    max-height: 600px; /* Giới hạn chiều cao bảng (tùy chỉnh số này) */
+    overflow-y: auto;  /* Tự động hiện thanh cuộn dọc nếu dài quá */
+    /* ---------------- */
+    
+    /* Giữ header dính trên cùng khi cuộn */
+    position: relative; 
+}
+
+/* Giữ cố định tiêu đề bảng (Sticky Header) */
+.course-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Đè lên nội dung khi cuộn */
+    background: #F9FAFB; /* Màu nền phải đặc để che nội dung */
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ cho đẹp */
+}

@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="../css/admin/index.css">
     <link rel="stylesheet" href="../css/admin/trang-chu.css">
     <link rel="stylesheet" href="../css/lecturer/lich-hoc.css"> 
+    <link rel="stylesheet" href="../css/lecturer/ho-so.css"> 
+    <link rel="stylesheet" href="../css/lecturer/khoa-hoc.css"> 
+    <link rel="stylesheet" href="../css/lecturer/bai-giang.css"> 
     
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700&display=swap" />
 </head>
@@ -32,8 +35,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-page="pages/khoa-hoc.html" data-title="Các khóa học của tôi"> 
-                       <span class="material-symbols-outlined">class</span> <span>Các khóa học của tôi</span>
+                    <a href="#" class="nav-link" data-page="pages/khoa-hoc.html" data-title="Khóa học / Bài giảng"> 
+                       <span class="material-symbols-outlined">class</span> <span>Khóa học / Bài giảng</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/diem.html" data-title="Sinh viên / Điểm"> 
+                       <span class="material-symbols-outlined">people</span> <span>Sinh viên / Điểm</span>
                     </a>
                 </li>
             </ul>
@@ -41,8 +49,12 @@
         
         <div class="bottom-nav">
             <ul>
-                <li><a href="#" class="nav-link"><span class="material-symbols-outlined">help</span><span>Help</span></a></li>
-                <li><a href="#" class="nav-link"><span class="material-symbols-outlined">settings</span><span>Setting</span></a></li>
+                
+                <li>
+                    <a href="#" class="nav-link" data-page="pages/ho-so.html" data-title="Hồ sơ cá nhân">
+                        <span class="material-symbols-outlined">settings</span><span>Setting</span>
+                    </a>
+                </li>
                 <li><a href="#" class="nav-link logout-btn"><span class="material-symbols-outlined">logout</span><span>Log out</span></a></li>
             </ul>
         </div>
@@ -52,10 +64,7 @@
         <header class="top-header">
             <div class="header-left">
                 <h1 id="page-title">Trang chủ</h1>
-                <div class="search-wrapper">
-                    <span class="material-symbols-outlined icon-btn">notifications</span>
-                    <span class="material-symbols-outlined icon-btn">mail</span>
-                </div>
+                
             </div>
             
             <div class="header-right">
@@ -65,7 +74,7 @@
                         <span class="user-name">Iosif V. Stalin</span>
                         <span class="user-role">Giảng viên</span>
                     </div>
-                    <span class="material-symbols-outlined dropdown-icon">expand_more</span>
+                    
                 </div>
             </div>
         </header>

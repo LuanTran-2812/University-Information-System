@@ -70,4 +70,20 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-module.exports = { getStudents, createUser, getFaculties, getUserDetail, deleteUser };
+const updateProfile = async (req, res, next) => {
+  try {
+    const { email } = req.body; // Lấy email từ body gửi lên
+    await userService.updateUserProfile(email, req.body);
+    res.json({ success: true, message: 'Cập nhật hồ sơ thành công!' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { 
+  getStudents, 
+  createUser, 
+  getFaculties, 
+  getUserDetail, 
+  deleteUser, 
+  updateProfile };

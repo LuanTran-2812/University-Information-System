@@ -1,0 +1,36 @@
+<div class="course-page-container"> <div class="page-header">
+        <div class="header-left-group">
+            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">people</span>
+            <h2 style="margin-right: 20px;">Sinh viên / Điểm</h2>
+            
+            <div class="semester-select-wrapper">
+                <select id="grade-semester-filter" class="semester-dropdown">
+                    <option value="">Đang tải học kỳ...</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <div class="search-box">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="grade-search-input" placeholder="Tìm lớp, môn...">
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="course-table"> <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">#</th>
+                    <th style="width: 100px; text-align: center;">Mã Lớp</th> <th style="width: 100px; text-align: center;">Mã Môn</th>
+                    <th style="text-align: left;">Tên Môn Học</th>
+                    <th style="width: 120px; text-align: center;">Sĩ số</th>
+                    
+                    <th style="width: 100px; text-align: center;">Danh sách</th>
+                </tr>
+            </thead>
+            <tbody id="grade-table-body">
+                </tbody>
+        </table>
+    </div>
+</div>
