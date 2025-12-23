@@ -1,11 +1,12 @@
 const scheduleService = require('../services/scheduleService');
 
 const getSchedules = async (req, res, next) => {
-  try {
-    const { maHK } = req.query;
-    const list = await scheduleService.getSchedulesBySemester(maHK);
-    res.json({ success: true, data: list });
-  } catch (err) { next(err); }
+    try {
+        const { maHK, lecturer, room, day, q } = req.query;
+        const filters = { lecturer, room, day, q };
+        const list = await scheduleService.getSchedulesBySemester(maHK, filters);
+        res.json({ success: true, data: list });
+    } catch (err) { next(err); }
 };
 
 const createSchedule = async (req, res, next) => {

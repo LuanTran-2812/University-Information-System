@@ -3,7 +3,10 @@ const userService = require('../services/userService');
 //  Hàm lấy danh sách sinh viên
 const getStudents = async (req, res, next) => {
   try {
-    const students = await userService.getAllStudents();
+    // loc tùy chọn , giảng viên , vai trò 
+    const { q, faculty, role } = req.query;
+    const filters = { q, faculty, role };
+    const students = await userService.getAllStudents(filters);
     res.json({
       success: true,
       data: students

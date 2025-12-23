@@ -1,28 +1,56 @@
 const { getPool, sql } = require('../config/db');
 
 // Lấy danh sách lịch học theo Học kỳ
-const getSchedulesBySemester = async (maHK) => {
-  try {
-    const pool = await getPool();
-    const result = await pool.request()
-      .input('maHK', sql.VarChar, maHK)
-      .query(`
-        SELECT 
-            lh.MaLopHoc, lh.MaHocKy, lh.MaMon, 
-            lh.PhongHoc, lh.Thu, 
-            lh.TietBatDau, lh.TietKetThuc, -- Thay đổi cột
-            lh.TuanBatDau, lh.TuanKetThuc,
-            mh.TenMon,
-            gv.HoTen AS TenGiangVien
-        FROM LichHoc lh
-        JOIN LopHoc l ON lh.MaLopHoc = l.MaLopHoc AND lh.MaHocKy = l.MaHocKy AND lh.MaMon = l.MaMonHoc
-        JOIN MonHoc mh ON l.MaMonHoc = mh.MaMon
-        LEFT JOIN GiangVien gv ON l.MSCB = gv.MSCB
-        WHERE lh.MaHocKy = @maHK
-        ORDER BY lh.Thu ASC, lh.TietBatDau ASC -- Order theo tiết bắt đầu
-      `);
-    return result.recordset;
-  } catch (err) { throw err; }
+const getSchedulesBySemester = async (maHK, filters = {}) => {
+    try {
+        const pool = await getPool();
+        // Build dynamic WHERE clauses based on (lecturer, room, day, q)
+        const request = pool.request();
+        request.input('maHK', sql.VarChar, maHK);
+
+        let whereClauses = ['lh.MaHocKy = @maHK'];
+
+        if (filters.lecturer) {
+            request.input('lecturer', sql.NVarChar, `%${filters.lecturer}%`);
+            whereClauses.push("gv.HoTen LIKE @lecturer");
+        }
+
+        if (filters.room) {
+            request.input('room', sql.VarChar, filters.room);
+            whereClauses.push("lh.PhongHoc = @room");
+        }
+
+        if (filters.day) {
+            request.input('day', sql.Int, parseInt(filters.day));
+            whereClauses.push("lh.Thu = @day");
+        }
+
+        if (filters.q) {
+            request.input('q', sql.NVarChar, `%${filters.q}%`);
+            whereClauses.push("(lh.MaLopHoc LIKE @q OR mh.TenMon LIKE @q OR gv.HoTen LIKE @q OR lh.PhongHoc LIKE @q)");
+        }
+
+        const whereSql = whereClauses.length ? 'WHERE ' + whereClauses.join(' AND ') : '';
+
+        const sqlText = `
+            SELECT 
+                    lh.MaLopHoc, lh.MaHocKy, lh.MaMon, 
+                    lh.PhongHoc, lh.Thu, 
+                    lh.TietBatDau, lh.TietKetThuc,
+                    lh.TuanBatDau, lh.TuanKetThuc,
+                    mh.TenMon,
+                    gv.HoTen AS TenGiangVien
+            FROM LichHoc lh
+            JOIN LopHoc l ON lh.MaLopHoc = l.MaLopHoc AND lh.MaHocKy = l.MaHocKy AND lh.MaMon = l.MaMonHoc
+            JOIN MonHoc mh ON l.MaMonHoc = mh.MaMon
+            LEFT JOIN GiangVien gv ON l.MSCB = gv.MSCB
+            ${whereSql}
+            ORDER BY lh.Thu ASC, lh.TietBatDau ASC
+        `;
+
+        const result = await request.query(sqlText);
+        return result.recordset;
+    } catch (err) { throw err; }
 };
 
 // Thêm lịch học

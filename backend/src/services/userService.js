@@ -1,15 +1,42 @@
 const { getPool, sql } = require('../config/db'); 
 
 // Hàm lấy danh sách sinh viên 
-const getAllStudents = async () => {
+const getAllStudents = async (filters = {}) => {
   try {
     const pool = await getPool();
-    const query = `
-      SELECT HoTen, Email, MSSV, Khoa, N'Sinh viên' as VaiTro FROM SinhVien
-      UNION ALL
-      SELECT HoTen, Email, MSCB, Khoa, N'Giảng viên' as VaiTro FROM GiangVien
+    const request = pool.request();
+
+    // sử dụng bảng dẫn cho truy vấn  
+    let whereClauses = [];
+
+    if (filters.q) {
+      request.input('q', sql.NVarChar, `%${filters.q}%`);
+      whereClauses.push('(t.HoTen LIKE @q OR t.Email LIKE @q OR t.MSSV LIKE @q OR t.MSCB LIKE @q OR t.Khoa LIKE @q)');
+    }
+
+    if (filters.faculty) {
+      request.input('faculty', sql.NVarChar, filters.faculty);
+      whereClauses.push('t.Khoa = @faculty');
+    }
+
+    if (filters.role) {
+      request.input('role', sql.NVarChar, filters.role);
+      whereClauses.push("t.VaiTro = @role");
+    }
+
+    const whereSql = whereClauses.length ? ('WHERE ' + whereClauses.join(' AND ')) : '';
+
+    const sqlText = `
+      SELECT * FROM (
+        SELECT HoTen, Email, MSSV AS Id, Khoa, N'Sinh viên' as VaiTro FROM SinhVien
+        UNION ALL
+        SELECT HoTen, Email, MSCB AS Id, Khoa, N'Giảng viên' as VaiTro FROM GiangVien
+      ) t
+      ${whereSql}
+      ORDER BY t.HoTen
     `;
-    const result = await pool.request().query(query);
+
+    const result = await request.query(sqlText);
     return result.recordset;
   } catch (err) {
     throw err;
