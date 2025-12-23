@@ -177,13 +177,59 @@ function setupAddSemesterForm() {
 
     newForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // 1. Lấy giá trị từ Form
+        const maHK = document.getElementById('maHK').value.trim();
+        const namHoc = document.getElementById('namHoc').value.trim();
+        const rawNgayBatDau = document.getElementById('ngayBatDau').value;
+        const rawNgayKetThuc = document.getElementById('ngayKetThuc').value;
+        const rawMoDangKy = document.getElementById('moDangKy').value;
+        const rawDongDangKy = document.getElementById('dongDangKy').value;
+
+        // 2. Chuyển đổi sang đối tượng Date để so sánh
+        const dateBatDau = new Date(rawNgayBatDau);
+        const dateKetThuc = new Date(rawNgayKetThuc);
+        const dateMoDangKy = new Date(rawMoDangKy);
+        const dateDongDangKy = new Date(rawDongDangKy);
+        
+        // CONSTRAINT CK_ThoiGianHoc CHECK (NgayBatDau < NgayKetThuc)
+        if (dateBatDau >= dateKetThuc) {
+            alert("Ngày bắt đầu học kỳ phải NHỎ HƠN ngày kết thúc!");
+            document.getElementById('ngayBatDau').focus();
+            return;
+        }
+
+        // CONSTRAINT CK_ThoiGianDangKy CHECK (MoDangKy < DongDangKy)
+        if (dateMoDangKy >= dateDongDangKy) {
+            alert("Ngày mở đăng ký phải NHỎ HƠN ngày đóng đăng ký!");
+            document.getElementById('moDangKy').focus();
+            return;
+        }
+
+        // CONSTRAINT CK_ThoiGianMauThuan CHECK (DongDangKy < NgayBatDau)
+        if (dateDongDangKy >= dateBatDau) {
+            alert("Ngày đóng đăng ký phải TRƯỚC ngày bắt đầu học kỳ!");
+            document.getElementById('dongDangKy').focus();
+            return;
+        }
+
+        // CONSTRAINT CK_KhoangCachDangKy CHECK (DATEDIFF(day, DongDangKy, NgayBatDau) >= 15)
+        const diffTime = dateBatDau.getTime() - dateDongDangKy.getTime();
+        const diffDays = diffTime / (1000 * 3600 * 24);
+
+        if (diffDays < 15) {
+            alert(`Khoảng cách từ lúc Đóng đăng ký đến lúc Bắt đầu học phải tối thiểu 15 ngày!\nHiện tại chỉ có: ${Math.floor(diffDays)} ngày.`);
+            document.getElementById('dongDangKy').focus();
+            return;
+        }
+
         const data = {
-            maHK: document.getElementById('maHK').value,
-            namHoc: document.getElementById('namHoc').value,
-            ngayBatDau: document.getElementById('ngayBatDau').value,
-            ngayKetThuc: document.getElementById('ngayKetThuc').value,
-            moDangKy: document.getElementById('moDangKy').value,
-            dongDangKy: document.getElementById('dongDangKy').value,
+            maHK: maHK,
+            namHoc: namHoc,
+            ngayBatDau: rawNgayBatDau,
+            ngayKetThuc: rawNgayKetThuc,
+            moDangKy: rawMoDangKy,
+            dongDangKy: rawDongDangKy,
         };
 
         let url = 'http://localhost:8000/api/semesters/create';

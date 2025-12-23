@@ -1,12 +1,32 @@
 const { getPool, sql } = require('../config/db');
 
 // Lấy danh sách lớp theo Học kỳ
-const getClassesBySemester = async (maHocKy) => {
+const getClassesBySemester = async (maHocKy, filters = {}) => {
   try {
     const pool = await getPool();
-    const result = await pool.request()
-      .input('maHK', sql.VarChar, maHocKy)
-      .query(`
+    const request = pool.request();
+    request.input('maHK', sql.VarChar, maHocKy);
+
+    let whereClauses = ['lh.MaHocKy = @maHK'];
+
+    if (filters.q) {
+      request.input('q', sql.NVarChar, `%${filters.q}%`);
+      whereClauses.push('(lh.MaLopHoc LIKE @q OR mh.TenMon LIKE @q)');
+    }
+
+    if (filters.status) {
+      request.input('status', sql.NVarChar, filters.status);
+      whereClauses.push('v.TrangThai = @status');
+    }
+
+    if (filters.lecturer) {
+      request.input('lecturer', sql.NVarChar, `%${filters.lecturer}%`);
+      whereClauses.push('gv.HoTen LIKE @lecturer');
+    }
+
+    const whereSql = whereClauses.join(' AND ');
+
+    const query = `
         SELECT 
             lh.MaLopHoc, lh.MaHocKy, lh.MaMonHoc, lh.SiSoToiDa, lh.SiSoHienTai,
             mh.TenMon,
@@ -16,8 +36,10 @@ const getClassesBySemester = async (maHocKy) => {
         LEFT JOIN MonHoc mh ON lh.MaMonHoc = mh.MaMon
         LEFT JOIN GiangVien gv ON lh.MSCB = gv.MSCB
         LEFT JOIN v_ThongTinLopHoc v ON lh.MaLopHoc = v.MaLopHoc AND lh.MaHocKy = v.MaHocKy AND lh.MaMonHoc = v.MaMonHoc
-        WHERE lh.MaHocKy = @maHK
-      `);
+        WHERE ${whereSql}
+      `;
+    
+    const result = await request.query(query);
     return result.recordset;
   } catch (err) { throw err; }
 };

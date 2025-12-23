@@ -1,8 +1,29 @@
 const { getPool, sql } = require('../config/db'); 
 
-const getAllSubjects = async () => {
+const getAllSubjects = async (filters = {}) => {
   try {
     const pool = await getPool();
+    const request = pool.request();
+    
+    let whereClauses = [];
+
+    if (filters.q) {
+      request.input('q', sql.NVarChar, `%${filters.q}%`);
+      whereClauses.push('(m.MaMon LIKE @q OR m.TenMon LIKE @q)');
+    }
+
+    if (filters.khoa) {
+      request.input('khoa', sql.NVarChar, filters.khoa);
+      whereClauses.push('m.KhoaPhuTrach = @khoa');
+    }
+
+    if (filters.tinChi) {
+      request.input('tinChi', sql.Int, parseInt(filters.tinChi));
+      whereClauses.push('m.SoTinChi = @tinChi');
+    }
+
+    const whereSql = whereClauses.length ? ('WHERE ' + whereClauses.join(' AND ')) : '';
+
     const query = `
       SELECT 
         m.MaMon, 
@@ -13,11 +34,22 @@ const getAllSubjects = async () => {
         STRING_AGG(tq.MaMonTienQuyet, ', ') AS MonTienQuyet
       FROM MonHoc m
       LEFT JOIN MonTienQuyet tq ON m.MaMon = tq.MaMon
+      ${whereSql}
       GROUP BY m.MaMon, m.TenMon, m.SoTinChi, m.KhoaPhuTrach, m.MaMonSongHanh
     `;
     
-    const result = await pool.request().query(query);
+    const result = await request.query(query);
     return result.recordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getDistinctCredits = async () => {
+  try {
+    const pool = await getPool();
+    const result = await pool.request().query('SELECT DISTINCT SoTinChi FROM MonHoc ORDER BY SoTinChi');
+    return result.recordset.map(r => r.SoTinChi);
   } catch (err) {
     throw err;
   }
@@ -265,4 +297,4 @@ const deleteMultipleSubjects = async (ids = []) => {
   }
 };
   
-module.exports = { getAllSubjects, getSubjectDetail, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };
+module.exports = { getAllSubjects, getDistinctCredits, getSubjectDetail, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };

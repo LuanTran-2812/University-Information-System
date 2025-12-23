@@ -2,8 +2,9 @@ const classService = require('../services/classService');
 
 const getClasses = async (req, res, next) => {
   try {
-    const { maHK } = req.query; // Lấy maHK từ URL ?maHK=...
-    const classes = await classService.getClassesBySemester(maHK);
+    const { maHK, q, status, lecturer } = req.query; // Lấy maHK và filters từ URL
+    const filters = { q, status, lecturer };
+    const classes = await classService.getClassesBySemester(maHK, filters);
     res.json({ success: true, data: classes });
   } catch (err) { next(err); }
 };

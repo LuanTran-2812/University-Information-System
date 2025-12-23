@@ -6,14 +6,42 @@
     <div class="header-actions">
         <div class="search-box">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Tìm kiếm">
+            <input type="text" id="subject-search-input" placeholder="Tìm kiếm">
         </div>
         
-        <button class="btn-white">
-            Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
-        </button>
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-subject-filter" onclick="toggleSubjectFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
 
-        <button class="btn-blue">
+            <div class="subject-filter-popup" id="subject-filter-popup">
+                <div class="subject-filter-arrow"></div>
+                
+                <div class="subject-filter-body">
+                    <div class="subject-filter-row">
+                        <div class="subject-filter-item">
+                            <label>Khoa / Bộ môn</label>
+                            <select class="subject-filter-select" id="subject-filter-khoa">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+                        <div class="subject-filter-item">
+                            <label>Số tín chỉ</label>
+                            <select class="subject-filter-select" id="subject-filter-tinchi">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="subject-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeSubjectFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applySubjectFilter()">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-blue" id="btn-add-subject">
             <span class="material-symbols-outlined icon-btn">add</span>Thêm
         </button>
 

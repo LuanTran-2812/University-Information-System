@@ -8,7 +8,47 @@
             <span class="material-symbols-outlined">search</span>
             <input type="text" placeholder="Tìm kiếm">
         </div>
-        <button class="btn-white">Lọc <span class="material-symbols-outlined icon-filter">filter_list</span></button>
+
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-class-filter" onclick="toggleClassFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="class-filter-popup" id="class-filter-popup">
+                <div class="class-filter-arrow"></div>
+                
+                <div class="class-filter-body">
+                    <div class="class-filter-row">
+                        <div class="class-filter-item">
+                            <label>Giảng viên</label>
+                            <select class="class-filter-select" id="class-filter-lecturer">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+
+                        <div class="class-filter-item">
+                            <label>Trạng thái</label>
+                            <select class="class-filter-select" id="class-filter-status">
+                                <option value="">Tất cả</option>
+                                <option value="Chưa xếp lịch">Chưa xếp lịch</option>
+                                <option value="Đã xếp lịch">Đã xếp lịch</option>
+                                <option value="Đang đăng ký">Đang đăng ký</option>
+                                <option value="Kết thúc đăng ký">Kết thúc đăng ký</option>
+                                <option value="Đang học">Đang học</option>
+                                <option value="Đã kết thúc">Đã kết thúc</option>
+                                <option value="Đã hủy lớp">Đã hủy lớp</option>
+                            </select>
+                        </div>                        
+                    </div>
+
+                    <div class="class-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeClassFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applyClassFilterButton()">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <button class="btn-blue btn-add-class"><span class="material-symbols-outlined icon-btn">add</span>Thêm</button>
         <button class="btn-icon-delete-class">
             <span class="material-symbols-outlined">delete</span>
