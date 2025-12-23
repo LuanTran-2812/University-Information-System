@@ -27,7 +27,7 @@ const getSchedulesBySemester = async (maHK, filters = {}) => {
 
         if (filters.q) {
             request.input('q', sql.NVarChar, `%${filters.q}%`);
-            whereClauses.push("(lh.MaLopHoc LIKE @q OR mh.TenMon LIKE @q OR gv.HoTen LIKE @q OR lh.PhongHoc LIKE @q)");
+            whereClauses.push("(lh.MaLopHoc LIKE @q OR mh.TenMon LIKE @q OR lh.PhongHoc LIKE @q)");
         }
 
         const whereSql = whereClauses.length ? 'WHERE ' + whereClauses.join(' AND ') : '';

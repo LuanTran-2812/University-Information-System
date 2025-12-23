@@ -206,3 +206,107 @@
     text-align: center;
     font-weight: bold;
 }
+
+/* =========================================
+   FILTER POPUP STYLES (Cho trang Lớp học)
+   ========================================= */
+
+/* Popup Container */
+.class-filter-popup {
+    display: none; /* Mặc định ẩn */
+    position: absolute;
+    top: 120%; /* Nằm ngay dưới nút */
+    right: 0; /* Căn phải so với nút Lọc */
+    width: 500px; /* Độ rộng khớp với trang Môn học */
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng hiện dần */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mũi tên nhỏ trỏ lên */
+.class-filter-arrow {
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid #E5E7EB;
+    border-top: 1px solid #E5E7EB;
+    transform: rotate(45deg);
+}
+
+.class-filter-body {
+    padding: 20px;
+}
+
+/* Grid layout cho 2 dropdown nằm ngang */
+.class-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia đều 50-50 */
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.class-filter-item label {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.class-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    color: #111;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.class-filter-select:focus {
+    border-color: #4F46E5;
+}
+
+/* Footer chứa nút */
+.class-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Nút Cancel & OK dùng lại class chung hoặc định nghĩa riêng nếu cần */
+.btn-filter-cancel {
+    background: #E3EBF7; 
+    border: 1px solid #E5E7EB; 
+    color: #285192;
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-cancel:hover { background: #E5E7EB; }
+
+.btn-filter-ok {
+    background: #3B71CA; 
+    border: none; 
+    color: white;
+    padding: 8px 24px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-ok:hover { background: #4338ca; }

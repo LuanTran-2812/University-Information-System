@@ -9,18 +9,18 @@ const getAllStudents = async (filters = {}) => {
     // sử dụng bảng dẫn cho truy vấn  
     let whereClauses = [];
 
-    if (filters.q) {
-      request.input('q', sql.NVarChar, `%${filters.q}%`);
-      whereClauses.push('(t.HoTen LIKE @q OR t.Email LIKE @q OR t.MSSV LIKE @q OR t.MSCB LIKE @q OR t.Khoa LIKE @q)');
+    if (filters.q && filters.q.trim()) {
+      request.input('q', sql.NVarChar, `%${filters.q.trim()}%`);
+      whereClauses.push('(t.HoTen LIKE @q OR t.MaSo LIKE @q)');
     }
 
-    if (filters.faculty) {
-      request.input('faculty', sql.NVarChar, filters.faculty);
+    if (filters.faculty && filters.faculty.trim()) {
+      request.input('faculty', sql.NVarChar, filters.faculty.trim());
       whereClauses.push('t.Khoa = @faculty');
     }
 
-    if (filters.role) {
-      request.input('role', sql.NVarChar, filters.role);
+    if (filters.role && filters.role.trim()) {
+      request.input('role', sql.NVarChar, filters.role.trim());
       whereClauses.push("t.VaiTro = @role");
     }
 
@@ -28,16 +28,21 @@ const getAllStudents = async (filters = {}) => {
 
     const sqlText = `
       SELECT * FROM (
-        SELECT HoTen, Email, MSSV AS Id, Khoa, N'Sinh viên' as VaiTro FROM SinhVien
+        SELECT HoTen, Email, MSSV as MaSo, Khoa, N'Sinh viên' as VaiTro FROM SinhVien
         UNION ALL
-        SELECT HoTen, Email, MSCB AS Id, Khoa, N'Giảng viên' as VaiTro FROM GiangVien
+        SELECT HoTen, Email, MSCB as MaSo, Khoa, N'Giảng viên' as VaiTro FROM GiangVien
       ) t
       ${whereSql}
-      ORDER BY t.HoTen
     `;
 
     const result = await request.query(sqlText);
-    return result.recordset;
+    
+    return result.recordset.map(user => ({
+        ...user,
+        MSSV: user.VaiTro === 'Sinh viên' ? user.MaSo : null,
+        MSCB: user.VaiTro === 'Giảng viên' ? user.MaSo : null
+    }));
+
   } catch (err) {
     throw err;
   }

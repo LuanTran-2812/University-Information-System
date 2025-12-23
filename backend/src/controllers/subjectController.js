@@ -2,7 +2,12 @@ const subjectService = require('../services/subjectService');
 
 const getSubjects = async (req, res, next) => {
   try {
-    const subjects = await subjectService.getAllSubjects();
+    const filters = {
+        q: req.query.q || req.query.search,
+        khoa: req.query.khoa,
+        tinChi: req.query.tinChi
+    };
+    const subjects = await subjectService.getAllSubjects(filters);
     res.json({
       success: true,
       data: subjects
@@ -10,6 +15,15 @@ const getSubjects = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+const getCredits = async (req, res, next) => {
+    try {
+        const credits = await subjectService.getDistinctCredits();
+        res.json({ success: true, data: credits });
+    } catch (err) {
+        next(err);
+    }
 };
 
 const getSubjectDetail = async (req, res, next) => {
@@ -111,4 +125,4 @@ const deleteMultipleSubjects = async (req, res) => {
   }
 };
 
-module.exports = { getSubjects, getSubjectDetail, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };
+module.exports = { getSubjects, getCredits, getSubjectDetail, createSubject, updateSubject, deleteSubject, deleteMultipleSubjects };

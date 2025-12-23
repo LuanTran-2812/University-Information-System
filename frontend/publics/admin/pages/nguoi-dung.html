@@ -9,9 +9,40 @@
             <input id="user-search-input" type="text" placeholder="Tìm kiếm">
         </div>
         
-        <button class="btn-white">
-            Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
-        </button>
+        <div class="filter-wrapper">
+            <button class="btn-white" id="btn-user-filter" onclick="toggleUserFilterPopup()">
+                Lọc <span class="material-symbols-outlined icon-filter">filter_list</span>
+            </button>
+
+            <div class="user-filter-popup" id="user-filter-popup">
+                <div class="user-filter-arrow"></div>
+                
+                <div class="user-filter-body">
+                    <div class="user-filter-row">
+                        <div class="user-filter-item">
+                            <label>Khoa / Bộ môn</label>
+                            <select class="user-filter-select" id="user-filter-khoa">
+                                <option value="">Tất cả</option>
+                                </select>
+                        </div>
+
+                        <div class="user-filter-item">
+                            <label>Vai trò</label>
+                            <select class="user-filter-select" id="user-filter-vaitro">
+                                <option value="">Tất cả</option>
+                                <option value="Sinh viên">Sinh viên</option>
+                                <option value="Giảng viên">Giảng viên</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="user-filter-footer">
+                        <button type="button" class="btn-filter-cancel" onclick="closeUserFilterPopup()">Hủy</button>
+                        <button type="button" class="btn-filter-ok" onclick="applyUserFilter()">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <button class="btn-blue btn-add-user">
             <span class="material-symbols-outlined icon-btn">add</span>Thêm

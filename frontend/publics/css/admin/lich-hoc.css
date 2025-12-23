@@ -265,3 +265,108 @@
     display: block;
     margin-top: 2px;
 }
+
+/* =========================================
+   FILTER POPUP STYLES (Trang Lịch Học - Đồng bộ Lớp Học)
+   ========================================= */
+
+/* Khung Popup */
+.schedule-filter-popup {
+    display: none; /* Mặc định ẩn */
+    position: absolute;
+    top: 120%; /* Nằm ngay dưới nút */
+    right: 0; 
+    width: 500px; /* Độ rộng giống hệt trang Lớp học */
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng hiện dần */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mũi tên nhỏ trỏ lên */
+.schedule-filter-arrow {
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-left: 1px solid #E5E7EB;
+    border-top: 1px solid #E5E7EB;
+    transform: rotate(45deg);
+}
+
+.schedule-filter-body {
+    padding: 20px;
+}
+
+/* Layout Grid: 2 cột bằng nhau */
+.schedule-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia 50-50 cho Giảng viên và Thứ */
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.schedule-filter-item label {
+    display: block;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.schedule-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    color: #111;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.schedule-filter-select:focus {
+    border-color: #4F46E5;
+}
+
+/* Footer chứa nút */
+.schedule-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Nút Cancel */
+.btn-filter-cancel {
+    background: #E3EBF7; 
+    border: 1px solid #E5E7EB; 
+    color: #285192;
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-cancel:hover { background: #E5E7EB; }
+
+/* Nút OK/Áp dụng */
+.btn-filter-ok {
+    background: #3B71CA; 
+    border: none; 
+    color: white;
+    padding: 8px 24px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 500;
+}
+.btn-filter-ok:hover { background: #4338ca; }

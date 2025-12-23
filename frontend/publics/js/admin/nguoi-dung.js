@@ -1,8 +1,14 @@
 // CẤU HÌNH: Số dòng mỗi trang
-const ROWS_PER_PAGE = 7; 
+const USER_ROWS_PER_PAGE = 7; 
 let allUsersData = [];
 let currentPage = 1;
 let filteredUsersData = [];
+
+// Biến lưu trạng thái Filter
+let currentUserFilterState = {
+    khoa: '',
+    vaiTro: ''
+};
 
 // Set lưu trữ Email các dòng được chọn
 const selectedUserEmails = new Set();
@@ -10,12 +16,29 @@ const selectedUserEmails = new Set();
 // --- A. Tải danh sách người dùng từ API ---
 async function fetchAndInitUserTable() {
     try {
-        const response = await fetch('http://localhost:8000/api/users/students');
+        const url = new URL('http://localhost:8000/api/users/students');
+
+        // 1. Append Filters
+        if (currentUserFilterState.khoa) {
+            url.searchParams.append('faculty', currentUserFilterState.khoa);
+        }
+        if (currentUserFilterState.vaiTro) {
+            url.searchParams.append('role', currentUserFilterState.vaiTro);
+        }
+
+        // 2. Append Search
+        const searchInput = document.getElementById('user-search-input');
+        if (searchInput && searchInput.value.trim() !== '') {
+            url.searchParams.append('q', searchInput.value.trim());
+        }
+
+        const response = await fetch(url.toString());
         const result = await response.json();
         
         if (result.success) {
             allUsersData = result.data;
-            filteredUsersData = allUsersData.slice();
+            // Backend đã filter rồi, nên filteredUsersData chính là allUsersData
+            filteredUsersData = allUsersData; 
             currentPage = 1;
             selectedUserEmails.clear(); // Reset lựa chọn khi reload
             renderUserTable(currentPage);
@@ -37,8 +60,8 @@ function renderUserTable(page) {
     // Cập nhật trạng thái nút xóa ngay khi render
     updateUserDeleteButtonState();
 
-    const start = (page - 1) * ROWS_PER_PAGE;
-    const end = start + ROWS_PER_PAGE;
+    const start = (page - 1) * USER_ROWS_PER_PAGE;
+    const end = start + USER_ROWS_PER_PAGE;
     const source = filteredUsersData || [];
     const pageData = source.slice(start, end);
 
@@ -86,30 +109,86 @@ function renderUserTable(page) {
     updateUserDeleteButtonState(); // Cập nhật nút xóa hàng loạt
     
     if (typeof renderPagination === 'function') {
-        renderPagination((filteredUsersData || []).length, ROWS_PER_PAGE, page, (newPage) => {
+        renderPagination((filteredUsersData || []).length, USER_ROWS_PER_PAGE, page, (newPage) => {
             currentPage = newPage;
             renderUserTable(newPage);
         });
     }
 }
 
-function applyUserSearch(query) {
-    const q = (query || '').trim().toLowerCase();
-    if (!q) {
-        filteredUsersData = allUsersData.slice();
-    } else {
-        filteredUsersData = allUsersData.filter(u => {
-            return (
-                (u.HoTen || '').toLowerCase().includes(q) ||
-                (u.Email || '').toLowerCase().includes(q) ||
-                (u.MSSV || u.MSCB || '').toString().toLowerCase().includes(q) ||
-                (u.Khoa || '').toLowerCase().includes(q)
-            );
+// --- LOGIC FILTER POPUP ---
+
+function toggleUserFilterPopup() {
+    const popup = document.getElementById('user-filter-popup');
+    const btn = document.getElementById('btn-user-filter');
+    
+    const isHidden = window.getComputedStyle(popup).display === 'none';
+    
+    if (isHidden) {
+        popup.style.display = 'block';
+        btn.classList.add('active');
+        
+        loadUserFilterOptions().then(() => {
+            const selectKhoa = document.getElementById('user-filter-khoa');
+            const selectVaiTro = document.getElementById('user-filter-vaitro');
+            
+            if (selectKhoa && currentUserFilterState.khoa) {
+                selectKhoa.value = currentUserFilterState.khoa;
+            }
+            if (selectVaiTro && currentUserFilterState.vaiTro) {
+                selectVaiTro.value = currentUserFilterState.vaiTro;
+            }
         });
+    } else {
+        closeUserFilterPopup();
     }
-    currentPage = 1;
-    renderUserTable(currentPage);
 }
+
+function closeUserFilterPopup() {
+    const popup = document.getElementById('user-filter-popup');
+    const btn = document.getElementById('btn-user-filter');
+    
+    if (popup) popup.style.display = 'none';
+    if (btn) btn.classList.remove('active');
+}
+
+async function loadUserFilterOptions() {
+    const selectKhoa = document.getElementById('user-filter-khoa');
+    
+    if (selectKhoa && selectKhoa.options.length <= 1) {
+        try {
+            const response = await fetch('http://localhost:8000/api/users/faculties');
+            const result = await response.json();
+            if (result.success) {
+                result.data.forEach(khoa => {
+                    const option = document.createElement('option');
+                    option.value = khoa.TenKhoa;
+                    option.textContent = khoa.TenKhoa;
+                    selectKhoa.appendChild(option);
+                });
+            }
+        } catch (error) { console.error("Lỗi lấy danh sách khoa:", error); }
+    }
+}
+
+function applyUserFilter() {
+    const khoaVal = document.getElementById('user-filter-khoa').value;
+    const vaiTroVal = document.getElementById('user-filter-vaitro').value;
+
+    currentUserFilterState.khoa = khoaVal;
+    currentUserFilterState.vaiTro = vaiTroVal;
+
+    fetchAndInitUserTable();
+    closeUserFilterPopup();
+}
+
+document.addEventListener('click', function(event) {
+    const popup = document.getElementById('user-filter-popup');
+    const btn = document.getElementById('btn-user-filter');
+    if (popup && btn && !popup.contains(event.target) && !btn.contains(event.target)) {
+        closeUserFilterPopup();
+    }
+});
 
 // --- C. Quản lý Checkbox & Xóa Batch (Logic mới thêm) ---
 
@@ -499,18 +578,72 @@ if (typeof window !== 'undefined') {
 }
 
 // --- F. Main Execution ---
-document.addEventListener('DOMContentLoaded', () => {
-    if(document.getElementById('student-table-body')) {
-        fetchAndInitUserTable();
-        setupUserButtons(); // Setup cả nút thêm và nút xóa hàng loạt
-        const searchInput = document.getElementById('user-search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                applyUserSearch(e.target.value);
-            });
-        }
+
+let isUserPageInitialized = false;
+
+function debounceUser(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
+function initUserPage() {
+    const searchInput = document.getElementById('user-search-input');
+    
+    // Reset filter state
+    currentUserFilterState = { khoa: '', vaiTro: '' };
+    if (searchInput) searchInput.value = '';
+
+    fetchAndInitUserTable();
+    setupUserButtons(); 
+    
+    if (searchInput) {
+        const handleAutoSearch = debounceUser((e) => {
+            fetchAndInitUserTable();
+        }, 500);
+
+        searchInput.removeEventListener('input', handleAutoSearch);
+        searchInput.addEventListener('input', handleAutoSearch);
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fetchAndInitUserTable();
+            }
+        });
     }
-});
+}
+
+// --- LOGIC TỰ ĐỘNG PHÁT HIỆN TRANG ---
+(function() {
+    const contentArea = document.querySelector('.content-area');
+
+    if (contentArea) {
+        const observer = new MutationObserver(() => {
+            const searchInput = document.getElementById('user-search-input');
+            
+            if (searchInput) {
+                if (!isUserPageInitialized) {
+                    isUserPageInitialized = true;
+                    initUserPage();
+                }
+            } else {
+                isUserPageInitialized = false;
+            }
+        });
+        observer.observe(contentArea, { childList: true, subtree: true });
+    }
+
+    const searchInput = document.getElementById('user-search-input');
+    if (searchInput && !isUserPageInitialized) {
+        isUserPageInitialized = true;
+        initUserPage();
+    }
+})();
 
 // Export functions và variables
 if (typeof window !== 'undefined') {
@@ -526,4 +659,9 @@ if (typeof window !== 'undefined') {
     // Export thêm biến quản lý xóa
     window.selectedUserEmails = selectedUserEmails;
     window.updateSelectedUserEmails = updateSelectedUserEmails;
+
+    // Export Filter Functions
+    window.toggleUserFilterPopup = toggleUserFilterPopup;
+    window.closeUserFilterPopup = closeUserFilterPopup;
+    window.applyUserFilter = applyUserFilter;
 }

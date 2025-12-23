@@ -4,6 +4,7 @@ const subjectController = require('../controllers/subjectController');
 
 // GET /api/subjects
 router.get('/', subjectController.getSubjects);
+router.get('/credits', subjectController.getCredits);
 router.get('/:id', subjectController.getSubjectDetail);
 router.post('/create', subjectController.createSubject);
 router.put('/update/:id', subjectController.updateSubject);
