@@ -1,4 +1,4 @@
-USE test111;
+USE themdulieu;
 GO
 
 PRINT N'=== BẮT ĐẦU QUÁ TRÌNH LÀM SẠCH DỮ LIỆU ===';
@@ -707,41 +707,42 @@ DECLARE @SoDong INT = @@ROWCOUNT;
 PRINT N'-> Đã nhập thành công ' + CAST(@SoDong AS NVARCHAR(20)) + N' đầu điểm chi tiết!';
 GO
 
--- 2. Insert hàng loạt
-INSERT INTO TaiLieu (MaTaiLieu, MSCB, TenFile, DuongDan, NgayTaiLen, MaLopHoc, MaMon, MaHocKy)
+-- 2. Insert tailieu
+INSERT INTO TaiLieu (MaTaiLieu, MSCB, TenFile, DuLieuFile, LoaiFile, NgayTaiLen, MaLopHoc, MaMon, MaHocKy)
 SELECT 
-    -- Mã tài liệu: TL + Số thứ tự tăng dần (VD: TL00001)
+    -- Mã tài liệu
     'TL' + RIGHT('00000' + CAST(ROW_NUMBER() OVER(ORDER BY LH.MaLopHoc, So.N) AS VARCHAR(10)), 5),
 
-  
+    -- Người đăng (Giảng viên của lớp)
     ISNULL(LH.MSCB, (SELECT TOP 1 MSCB FROM GiangVien)), 
 
-    --  Tên file
-    N'Bài giảng ' + CAST(So.N AS NVARCHAR(2)) + N' - ' + MH.TenMon + N'.pdf',
+    -- Tên file
+    N'GiaoTrinh_' + MH.MaMon + N'_Phan' + CAST(So.N AS NVARCHAR(2)) + N'.pdf',
 
-    --  Link
-    'https://hcmut.edu.vn/tailieu/' + MH.MaMon,
+    -- [QUAN TRỌNG] Giả lập dữ liệu file PDF bằng cách chuyển chuỗi sang nhị phân
+    -- Thực tế sau này code web sẽ ném file thật vào đây
+    CAST(N'Đây là nội dung giả lập của file PDF môn ' + MH.TenMon AS VARBINARY(MAX)),
 
-    -- Ngày đăng: Random trong 30 ngày qua
+    -- Loại file
+    '.pdf',
+
+    -- Ngày đăng
     DATEADD(DAY, -ABS(CHECKSUM(NEWID()) % 30), CAST(GETDATE() AS DATE)),
 
-    --  Khóa ngoại Lớp học
+    -- Thông tin lớp
     LH.MaLopHoc,
     LH.MaMonHoc,
     LH.MaHocKy
 
 FROM LopHoc LH
 JOIN MonHoc MH ON LH.MaMonHoc = MH.MaMon
-
--- Nhân bản 10 lần mỗi lớp (Tạo 10 tài liệu)
-CROSS JOIN (
-    VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10)
-) AS So(N)
-
+CROSS JOIN (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10)) AS So(N)
 WHERE LH.MaHocKy = 'HK1_2526';
+
+PRINT N'-> Đã Fake thành công dữ liệu nhị phân!';
+GO
 
 -- 3. Thông báo
 DECLARE @Count INT = @@ROWCOUNT;
 PRINT N'-> Đã upload thành công ' + CAST(@Count AS NVARCHAR(10)) + N' tài liệu!';
 GO
-
