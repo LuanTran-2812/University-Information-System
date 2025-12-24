@@ -80,8 +80,10 @@ const updateProfile = async (req, res, next) => {
     const { email } = req.body; // Lấy email từ body gửi lên
     await userService.updateUserProfile(email, req.body);
     res.json({ success: true, message: 'Cập nhật hồ sơ thành công!' });
-    }
-};
+    }catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
   
 const deleteMultipleUsers = async (req, res, next) => {
   try {

@@ -275,6 +275,8 @@ const getStudentCoursesWithGrades = async (email, maHK) => {
             .query(query);
 
         return res.recordset;
+        } catch (err) { throw err; } // Đã thêm phần đóng ngoặc còn thiếu
+};
 // Lấy danh sách sinh viên trong lớp
 const getStudentsByClass = async (maLop, maHK, maMon) => {
     try {
@@ -434,4 +436,3 @@ module.exports = {
     getStudentCoursesWithGrades,
   deleteMultipleClasses, getStudentsByClass, removeStudentFromClass, getClassGradeStructure
 };
-

@@ -103,30 +103,35 @@ const getUserDetail = async (email) => {
   try {
     const pool = await getPool();
     
-    // 1. Tìm trong bảng SinhVien và JOIN với TaiKhoan để lấy mật khẩu
+    // 1. Tìm trong bảng SinhVien trước (Không cần JOIN TaiKhoan để tránh lỗi nếu DB lệch)
     let result = await pool.request()
       .input('email', sql.NVarChar, email)
       .query(`
-        SELECT sv.*, tk.MatKhau, N'Sinh viên' as VaiTro 
-        FROM SinhVien sv
-        INNER JOIN TaiKhoan tk ON sv.Email = tk.Email
-        WHERE sv.Email = @email
+        SELECT *, MSSV as MaSo, N'Sinh viên' as VaiTro, 'student' as RoleCode
+        FROM SinhVien
+        WHERE Email = @email
       `);
     
-    // 2. Nếu không thấy, tìm trong bảng GiangVien
-    if (result.recordset.length === 0) {
-      result = await pool.request()
-        .input('email', sql.NVarChar, email)
-        .query(`
-          SELECT gv.*, tk.MatKhau, N'Giảng viên' as VaiTro 
-          FROM GiangVien gv
-          INNER JOIN TaiKhoan tk ON gv.Email = tk.Email
-          WHERE gv.Email = @email
-        `);
+    if (result.recordset.length > 0) {
+        return result.recordset[0];
     }
 
-    return result.recordset[0]; // Trả về 1 đối tượng user duy nhất
+    // 2. Nếu không thấy, tìm trong bảng GiangVien
+    result = await pool.request()
+      .input('email', sql.NVarChar, email)
+      .query(`
+          SELECT *, MSCB as MaSo, N'Giảng viên' as VaiTro, 'lecturer' as RoleCode
+          FROM GiangVien
+          WHERE Email = @email
+        `);
+    
+    if (result.recordset.length > 0) {
+        return result.recordset[0];
+    }
+
+    return null; // Không tìm thấy
   } catch (err) {
+    console.error("Lỗi service getUserDetail:", err);
     throw err;
   }
 };
