@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký môn học</title>
+    <link rel="stylesheet" href="registration.css">
+
+    <!-- Material Icons (nếu không cần thì có thể bỏ) -->
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+</head> 
+<body>
+<div class="cr-page-container">
+    <!-- Banner mock data (ẩn/hiện bằng JS) -->
+    <div class="cr-mock-banner" id="cr-mock-banner" hidden>
+        <span class="material-symbols-outlined">info</span>
+        <span>Đang sử dụng dữ liệu mẫu (mock data) - thay vì dữ liệu từ database.</span>
+    </div>
+
+    <header class="cr-header">
+        <div class="cr-header-left">
+            <span class="material-symbols-outlined cr-header-icon">menu_book</span>
+            <div>
+                <h1>Đăng ký môn học</h1>
+                <p>Xem danh sách lớp học và đăng ký / hủy đăng ký.</p>
+            </div>
+        </div>
+
+        <div class="cr-header-right">
+            <div class="cr-search-wrapper">
+                <span class="material-symbols-outlined">search</span>
+                <input
+                    type="text"
+                    id="course-search-input"
+                    placeholder="Tìm theo mã lớp, mã môn, tên môn, giảng viên..."
+                >
+            </div>
+
+            <select id="course-filter-select" class="cr-filter-select">
+                <option value="all">Tất cả lớp</option>
+                <option value="registered">Chỉ lớp đã đăng ký</option>
+                <option value="unregistered">Chỉ lớp chưa đăng ký</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="cr-main">
+        <section class="cr-summary">
+            <div class="cr-summary-card">
+                <span class="label">Tổng số lớp:</span>
+                <span class="value" id="summary-total">0</span>
+            </div>
+            <div class="cr-summary-card">
+                <span class="label">Đã đăng ký:</span>
+                <span class="value" id="summary-registered">0</span>
+            </div>
+            <div class="cr-summary-card">
+                <span class="label">Chưa đăng ký:</span>
+                <span class="value" id="summary-unregistered">0</span>
+            </div>
+        </section>
+
+        <section class="cr-table-section">
+            <div class="cr-table-wrapper">
+                <table class="cr-table">
+                    <thead>
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Mã môn</th>
+                        <th>Tên môn học</th>
+                        <th>Tín chỉ</th>
+                        <th>Giảng viên</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 120px;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody id="course-table-body">
+                    <!-- JS sẽ render dữ liệu từ API hoặc mock data vào đây -->
+                    </tbody>
+                </table>
+
+                <div class="cr-empty-state" id="course-empty-state" hidden>
+                    <span class="material-symbols-outlined">info</span>
+                    <p>Không có lớp học nào để hiển thị.</p>
+                </div>
+
+                <div class="cr-loading-overlay" id="course-loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải danh sách lớp...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Cấu hình API & MSSV: chỉnh lại cho đúng project của bạn -->
+<script>
+    window.API_BASE = window.API_BASE || "http://localhost:8000"; // đổi port nếu khác
+    window.STUDENT_ID = window.STUDENT_ID || "SV1025";          // hoặc set sau khi login
+</script>
+
+<script src="registration.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<div class="schedule-page-container">
+    <div class="page-header">
+        <div class="header-left-group">
+            <span class="material-symbols-outlined icon-class" style="font-size: 28px; color: #4A90E2; margin-right: 10px;">calendar_month</span>
+            <h2 style="margin-right: 20px;">Lịch học</h2>
+        </div>
+        
+        <div class="header-actions">
+            <div class="custom-select-wrapper">
+                <div class="custom-select-trigger">
+                    <span id="selected-semester-text">Chọn học kỳ</span>
+                    <span class="material-symbols-outlined dropdown-arrow">arrow_drop_down</span>
+                </div>
+                <div class="custom-select-menu">
+                    <div class="custom-option" data-value="hk252">HK252</div>
+                    <div class="custom-option" data-value="hk251">HK251</div>
+                    <div class="custom-option" data-value="hk243">HK243</div>
+                    <div class="custom-option" data-value="hk242">HK242</div>
+                    <div class="custom-option" data-value="hk241">HK241</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h2 id="current-month-year">Tháng 10 2025</h2>
+            <div class="calendar-nav-buttons">
+                <button id="prev-month">&lt;</button>
+                <button id="next-month">&gt;</button>
+            </div>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="weekdays">
+                <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div>
+                <div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+
+            <div class="days" id="calendar-days"></div>
+        </div>
+    </div>
+</div>
+

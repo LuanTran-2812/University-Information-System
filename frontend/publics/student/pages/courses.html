@@ -1,0 +1,66 @@
+<div class="courses-page-container">
+    <div class="page-header">
+        <div class="header-left-group">
+            <span class="material-symbols-outlined icon-class">school</span>
+            <h2>Khóa học của tôi</h2>
+        </div>
+    </div>
+
+    <div class="courses-filters-bar">
+        <!-- Lọc trạng thái -->
+        <div class="custom-select-wrapper">
+        <div class="custom-select-trigger" data-value="">
+            <span id="selected-status-text">Trạng thái</span>
+            <span class="material-symbols-outlined dropdown-arrow">arrow_drop_down</span>
+        </div>
+        <div class="custom-select-menu">
+            <div class="custom-option" data-value="">Tất cả</div>
+            <div class="custom-option" data-value="Đang học">Đang học</div>
+            <div class="custom-option" data-value="Đã hoàn thành">Đã hoàn thành</div>
+        </div>
+        </div>
+
+        <!-- Lọc học kỳ -->
+        <div class="custom-select-wrapper">
+        <div class="custom-select-trigger" data-value="">
+            <span id="selected-semester-text">Học kỳ</span>
+            <span class="material-symbols-outlined dropdown-arrow">arrow_drop_down</span>
+        </div>
+        <div class="custom-select-menu">
+            <div class="custom-option" data-value="">Tất cả học kỳ</div>
+                <div class="custom-option" data-value="HK251">HK251</div>
+                <div class="custom-option" data-value="HK243">HK243</div>
+                <div class="custom-option" data-value="HK242">HK242</div>
+                <div class="custom-option" data-value="HK241">HK241</div>
+        </div>
+        </div>
+
+                <div class="custom-select-wrapper">
+            <div class="custom-select-trigger">
+                <span id="selected-semester-text">Lọc</span>
+                <span class="material-symbols-outlined dropdown-arrow">arrow_drop_down</span>
+            </div>
+            <div class="custom-select-menu">
+                <div class="custom-option" data-value="">Mặc định</div>
+                <div class="custom-option" data-value="name-asc">Tên A→Z</div>
+                <div class="custom-option" data-value="name-desc">Tên Z→A</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="courses-grid-container">
+        <div class="courses-grid">
+            <!-- JS sẽ render course cards từ API -->
+        </div>
+    </div>
+        <div class="pagination">
+        <button class="page-btn"><span class="material-symbols-outlined">chevron_left</span></button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <span class="dots">...</span>
+        <button class="page-btn">10</button>
+        <button class="page-btn"><span class="material-symbols-outlined">chevron_right</span></button>
+    </div>
+</div>
