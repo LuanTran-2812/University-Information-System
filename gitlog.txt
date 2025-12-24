@@ -1,0 +1,51 @@
+f94efe8 | TrungNguyeen | 2025-12-24 | đăng nhập admin bằng đường link đăng nhập giảng viên sinh viên bằng liveserver
+6bdbc32 | TrungNguyeen | 2025-12-24 | Merge pull request #7 from LuanTran-2812/feature/admin-management
+dbcae7d | TrungNguyeen | 2025-12-24 | Merge branch 'main' into feature/admin-management
+987824b | TrungNguyeen | 2025-12-24 | Update bosung table
+5ee7bb9 | TrungNguyeen | 2025-12-24 | Cap nhat chuc nang dang ky mon hoc
+19ab821 | LuanTran-2812 | 2025-12-24 | Merge pull request #8 from LuanTran-2812/feat/admin-search-filter
+5ed1c9d | LuanTran-2812 | 2025-12-24 | feat(admin): cập nhật validate dữ liệu input cho toàn bộ các module
+d048e17 | LuanTran-2812 | 2025-12-24 | feat(admin): Hoàn thiện chức năng lọc và tìm kiếm
+5b9fc5c | TrungNguyeen | 2025-12-23 | Update README.md
+c297372 | TrungNguyeen | 2025-12-23 | Create bosung table
+d93c812 | TrungNguyeen | 2025-12-23 | Update AddDatabase
+46a50e7 | TrungNguyeen | 2025-12-23 | Update CreateDatabase
+c9d76f1 | TrungNguyeen | 2025-12-23 | Update README.md
+49a5738 | TrungNguyeen | 2025-12-23 | Cap nhat chuc nang sua diem va tai lieu
+39be551 | Thanh Long | 2025-12-23 | merge lọc , tìm kiếm vào source chính
+938a5ea | LuanTran-2812 | 2025-12-11 | Merge pull request #6 from LuanTran-2812/feat/admin-polish
+536b89d | LuanTran-2812 | 2025-12-11 | feat(admin): Hoàn thiện điều kiện xóa cho Môn, Lớp, Lịch và Người dùng
+d5b0249 | LuanTran-2812 | 2025-12-10 | refactor(admin): Cập nhật logic và giao diện thêm/sửa lịch học
+ef764a0 | Thanh Long | 2025-12-09 | Thêm chức năng tìm kiếm và lọc admin
+99e92b8 | LuanTran-2812 | 2025-12-09 | refactor(admin): Cập nhật logic và giao diện thêm/sửa lớp học
+1de8871 | LuanTran-2812 | 2025-12-08 | refactor(admin): Cập nhật logic thêm/sửa môn học (hỗ trợ lưu vết lịch sử)
+a51ceea | LuanTran-2812 | 2025-12-06 | Merge pull request #5 from LuanTran-2812/feat/admin-polish
+25cb969 | LuanTran-2812 | 2025-12-06 | feat(admin): Hoàn thiện việc thêm - xem chi tiết người dùng
+7867e36 | LuanTran-2812 | 2025-12-05 | fix(admin): cập nhật logic lịch học theo DB và sửa dropdown chọn học kỳ
+767585c | LuanTran-2812 | 2025-12-04 | Merge pull request #3 from LuanTran-2812/feat/admin-polish
+dfdcca7 | LuanTran-2812 | 2025-12-04 | chore: cập nhật code từ main và xử lý xung đột
+22b9ae7 | LuanTran-2812 | 2025-12-04 | refactor(admin): chuyển đổi routing sang backend và áp dụng cookie auth
+03760c5 | TrungNguyeen | 2025-12-04 | Update README.md
+7f7fa12 | TrungNguyeen | 2025-12-04 | Update README.md
+c6064f0 | TrungNguyeen | 2025-12-03 | Update CreateDatabase
+4c0469d | TrungNguyeen | 2025-12-03 | Create README.md
+479bb60 | TrungNguyeen | 2025-12-03 | Create testcase
+18e34d4 | TrungNguyeen | 2025-12-03 | Create AddDatabase
+2621884 | TrungNguyeen | 2025-12-03 | Trigger
+a91c4e6 | TrungNguyeen | 2025-12-03 | Update and rename Database to CreateDatabase
+08f7ec0 | TrungNguyeen | 2025-12-03 | Create Database
+15a8d85 | LuanTran-2812 | 2025-11-22 | feat(admin): Bổ sung chức năng xóa nhiều dòng
+ca9eec4 | TrungNguyeen | 2025-11-20 | Merge pull request #4 from LuanTran-2812/feature/admin-management
+4b1883d | TrungNguyeen | 2025-11-20 | Hoan thien trang chu va lich cua giang vien
+0f51d41 | LuanTran-2812 | 2025-11-20 | fix(lop-hoc): fix lỗi dropdown và thêm mới
+664153c | LuanTran-2812 | 2025-11-20 | feat(core-modules): Hoàn thiện trang chủ, học kỳ và tinh chỉnh giao diện Admin
+f2414cd | LuanTran-2812 | 2025-11-19 | style(admin): Tinh chỉnh giao diện bảng và phân trang
+3e48086 | LuanTran-2812 | 2025-11-18 | Merge pull request #2 from LuanTran-2812/refactor/split-main-js
+9d265ba | LuanTran-2812 | 2025-11-18 | refactor: Hoàn thành tách file main.js
+c30c6a0 | TrungNguyeen | 2025-11-17 | Merge pull request #1 from LuanTran-2812/feature/admin-management
+bdf2357 | TrungNguyeen | 2025-11-17 | them chuc nang quan ly admin va API
+c2f9c52 | LuanTran-2812 | 2025-11-14 | feat(user): Hoàn thiện chức năng user
+ce16705 | LuanTran-2812 | 2025-11-14 | feat(user): Hoàn thiện giao diện user
+62f046d | LuanTran-2812 | 2025-11-12 | feat(auth): Điều hướng admin đến dashboard và logout
+e33bc19 | LuanTran-2812 | 2025-11-12 | feat(admin): Dựng khung layout admin (sidebar, trang chủ) và cấu trúc file
+bb21412 | LuanTran-2812 | 2025-11-11 | Initial commit
