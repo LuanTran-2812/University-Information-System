@@ -1,0 +1,384 @@
+<div class="information-page-container">
+    <div class="page-header">
+        <div class="header-left-group">
+            <span class="material-symbols-outlined">person</span>
+            <h2>Thông tin sinh viên</h2>
+        </div>
+        <div class="search-wrapper">
+            <div class="search-bar">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" placeholder="Tìm kiếm thông tin..." id="info-search-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-navigation">
+        <div class="tabs-wrapper">
+            <button type="button" class="tab-btn active" data-tab="personal-info">
+                <span class="material-symbols-outlined">person</span>
+                <span>Thông tin sinh viên</span>
+            </button>
+
+            <button type="button" class="tab-btn" data-tab="learning-progress">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span>Tiến độ học tập</span>
+            </button>
+
+            <button type="button" class="tab-btn" data-tab="transcript">
+                <span class="material-symbols-outlined">school</span>
+                <span>Bảng điểm</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- TAB 1: Thông tin sinh viên -->
+        <div class="tab-pane active" id="personal-info-tab">
+            <div class="personal-info-content">
+                <div class="profile-card">
+                    <div class="profile-avatar-section">
+                        <div class="avatar-wrapper">
+                            <img src="../img/image 10.png" alt="Avatar" class="profile-avatar" id="student-avatar">
+                            <button class="btn-change-avatar">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                            </button>
+                        </div>
+                        <div class="avatar-info">
+                            <h4 id="student-name">Nguyễn Văn A</h4>
+                            <p class="student-id" id="student-id">MSSV: 20123456</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value" id="email">a.nguyen@student.hcmut.edu.vn</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Địa chỉ:</span>
+                            <span class="detail-value" id="address">Quận 1, TP.HCM</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Khoa:</span>
+                            <span class="detail-value" id="faculty">Khoa học và Kỹ thuật máy tính</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Năm học:</span>
+                            <span class="detail-value" id="academic-year">2024-2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn-edit-profile">
+                            <span class="material-symbols-outlined">edit</span>
+                            Chỉnh sửa thông tin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">calendar_month</span>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Học kỳ hiện tại</h4>
+                            <p id="current-semester">HK251</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">library_books</span>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Tín chỉ tích lũy</h4>
+                            <p id="total-credits">14/132</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">star</span>
+                        </div>
+                        <div class="stat-info">
+                            <h4>Điểm trung bình</h4>
+                            <p id="overall-gpa">3.4/4.0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Tiến độ học tập -->
+        <div class="tab-pane" id="learning-progress-tab">
+            <div class="learning-progress-content">
+                <div class="progress-overview">
+                    <div class="overview-card credit-progress">
+                        <h3>Tổng số tín chỉ tích lũy</h3>
+                        <div class="progress-stats">
+                            <div class="numbers">
+                                <span class="current" id="earned-credits">14</span>
+                                <span class="total">/ 132</span>
+                            </div>
+                            <div class="percentage" id="credit-percentage">10.6%</div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="credit-progress-bar"></div>
+                        </div>
+                        <div class="progress-details">
+                            <div class="detail">
+                                <span class="label">Đã hoàn thành:</span>
+                                <span class="value" id="completed-credits">14 TC</span>
+                            </div>
+                            <div class="detail">
+                                <span class="label">Còn lại:</span>
+                                <span class="value" id="remaining-credits">118 TC</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overview-card gpa-progress">
+                        <h3>Điểm trung bình tích lũy</h3>
+                        <div class="progress-stats">
+                            <div class="numbers">
+                                <span class="current" id="current-gpa">3.4</span>
+                                <span class="total">/ 4.0</span>
+                            </div>
+                            <div class="percentage" id="gpa-percentage">85%</div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="gpa-progress-bar"></div>
+                        </div>
+                        <div class="progress-details">
+                            <div class="detail">
+                                <span class="label">Xếp loại:</span>
+                                <span class="value" id="gpa-rank">Xuất sắc</span>
+                            </div>
+                            <div class="detail">
+                                <span class="label">Xếp hạng:</span>
+                                <span class="value" id="class-rank">15/120</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gpa-trend-chart">
+                    <div class="chart-header">
+                        <h3>Biểu đồ xu hướng GPA</h3>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <span class="legend-color semester-gpa"></span>
+                                <span>ĐTB học kỳ</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color cumulative-gpa"></span>
+                                <span>ĐTB tích lũy</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-y-axis">
+                            <span>3.5</span>
+                            <span>3.4</span>
+                            <span>3.3</span>
+                            <span>3.2</span>
+                            <span>3.1</span>
+                            <span>3.0</span>
+                            <span>2.9</span>
+                            <span>2.8</span>
+                        </div>
+                        
+                        <div class="chart-content">
+                            <div class="chart-bars" id="gpa-trend-chart">
+                                <!-- Chart bars will be rendered here -->
+                            </div>
+                            
+                            <div class="chart-x-axis">
+                                <span class="semester-label">HK241</span>
+                                <span class="semester-label">HK242</span>
+                                <span class="semester-label">HK243</span>
+                                <span class="semester-label">HK244</span>
+                                <span class="semester-label">HK251</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-summary">
+                        <div class="summary-item">
+                            <span class="label">GPA cao nhất:</span>
+                            <span class="value" id="max-gpa">3.5</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">GPA thấp nhất:</span>
+                            <span class="value" id="min-gpa">3.2</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Xu hướng:</span>
+                            <span class="value trend-up" id="gpa-trend">Tăng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="semester-breakdown">
+                    <h3>Chi tiết theo học kỳ</h3>
+                    <div class="semester-cards" id="semester-cards-container">
+                        <!-- Semester cards will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Bảng điểm -->
+        <div class="tab-pane" id="transcript-tab">
+            <div class="transcript-content">
+                <div class="transcript-header">
+                    <div class="transcript-info">
+                        <h3>Bảng điểm tổng hợp</h3>
+                        <p class="transcript-subtitle">Đại học Bách Khoa - HCMUT | Chương trình đào tạo: Cử nhân</p>
+                    </div>
+                    <div class="transcript-actions">
+                        <button class="btn-print" id="btn-print-transcript">
+                            <span class="material-symbols-outlined">print</span>
+                            In bảng điểm
+                        </button>
+                        <button class="btn-download" id="btn-download-transcript">
+                            <span class="material-symbols-outlined">download</span>
+                            Tải xuống PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transcript-summary">
+                    <div class="summary-card">
+                        <span class="summary-label">Điểm trung bình tích lũy:</span>
+                        <span class="summary-value" id="transcript-gpa">3.4</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Tổng số tín chỉ:</span>
+                        <span class="summary-value" id="transcript-credits">132</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Tín chỉ tích lũy:</span>
+                        <span class="summary-value" id="transcript-earned-credits">14</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Xếp loại:</span>
+                        <span class="summary-value" id="transcript-rank">Xuất sắc</span>
+                    </div>
+                </div>
+
+                <div class="transcript-filters">
+                    <div class="filter-group">
+                        <label for="semester-filter">Học kỳ:</label>
+                        <select id="semester-filter" class="filter-select">
+                            <option value="all">Tất cả học kỳ</option>
+                            <option value="hk251">HK251 (2024-2025)</option>
+                            <option value="hk243">HK243 (2023-2024)</option>
+                            <option value="hk242">HK242 (2023-2024)</option>
+                            <option value="hk241">HK241 (2022-2023)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="grade-filter">Loại điểm:</label>
+                        <select id="grade-filter" class="filter-select">
+                            <option value="all">Tất cả điểm</option>
+                            <option value="passed">Đã đạt</option>
+                            <option value="failed">Chưa đạt</option>
+                        </select>
+                    </div>
+                    <button class="btn-apply-filters">Áp dụng</button>
+                </div>
+
+                <div class="transcript-table-container">
+                    <table class="transcript-table" id="transcript-table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã môn</th>
+                                <th>Tên môn học</th>
+                                <th>Số tín chỉ</th>
+                                <th>Điểm quá trình</th>
+                                <th>Điểm thi</th>
+                                <th>Điểm tổng kết</th>
+                                <th>Điểm chữ</th>
+                                <th>Xếp loại</th>
+                                <th>Học kỳ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transcript-table-body">
+                            <!-- Transcript data will be loaded here -->
+                            <tr>
+                                <td>1</td>
+                                <td class="subject-code">CO3005</td>
+                                <td class="subject-name">Lập trình hướng đối tượng</td>
+                                <td>3</td>
+                                <td>8.5</td>
+                                <td>7.5</td>
+                                <td>8.0</td>
+                                <td class="grade B">B</td>
+                                <td><span class="status passed">Đã đạt</span></td>
+                                <td>HK251</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td class="subject-code">CO2010</td>
+                                <td class="subject-name">Cấu trúc dữ liệu và giải thuật</td>
+                                <td>3</td>
+                                <td>9.0</td>
+                                <td>8.0</td>
+                                <td>8.5</td>
+                                <td class="grade A">A</td>
+                                <td><span class="status passed">Đã đạt</span></td>
+                                <td>HK243</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td class="subject-code">CO2003</td>
+                                <td class="subject-name">Nhập môn công nghệ phần mềm</td>
+                                <td>3</td>
+                                <td>7.5</td>
+                                <td>8.5</td>
+                                <td>8.0</td>
+                                <td class="grade B">B</td>
+                                <td><span class="status passed">Đã đạt</span></td>
+                                <td>HK242</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="10" class="transcript-footer">
+                                    <div class="footer-content">
+                                        <div class="grade-scale">
+                                            <h4>Thang điểm:</h4>
+                                            <p>A: 8.5-10 | B: 7.0-8.4 | C: 5.5-6.9 | D: 4.0-5.4 | F: 0-3.9</p>
+                                        </div>
+                                        <div class="transcript-notes">
+                                            <p><strong>Ghi chú:</strong> ĐTB được tính theo thang điểm 4</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="transcript-legend">
+                    <div class="legend-item passed">
+                        <span class="legend-color"></span>
+                        <span>Đã đạt</span>
+                    </div>
+                    <div class="legend-item failed">
+                        <span class="legend-color"></span>
+                        <span>Chưa đạt</span>
+                    </div>
+                    <div class="legend-item current">
+                        <span class="legend-color"></span>
+                        <span>Đang học</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
